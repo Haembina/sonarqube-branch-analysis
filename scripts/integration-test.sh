@@ -27,6 +27,8 @@ POLL_SECONDS=5
 container="community-branch-plugin-it-$$"
 project_key="community-branch-plugin-it"
 project_dir=$(mktemp -d)
+# The scanner container runs as its own user and writes .scannerwork into the project
+chmod 777 "${project_dir}"
 plugin_path="/opt/sonarqube/extensions/plugins/$(basename "${plugin_jar}")"
 
 cleanup() {
