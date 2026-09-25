@@ -19,9 +19,11 @@
 package com.github.mc1arke.sonarqube.plugin.ce.pullrequest;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.sonar.api.issue.IssueStatus;
 import org.sonar.ce.task.projectanalysis.analysis.AnalysisMetadataHolder;
@@ -37,7 +39,11 @@ import org.sonar.core.issue.tracking.Tracking;
 
 public class PullRequestFixedIssuesIssueVisitor extends IssueVisitor {
 
-    private static final List<IssueStatus> NON_CLOSED_ISSUE_STATUSES = List.of(IssueStatus.OPEN, IssueStatus.ACCEPTED, IssueStatus.CONFIRMED);
+    /**
+     * Statuses of issues that no longer exist on the target branch. Every other status, including the legacy
+     * {@code CONFIRMED} that SonarQube still maps older issues to, belongs to an issue a pull request can fix.
+     */
+    private static final Set<IssueStatus> CLOSED_ISSUE_STATUSES = EnumSet.of(IssueStatus.FIXED, IssueStatus.FALSE_POSITIVE, IssueStatus.IN_SANDBOX);
 
     private final PullRequestFixedIssueRepository pullRequestFixedIssueRepository;
     private final AnalysisMetadataHolder analysisMetadataHolder;
@@ -65,7 +71,7 @@ public class PullRequestFixedIssuesIssueVisitor extends IssueVisitor {
     private List<DefaultIssue> findFixedIssues(Input<DefaultIssue> rawIssues, Input<DefaultIssue> baseIssues) {
         List<DefaultIssue> nonClosedBaseIssues = baseIssues.getIssues().stream()
             .filter(issue -> Optional.ofNullable(issue.issueStatus())
-                .map(NON_CLOSED_ISSUE_STATUSES::contains)
+                .map(status -> !CLOSED_ISSUE_STATUSES.contains(status))
                 .orElse(false))
             .toList();
         Input<DefaultIssue> trackingIssues = new DefaultTrackingInput(nonClosedBaseIssues, baseIssues.getLineHashSequence(), baseIssues.getBlockHashSequence());

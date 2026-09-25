@@ -99,7 +99,7 @@ class CommunityBranchAgentTest {
         try (InputStream inputStream = MultipleAlmFeature.class.getResourceAsStream(MultipleAlmFeature.class.getSimpleName() + ".class")) {
             byte[] input = IOUtils.toByteArray(inputStream);
             byte[] result = classFileTransformerArgumentCaptor.getAllValues().get(1).transform(classLoader, MultipleAlmFeature.class.getName().replaceAll("\\.", "/"), getClass(), getClass().getProtectionDomain(), input);
-            Class<SonarQubeFeature> redefined = (Class<SonarQubeFeature>) classLoader.loadClass(MultipleAlmFeature.class.getName(), result);
+            Class<? extends SonarQubeFeature> redefined = classLoader.loadClass(MultipleAlmFeature.class.getName(), result).asSubclass(SonarQubeFeature.class);
 
             SonarRuntime sonarRuntime = mock();
 
@@ -237,7 +237,7 @@ class CommunityBranchAgentTest {
 
             CustomClassloader classLoader = new CustomClassloader();
 
-            Class<EditionProvider> redefined = (Class<EditionProvider>) classLoader.loadClass(PlatformEditionProvider.class.getName(), result);
+            Class<? extends EditionProvider> redefined = classLoader.loadClass(PlatformEditionProvider.class.getName(), result).asSubclass(EditionProvider.class);
             assertThat(redefined.getConstructor().newInstance().get()).contains(EditionProvider.Edition.DEVELOPER);
         }
 
@@ -249,7 +249,7 @@ class CommunityBranchAgentTest {
 
             SonarRuntime sonarRuntime = mock();
 
-            Class<MultipleAlmFeature> redefined = (Class<MultipleAlmFeature>) classLoader.loadClass(MultipleAlmFeature.class.getName(), result);
+            Class<? extends SonarQubeFeature> redefined = classLoader.loadClass(MultipleAlmFeature.class.getName(), result).asSubclass(SonarQubeFeature.class);
             SonarQubeFeature multipleAlmFeatureProvider = redefined.getConstructor(SonarRuntime.class).newInstance(sonarRuntime);
             assertThat(multipleAlmFeatureProvider.isAvailable()).isTrue();
         }

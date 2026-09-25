@@ -103,7 +103,7 @@ class ReportGeneratorTest {
 
         QualityGate.Condition condition2 = mock();
         when(condition2.getStatus()).thenReturn(QualityGate.EvaluationStatus.ERROR);
-        when(condition2.getMetricKey()).thenReturn(CoreMetrics.MAINTAINABILITY_ISSUES_KEY);
+        when(condition2.getMetricKey()).thenReturn(CoreMetrics.SOFTWARE_QUALITY_MAINTAINABILITY_ISSUES_KEY);
         when(condition2.getValue()).thenReturn("2");
         when(condition2.getOperator()).thenReturn(QualityGate.Operator.GREATER_THAN);
         when(condition2.getErrorThreshold()).thenReturn("0");
@@ -138,7 +138,7 @@ class ReportGeneratorTest {
 
         QualityGate.Condition condition7 = mock();
         when(condition7.getStatus()).thenReturn(QualityGate.EvaluationStatus.OK);
-        when(condition7.getMetricKey()).thenReturn(CoreMetrics.NEW_RELIABILITY_ISSUES_KEY);
+        when(condition7.getMetricKey()).thenReturn(CoreMetrics.NEW_SOFTWARE_QUALITY_RELIABILITY_ISSUES_KEY);
         when(condition7.getValue()).thenReturn("0");
         when(condition7.getOperator()).thenReturn(QualityGate.Operator.LESS_THAN);
         when(condition7.getErrorThreshold()).thenReturn("1");

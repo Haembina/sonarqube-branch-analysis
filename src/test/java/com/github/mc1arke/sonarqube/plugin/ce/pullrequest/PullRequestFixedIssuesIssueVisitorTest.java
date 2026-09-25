@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.sonar.api.issue.IssueStatus;
 import org.sonar.ce.task.projectanalysis.analysis.AnalysisMetadataHolder;
@@ -116,6 +118,38 @@ class PullRequestFixedIssuesIssueVisitorTest {
         verify(pullRequestFixedIssuesRepository).addFixedIssue(baseIssueList.get(0));
         verify(pullRequestFixedIssuesRepository).addFixedIssue(baseIssueList.get(2));
         verify(pullRequestFixedIssuesRepository).addFixedIssue(baseIssueList.get(3));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = IssueStatus.class, names = {"OPEN", "ACCEPTED", "CONFIRMED"})
+    void shouldTrackBaseIssuesThatAreStillOpen(IssueStatus issueStatus) {
+        DefaultIssue baseIssue = mockIssue(issueStatus);
+
+        assertThat(trackedBaseIssues(baseIssue)).containsExactly(baseIssue);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = IssueStatus.class, names = {"FIXED", "FALSE_POSITIVE", "IN_SANDBOX"})
+    void shouldNotTrackBaseIssuesThatAreClosed(IssueStatus issueStatus) {
+        assertThat(trackedBaseIssues(mockIssue(issueStatus))).isEmpty();
+    }
+
+    private static List<DefaultIssue> trackedBaseIssues(DefaultIssue baseIssue) {
+        AnalysisMetadataHolder analysisMetadataHolder = mock();
+        when(analysisMetadataHolder.isPullRequest()).thenReturn(true);
+        NonClosedTracking<DefaultIssue, DefaultIssue> nonClosedTracking = mock();
+        when(nonClosedTracking.getMatchedRaws()).thenReturn(Map.of());
+        when(nonClosedTracking.getUnmatchedBases()).thenReturn(Stream.empty());
+        Tracker<DefaultIssue, DefaultIssue> tracker = mock();
+        when(tracker.trackNonClosed(any(), any())).thenReturn(nonClosedTracking);
+        Input<DefaultIssue> baseIssues = mock();
+        when(baseIssues.getIssues()).thenReturn(List.of(baseIssue));
+
+        new PullRequestFixedIssuesIssueVisitor(mock(), analysisMetadataHolder, tracker).onRawIssues(mock(), mock(), baseIssues);
+
+        ArgumentCaptor<Input<DefaultIssue>> trackingIssuesCaptor = ArgumentCaptor.captor();
+        verify(tracker).trackNonClosed(any(), trackingIssuesCaptor.capture());
+        return List.copyOf(trackingIssuesCaptor.getValue().getIssues());
     }
 
     private static DefaultIssue mockIssue(IssueStatus issueStatus) {

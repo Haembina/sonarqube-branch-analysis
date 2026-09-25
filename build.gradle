@@ -25,12 +25,12 @@ plugins {
     id('net.researchgate.release') version('3.1.0')
 }
 
-group 'com.github.mc1arke.sonarqube.plugin'
+group = 'com.github.mc1arke.sonarqube.plugin'
 
 repositories {
     mavenCentral()
     ivy {
-        url 'https://binaries.sonarsource.com/'
+        url = 'https://binaries.sonarsource.com/'
         patternLayout({a ->
             artifact '/Distribution/[module]/[module]-[revision].[ext]'
         })
@@ -43,6 +43,8 @@ repositories {
 def sonarqubeVersion = '26.9.0.129388'
 def sonarqubeLibDir = "${projectDir}/sonarqube-lib"
 def sonarLibraries = "${sonarqubeLibDir}/sonarqube-${sonarqubeVersion}/lib"
+def sonarServerLibraries = fileTree(dir: sonarLibraries, include: 'sonar-application-*.jar')
+def sonarOtherLibraries = fileTree(dir: sonarLibraries, include: '**/*.jar', excludes: ['extensions/*.jar', 'sonar-application-*.jar'])
 
 java.sourceCompatibility = JavaVersion.VERSION_21
 java.targetCompatibility = JavaVersion.VERSION_21
@@ -63,8 +65,11 @@ tasks.withType(JavaCompile) {
 dependencies {
     customTestRuntime('org.wiremock:wiremock:3.13.2')
     customTestRuntime('org.kohsuke:github-api-unbridged:1.330')
-    compileOnly(fileTree(dir: sonarLibraries, include: '**/*.jar', exclude: 'extensions/*.jar'))
-    testImplementation(fileTree(dir: sonarLibraries, include: '**/*.jar', exclude: 'extensions/*.jar'))
+    // The server jar goes first: the scanner engine bundles an older copy of the plugin API that would otherwise shadow it
+    compileOnly(sonarServerLibraries)
+    compileOnly(sonarOtherLibraries)
+    testImplementation(sonarServerLibraries)
+    testImplementation(sonarOtherLibraries)
     testImplementation('org.mockito:mockito-core:5.24.0')
     testImplementation('org.assertj:assertj-core:3.27.7')
     testImplementation('org.wiremock:wiremock:3.13.2')
@@ -152,6 +157,8 @@ plugins.withType(JacocoPlugin) {
 
 test {
     useJUnitPlatform()
+    // The agent tests append to the boot class path, which class data sharing cannot cover
+    jvmArgs('-Xshare:off')
     testLogging {
         events "passed", "skipped", "failed"
     }
