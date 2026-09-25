@@ -46,14 +46,14 @@ api() {
   curl --silent --show-error --fail -u "${auth}" "$@"
 }
 
-echo "Starting sonarqube:${SONARQUBE_VERSION}-community with the candidate plugin"
+echo "Starting sonarqube:${SONARQUBE_VERSION} with the candidate plugin"
 docker run -d --name "${container}" -p "${SONARQUBE_PORT}:9000" \
   -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
   -e SONAR_WEB_JAVAADDITIONALOPTS="-javaagent:${plugin_path}=web" \
   -e SONAR_CE_JAVAADDITIONALOPTS="-javaagent:${plugin_path}=ce" \
   -v "${plugin_jar}:${plugin_path}:ro" \
   -v "${webapp_dir}:/opt/sonarqube/web:ro" \
-  "sonarqube:${SONARQUBE_VERSION}-community" >/dev/null
+  "sonarqube:${SONARQUBE_VERSION}" >/dev/null
 
 deadline=$((SECONDS + STARTUP_TIMEOUT_SECONDS))
 until curl --silent "${SONARQUBE_URL}/api/system/status" | jq -e '.status == "UP"' >/dev/null 2>&1; do
