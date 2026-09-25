@@ -57,7 +57,7 @@ class ClassReferenceElevatedClassLoaderFactoryTest {
     void shouldCreateClassloaderWhenProvidedValidArguments() throws ReflectiveOperationException, MalformedURLException {
         URLClassLoader mockClassLoader = new URLClassLoader(findSonarqubePluginJars());
         ElevatedClassLoaderFactory testCase = spy(new ClassReferenceElevatedClassLoaderFactory(getClass().getName()));
-        testCase.createClassLoader((Class<? extends Plugin>) mockClassLoader.loadClass(TARGET_PLUGIN_CLASS));
+        testCase.createClassLoader(mockClassLoader.loadClass(TARGET_PLUGIN_CLASS).asSubclass(Plugin.class));
 
         ArgumentCaptor<ClassLoader> argumentCaptor = ArgumentCaptor.captor();
         verify(testCase).createClassLoader(argumentCaptor.capture(), argumentCaptor.capture());
@@ -82,7 +82,7 @@ class ClassReferenceElevatedClassLoaderFactoryTest {
         Map<String, ClassLoader> loaders = builder.build();
         ClassLoader classLoader = loaders.get("_customPlugin");
 
-        Class<? extends Plugin> loadedClass = (Class<? extends Plugin>) classLoader.loadClass(TARGET_PLUGIN_CLASS);
+        Class<? extends Plugin> loadedClass = classLoader.loadClass(TARGET_PLUGIN_CLASS).asSubclass(Plugin.class);
 
         ClassReferenceElevatedClassLoaderFactory testCase =
                 new ClassReferenceElevatedClassLoaderFactory(ActiveRule.class.getName());

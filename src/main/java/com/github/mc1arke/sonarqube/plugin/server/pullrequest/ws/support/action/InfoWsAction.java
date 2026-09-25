@@ -23,6 +23,7 @@ import java.io.OutputStream;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.sonar.api.server.ws.Request;
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.Response.Stream;
@@ -40,9 +41,10 @@ public class InfoWsAction implements SupportWsAction {
     public InfoWsAction(UserSession userSession, InternalProperties internalProperties) {
         this.userSession = userSession;
         this.internalProperties = internalProperties;
-        this.objectMapper = new ObjectMapper()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .findAndRegisterModules();
+        this.objectMapper = JsonMapper.builder()
+                .defaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.USE_DEFAULTS))
+                .findAndAddModules()
+                .build();
     }
 
     @Override

@@ -21,6 +21,7 @@ package com.github.mc1arke.sonarqube.plugin.almclient.bitbucket;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.mc1arke.sonarqube.plugin.InvalidConfigurationException;
 import com.github.mc1arke.sonarqube.plugin.almclient.bitbucket.model.BitbucketConfiguration;
 import com.github.mc1arke.sonarqube.plugin.almclient.bitbucket.model.server.BitbucketServerConfiguration;
@@ -70,7 +71,7 @@ public class DefaultBitbucketClientFactory implements BitbucketClientFactory {
                     .orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.GLOBAL, "Client ID must be set in configuration"));
             String clientSecret = Optional.ofNullable(StringUtils.trimToNull(almSettingDto.getDecryptedClientSecret(settings.getEncryption())))
                     .orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.GLOBAL, "Client Secret must be set in configuration"));
-            String bearerToken = BitbucketCloudClient.negotiateBearerToken(clientId, clientSecret, objectMapper, clientBuilder.build());
+            String bearerToken = BitbucketCloudClient.negotiateBearerToken(clientId, clientSecret, objectMapper, httpClientBuilderFactory.createClientBuilder().build());
             return new BitbucketCloudClient(objectMapper, createAuthorisingClient(clientBuilder, bearerToken), new BitbucketConfiguration(appId, almRepo));
         } else {
             String almSlug = Optional.ofNullable(StringUtils.trimToNull(projectAlmSettingDto.getAlmSlug()))
@@ -84,15 +85,17 @@ public class DefaultBitbucketClientFactory implements BitbucketClientFactory {
     }
 
     private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        return JsonMapper.builder()
+                .defaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.USE_DEFAULTS))
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .findAndRegisterModules();
+                .findAndAddModules()
+                .build();
     }
 
     private static OkHttpClient.Builder createBaseClientBuilder(HttpClientBuilderFactory httpClientBuilderFactory) {
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(LOGGER::debug);
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        httpLoggingInterceptor.redactHeader("Authorization");
         return httpClientBuilderFactory.createClientBuilder().addInterceptor(httpLoggingInterceptor);
     }
 

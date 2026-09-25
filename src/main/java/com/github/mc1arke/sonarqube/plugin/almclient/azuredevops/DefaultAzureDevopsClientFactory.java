@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.HttpClients;
 import org.sonar.api.ce.ComputeEngineSide;
@@ -43,12 +44,13 @@ public class DefaultAzureDevopsClientFactory implements AzureDevopsClientFactory
 
     public DefaultAzureDevopsClientFactory(Settings settings) {
         this.settings = settings;
-        objectMapper = new ObjectMapper()
-                .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
-                .configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true)
-                .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper = JsonMapper.builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+                .enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT)
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .defaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.USE_DEFAULTS))
+                .build();
     }
 
     @Override

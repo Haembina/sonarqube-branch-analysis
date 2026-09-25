@@ -1,10 +1,37 @@
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mc1arke_sonarqube-community-branch-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=mc1arke_sonarqube-community-branch-plugin)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/mc1arke/sonarqube-community-branch-plugin/.github/workflows/build.yml?branch=master&logo=github)](https://github.com/mc1arke/sonarqube-community-branch-plugin?workflow=build)
-
 # SonarQube Community Branch Plugin
 
 A plugin for SonarQube to allow branch analysis and pull request decoration in the
 Community version.
+
+# This fork
+
+A private fork of [mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin),
+kept on the SonarQube Community Build release the Haembina server runs. Upstream pull requests are adapted and merged
+here; nothing is sent back upstream, and the `upstream` remote has its push URL disabled.
+
+Releases come from this repository's own GitHub releases, not from upstream or Docker Hub, so the release links below
+that name `mc1arke` do not carry this fork's versions. Take the plugin jar and `sonarqube-webapp.zip` from a release
+here and follow the manual installation steps.
+
+Every build boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request
+analysis. Without Docker, `jq` and `curl`, the script cannot start:
+
+```bash
+bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-26.9.0-SNAPSHOT.jar path/to/unzipped/webapp
+```
+
+A release is an annotated tag on `master` naming the version `gradle.properties` builds, without `-SNAPSHOT`. CI
+refuses a tag that does not match, and publishes the jar and webapp only once the integration test passes:
+
+```bash
+git tag -a 26.9.0 -m 26.9.0 && git push origin 26.9.0
+```
+
+To take a newer upstream change, fetch it and merge or cherry-pick it onto a `claude/` branch:
+
+```bash
+git fetch upstream '+refs/pull/*/head:refs/remotes/upstream/pr/*'
+```
 
 # Support
 
@@ -28,8 +55,8 @@ with previous plugin versions.
 # Features
 
 The plugin is intended to support the
-features and parameters from the SonarQube [branch](https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/branch-analysis/introduction/)
-and [pull request](https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/pull-request-analysis/introduction/) documentation.
+features and parameters from the SonarQube [branch](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/branch-analysis)
+and [pull request](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/pull-request-analysis) documentation.
 
 # Installation
 
@@ -115,7 +142,7 @@ extraInitContainers:
 
 ## Global configuration
 
-Make sure `sonar.core.serverBaseURL` in SonarQube [/admin/settings](http://localhost:9000/admin/settings) is properly
+Make sure `sonar.core.serverBaseURL` in SonarQube [/admin/settings](https://docs.sonarsource.com/sonarqube-server/instance-administration/server-base-url) is properly
 set in order to for the links in the comment to work.
 
 Set all other properties that you can define globally for all of your projects.
@@ -133,7 +160,7 @@ parameters. Otherwise, the analysis needs the following setting:
 ### Run analysis of the PR branch
 
 Carefully read the official SonarQube guide
-for [pull request decoration](https://docs.sonarqube.org/latest/analysis/pull-request/)
+for [pull request decoration](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/pull-request-analysis#decoration)
 
 In there you'll find the following properties that need to be set, unless your CI support auto-configuration.
 
