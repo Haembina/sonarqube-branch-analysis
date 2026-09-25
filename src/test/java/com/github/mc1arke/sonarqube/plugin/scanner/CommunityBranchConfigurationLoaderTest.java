@@ -37,6 +37,8 @@ import org.sonar.scanner.scan.branch.BranchConfigurationLoader;
 import org.sonar.scanner.scan.branch.DefaultBranchConfiguration;
 import org.sonar.scanner.scan.branch.ProjectBranches;
 
+import com.github.mc1arke.sonarqube.plugin.CommunityBranchPlugin;
+
 /**
  * @author Michael Clarke
  */
@@ -59,6 +61,38 @@ class CommunityBranchConfigurationLoaderTest {
         assertThat(actual).isSameAs(branchConfiguration);
         verify(branchAutoConfigurer).detectConfiguration(system2, projectBranches);
         verifyNoInteractions(branchConfigurationFactory);
+    }
+
+    @Test
+    void shouldReturnDefaultBranchWithoutAskingAutoConfigurerIfAutoConfigurationDisabled() {
+        ProjectBranches projectBranches = mock();
+
+        BranchConfiguration actual = testCase.load(Map.of(CommunityBranchPlugin.AUTO_CONFIGURATION_ENABLED, " FALSE "), projectBranches);
+
+        assertThat(actual).usingRecursiveComparison().isEqualTo(new DefaultBranchConfiguration());
+        verifyNoInteractions(branchAutoConfigurer, branchConfigurationFactory);
+    }
+
+    @Test
+    void shouldStillUseExplicitBranchIfAutoConfigurationDisabled() {
+        BranchConfiguration branchConfiguration = mock();
+        ProjectBranches projectBranches = mock();
+        when(branchConfigurationFactory.createBranchConfiguration("main", projectBranches)).thenReturn(branchConfiguration);
+
+        BranchConfiguration actual = testCase.load(Map.of(CommunityBranchPlugin.AUTO_CONFIGURATION_ENABLED, "false", "sonar.branch.name", "main"), projectBranches);
+
+        assertThat(actual).isSameAs(branchConfiguration);
+        verifyNoInteractions(branchAutoConfigurer);
+    }
+
+    @Test
+    void shouldUseAutoConfigurerIfAutoConfigurationExplicitlyEnabled() {
+        BranchConfiguration branchConfiguration = mock();
+        when(branchAutoConfigurer.detectConfiguration(any(), any())).thenReturn(Optional.of(branchConfiguration));
+
+        BranchConfiguration actual = testCase.load(Map.of(CommunityBranchPlugin.AUTO_CONFIGURATION_ENABLED, "true"), mock());
+
+        assertThat(actual).isSameAs(branchConfiguration);
     }
 
     @Test

@@ -72,6 +72,12 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
 
     public static final String IMAGE_URL_BASE = "com.github.mc1arke.sonarqube.plugin.branch.image-url-base";
 
+    /**
+     * Whether a scan with no branch or pull request parameters reads its CI environment to pick one. {@code true}
+     * unless set otherwise; with {@code false} such a scan analyses the main branch.
+     */
+    public static final String AUTO_CONFIGURATION_ENABLED = "com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled";
+
     @Override
     public String getName() {
         return "Community Branch Plugin";
@@ -152,6 +158,17 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                                           .name("Images base URL")
                                           .description("Base URL used to load the images for the PR comments (please use this only if images are not displayed properly).")
                                           .type(PropertyType.STRING)
+                                          .build(),
+                PropertyDefinition.builder(AUTO_CONFIGURATION_ENABLED)
+                                          .category(CoreProperties.CATEGORY_GENERAL)
+                                          .subCategory(CoreProperties.SUBCATEGORY_BRANCHES_AND_PULL_REQUESTS)
+                                          .onConfigScopes(ConfigScope.PROJECT)
+                                          .name("Detect branches and pull requests from CI")
+                                          .description("When a scan names no branch or pull request, read the CI environment "
+                                                + "(GitHub Actions, GitLab CI, Azure Pipelines and others) to decide which one it is. "
+                                                + "When disabled, such a scan analyses the main branch.")
+                                          .type(PropertyType.BOOLEAN)
+                                          .defaultValue("true")
                                           .build(),
                 MonoRepoFeature.class);
 
