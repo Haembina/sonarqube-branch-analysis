@@ -25,15 +25,19 @@ Every build boots the stock SonarQube image with the built jar and webapp, then 
 analysis. Without Docker, `jq` and `curl`, the script cannot start:
 
 ```bash
-bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-26.9.1-SNAPSHOT.jar path/to/unzipped/webapp
+bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-*.jar path/to/unzipped/webapp
 ```
 
-A release is an annotated tag on `master` naming the version `gradle.properties` builds, without `-SNAPSHOT`. CI
-refuses a tag that does not match, and publishes the jar and webapp only once the integration test passes:
+A release is an annotated `v` tag on `master` naming the version `gradle.properties` builds, without `-SNAPSHOT`. CI
+refuses a tag that does not match, and publishes the jar and webapp only once the integration test passes. watchcat
+reads the released version from that `v` tag, since there is no `package.json`:
 
 ```bash
-git tag -a 26.9.1 -m 26.9.1 && git push origin 26.9.1
+v=$(sed -n 's/^version=\(.*\)-SNAPSHOT$/\1/p' gradle.properties) && git tag -a "v$v" -m "v$v" && git push origin "v$v"
 ```
+
+Then move `version` in `gradle.properties` and `PLUGIN_VERSION` in `.env` to the next `-SNAPSHOT`, or the next tag
+releases the same number again.
 
 To take a newer upstream change, fetch it and merge or cherry-pick it onto a `claude/` branch:
 
