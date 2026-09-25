@@ -4,8 +4,9 @@
 # Installs the artifacts the way a manual (non-Docker) installation does: the jar in
 # extensions/plugins, the javaagent options for the web and compute engine processes,
 # and the patched webapp over /opt/sonarqube/web. It then runs a main, a branch and a
-# pull request analysis and fails when any compute engine task fails, when SonarQube
-# does not list the branch or pull request, or when a server log carries an ERROR.
+# pull request analysis, and a GitHub Actions pull request scan with CI detection on and
+# then switched off on the server. It fails when any compute engine task fails, when
+# SonarQube lists the wrong branches or pull requests, or when a server log carries an ERROR.
 #
 # Usage: scripts/integration-test.sh <plugin jar> <webapp directory>
 # Needs docker, curl and jq. Reads SONARQUBE_VERSION from .env unless it is set.
@@ -85,11 +86,14 @@ EOF
 printf '%s\n' 'function greet(name) {' '  return "Hello " + name;' '}' 'console.log(greet("integration test"));' \
   > "${project_dir}/greet.js"
 
+# Extra `docker run` options for the scanner, such as the CI variables auto-configuration reads.
+scanner_env=()
+
 # Runs one analysis and waits for its compute engine task, because the scanner reports
 # success once the report is uploaded, before the plugin has processed anything.
 analyse() {
   local output task_id task_status
-  output=$(docker run --rm --network host -v "${project_dir}:/usr/src" "${SCANNER_IMAGE}" \
+  output=$(docker run --rm --network host "${scanner_env[@]}" -v "${project_dir}:/usr/src" "${SCANNER_IMAGE}" \
     -Dsonar.host.url="${SONARQUBE_URL}" -Dsonar.token="${token}" "$@" 2>&1) \
     || { echo "${output}" >&2; return 1; }
   task_id=$(sed -n 's|.*api/ce/task?id=\([A-Za-z0-9_-]*\).*|\1|p' <<<"${output}" | tail -1)
@@ -117,22 +121,47 @@ assert_quality_gate() {
     || { echo "no quality gate computed for $1" >&2; return 1; }
 }
 
-echo "1/3 main branch"
+echo "1/5 main branch"
 analyse
 
-echo "2/3 branch feature/integration"
+echo "2/5 branch feature/integration"
 analyse -Dsonar.branch.name=feature/integration
 api "${SONARQUBE_URL}/api/project_branches/list?project=${project_key}" \
   | jq -e '.branches | any(.name == "feature/integration")' >/dev/null \
   || { echo "feature/integration is not listed as a branch" >&2; exit 1; }
 assert_quality_gate "branch=feature/integration"
 
-echo "3/3 pull request 1"
+echo "3/5 pull request 1"
 analyse -Dsonar.pullrequest.key=1 -Dsonar.pullrequest.branch=feature/pull-request -Dsonar.pullrequest.base=main
 api "${SONARQUBE_URL}/api/project_pull_requests/list?project=${project_key}" \
   | jq -e '.pullRequests | any(.key == "1")' >/dev/null \
   || { echo "pull request 1 is not listed" >&2; exit 1; }
 assert_quality_gate "pullRequest=1"
+
+# Pretends to be a GitHub Actions pull request run, which auto-configuration reads.
+github_pull_request() {
+  scanner_env=(-e GITHUB_ACTIONS=true -e "GITHUB_REF=refs/pull/$1/merge" -e GITHUB_HEAD_REF=feature/ci -e GITHUB_BASE_REF=main)
+}
+pull_request_listed() {
+  api "${SONARQUBE_URL}/api/project_pull_requests/list?project=${project_key}" \
+    | jq -e --arg key "$1" '.pullRequests | any(.key == $key)' >/dev/null
+}
+
+echo "4/5 GitHub Actions pull request 7, detected from CI by default"
+github_pull_request 7
+analyse
+pull_request_listed 7 || { echo "CI detection did not turn the scan into pull request 7" >&2; exit 1; }
+
+echo "5/5 GitHub Actions pull request 8 with CI detection switched off on the server"
+api -X POST "${SONARQUBE_URL}/api/settings/set" \
+  -d "key=com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled" -d "value=false"
+github_pull_request 8
+analyse
+scanner_env=()
+if pull_request_listed 8; then
+  echo "the scan became pull request 8 although CI detection was switched off" >&2
+  exit 1
+fi
 
 errors=$(docker exec "${container}" sh -c 'grep -h " ERROR " /opt/sonarqube/logs/web.log /opt/sonarqube/logs/ce.log || true')
 if [ -n "${errors}" ]; then
@@ -141,4 +170,4 @@ if [ -n "${errors}" ]; then
   exit 1
 fi
 
-echo "Integration test passed: main, branch and pull request analyses processed with no logged errors"
+echo "Integration test passed: main, branch and pull request analyses and the CI detection switch, with no logged errors"

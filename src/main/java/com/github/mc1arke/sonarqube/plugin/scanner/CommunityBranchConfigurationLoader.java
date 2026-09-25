@@ -37,6 +37,8 @@ import org.sonar.scanner.scan.branch.BranchConfigurationLoader;
 import org.sonar.scanner.scan.branch.DefaultBranchConfiguration;
 import org.sonar.scanner.scan.branch.ProjectBranches;
 
+import com.github.mc1arke.sonarqube.plugin.CommunityBranchPlugin;
+
 /**
  * @author Michael Clarke
  */
@@ -78,7 +80,7 @@ public class CommunityBranchConfigurationLoader implements BranchConfigurationLo
             throw MessageException.of("sonar.pullrequest and sonar.branch parameters should not be specified in the same scan");
         }
 
-        if (!hasBranchParameters && !hasPullRequestParameters) {
+        if (!hasBranchParameters && !hasPullRequestParameters && isAutoConfigurationEnabled(localSettings)) {
             for (BranchAutoConfigurer branchAutoConfigurer : autoConfigurers) {
                 Optional<BranchConfiguration> optionalBranchConfiguration = branchAutoConfigurer.detectConfiguration(system2, projectBranches);
                 if (optionalBranchConfiguration.isPresent()) {
@@ -108,6 +110,14 @@ public class CommunityBranchConfigurationLoader implements BranchConfigurationLo
         }
 
         return new DefaultBranchConfiguration();
+    }
+
+    /**
+     * Reads the server or scanner setting; anything but {@code false} leaves auto-configuration on, so a server
+     * that never set it keeps the upstream behaviour.
+     */
+    private static boolean isAutoConfigurationEnabled(Map<String, String> localSettings) {
+        return !Boolean.FALSE.toString().equalsIgnoreCase(StringUtils.trimToNull(localSettings.get(CommunityBranchPlugin.AUTO_CONFIGURATION_ENABLED)));
     }
 
 }

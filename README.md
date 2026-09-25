@@ -13,18 +13,26 @@ Releases come from this repository's own GitHub releases, not from upstream or D
 that name `mc1arke` do not carry this fork's versions. Take the plugin jar and `sonarqube-webapp.zip` from a release
 here and follow the manual installation steps.
 
+The fork adds one setting, `com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled` (Administration,
+General, Branches and Pull Requests; default `true`). Set to `false`, a scan that names no branch or pull request
+analyses the main branch instead of reading its CI environment, so CI that scans pull requests onto main keeps doing so:
+
+```bash
+curl -u "$SONAR_ADMIN_TOKEN:" -X POST "$SONAR_HOST_URL/api/settings/set" -d key=com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled -d value=false
+```
+
 Every build boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request
 analysis. Without Docker, `jq` and `curl`, the script cannot start:
 
 ```bash
-bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-26.9.0-SNAPSHOT.jar path/to/unzipped/webapp
+bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-26.9.1-SNAPSHOT.jar path/to/unzipped/webapp
 ```
 
 A release is an annotated tag on `master` naming the version `gradle.properties` builds, without `-SNAPSHOT`. CI
 refuses a tag that does not match, and publishes the jar and webapp only once the integration test passes:
 
 ```bash
-git tag -a 26.9.0 -m 26.9.0 && git push origin 26.9.0
+git tag -a 26.9.1 -m 26.9.1 && git push origin 26.9.1
 ```
 
 To take a newer upstream change, fetch it and merge or cherry-pick it onto a `claude/` branch:
