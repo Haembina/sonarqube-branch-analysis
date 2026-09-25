@@ -20,6 +20,13 @@ analysis. Without Docker, `jq` and `curl`, the script cannot start:
 bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-26.9.0-SNAPSHOT.jar path/to/unzipped/webapp
 ```
 
+A release is an annotated tag on `master` naming the version `gradle.properties` builds, without `-SNAPSHOT`. CI
+refuses a tag that does not match, and publishes the jar and webapp only once the integration test passes:
+
+```bash
+git tag -a 26.9.0 -m 26.9.0 && git push origin 26.9.0
+```
+
 To take a newer upstream change, fetch it and merge or cherry-pick it onto a `claude/` branch:
 
 ```bash
