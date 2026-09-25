@@ -1,10 +1,30 @@
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mc1arke_sonarqube-community-branch-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=mc1arke_sonarqube-community-branch-plugin)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/mc1arke/sonarqube-community-branch-plugin/.github/workflows/build.yml?branch=master&logo=github)](https://github.com/mc1arke/sonarqube-community-branch-plugin?workflow=build)
-
 # SonarQube Community Branch Plugin
 
 A plugin for SonarQube to allow branch analysis and pull request decoration in the
 Community version.
+
+# This fork
+
+A private fork of [mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin),
+kept on the SonarQube Community Build release the Haembina server runs. Upstream pull requests are adapted and merged
+here; nothing is sent back upstream, and the `upstream` remote has its push URL disabled.
+
+Releases come from this repository's own GitHub releases, not from upstream or Docker Hub, so the release links below
+that name `mc1arke` do not carry this fork's versions. Take the plugin jar and `sonarqube-webapp.zip` from a release
+here and follow the manual installation steps.
+
+Every build boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request
+analysis. Without Docker, `jq` and `curl`, the script cannot start:
+
+```bash
+bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-26.9.0-SNAPSHOT.jar path/to/unzipped/webapp
+```
+
+To take a newer upstream change, fetch it and merge or cherry-pick it onto a `claude/` branch:
+
+```bash
+git fetch upstream '+refs/pull/*/head:refs/remotes/upstream/pr/*'
+```
 
 # Support
 
