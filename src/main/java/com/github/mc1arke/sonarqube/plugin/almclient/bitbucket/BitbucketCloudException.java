@@ -19,6 +19,8 @@
 package com.github.mc1arke.sonarqube.plugin.almclient.bitbucket;
 
 public class BitbucketCloudException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     private final int code;
     private final String error;
 

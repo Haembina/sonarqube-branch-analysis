@@ -65,7 +65,7 @@ public interface ElevatedClassLoaderFactory {
         therefore marked as 'NOSONAR' to suppress the warning.
          */
         ClassLoader newPluginClassLoader =
-                URLClassLoader.newInstance(((URLClassLoader) pluginClassLoader).getURLs(), coreClassLoader); //NOSONAR
+                URLClassLoader.newInstance(((URLClassLoader) pluginClassLoader).getURLs(), coreClassLoader); //NOSONAR java:S2095 lives until JVM shutdown, as SonarQube never signals a plugin unload
         return new ClassLoader() {
             @Override
             public Class<?> loadClass(String name) throws ClassNotFoundException {

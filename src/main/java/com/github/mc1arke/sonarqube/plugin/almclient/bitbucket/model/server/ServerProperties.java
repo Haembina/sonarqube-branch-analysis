@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class ServerProperties implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     public static final String CODE_INSIGHT_VERSION = "5.15";
 
