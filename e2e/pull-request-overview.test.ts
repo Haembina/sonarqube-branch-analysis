@@ -17,7 +17,7 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { expectVisibleFocus, PROJECT, tabTo } from './sonarqube.helper';
+import { expectNoAxeViolations, expectVisibleFocus, PROJECT, tabTo } from './sonarqube.helper';
 
 test.describe('capability pull-request-overview: read the quality gate and new-code measures of a pull request', () => {
   test('shows the gate, the branches it merges and the new-code measures', async ({ page }) => {
@@ -38,6 +38,7 @@ test.describe('capability pull-request-overview: read the quality gate and new-c
     const box = await newIssues.boundingBox();
     expect(box?.width).toBeGreaterThan(0);
     expect(box?.height).toBeGreaterThan(0);
+    await expectNoAxeViolations(page);
   });
 
   test('reaches the new issues of the pull request by keyboard alone', async ({ page }) => {

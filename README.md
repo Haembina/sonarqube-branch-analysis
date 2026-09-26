@@ -149,10 +149,14 @@ locally with:
 ./gradlew pitest
 ```
 
-A command after the two paths runs against that server once its checks pass. The Playwright suite in `e2e` runs this
-way: it signs in as a user it creates, drives the branch list, the switcher, the pull request overview, the branch new
-code settings and the rename, set-as-main and delete dialogs, each also by keyboard alone, and needs Chromium from
-`npx playwright install chromium`:
+### End-to-end suite
+
+A command after the integration test's two paths runs against its server once its checks pass. The Playwright suite
+in `e2e` runs this way: it signs in as a user it creates, drives the branch list, the switcher, the pull request
+overview, the branch new code settings and the rename, set-as-main and delete dialogs, each also by keyboard alone, and
+needs Chromium from `npx playwright install chromium`. On each page and in each open dialog it runs an axe scan for
+WCAG 2.2 A and AA, and any violation fails the spec; the nodes SonarSource's webapp draws outside the addons, with what
+axe reports about each, are listed in `e2e/sonarqube.helper.ts`:
 
 ```bash
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp npm run test:e2e
