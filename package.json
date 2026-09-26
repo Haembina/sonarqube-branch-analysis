@@ -6,7 +6,7 @@
   "description": "The version, the release and the conventions gate for the Gradle-built branch plugin.",
   "scripts": {
     "lint": "npm run lint:sh",
-    "lint:sh": "shellcheck scripts/*.sh docker/*.sh sonarqube-webapp-addons/setup.sh",
+    "lint:sh": "shellcheck scripts/install-proxmox-ct.sh scripts/integration-test.sh docker/community-branch-entrypoint.sh docker/test-community-branch-entrypoint.sh sonarqube-webapp-addons/setup.sh",
     "lint:md": "markdownlint-cli2",
     "docs:fresh": "conventions-docs-fresh",
     "gate": "npm run lint && npm run lint:md"
