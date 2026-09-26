@@ -54,6 +54,11 @@ interface State {
   previouslyNonCompliantBranchNCDs?: PreviouslyNonCompliantBranchNCD[];
 }
 
+/**
+ * Table of a project's branches with each one's own new code definition, fetched with
+ * `listBranchesNewCodeDefinition` on mount and whenever `branchList` changes, plus the edit
+ * dialog and reset action. Renders nothing until branches load; a failed fetch leaves it empty.
+ */
 export default class BranchList extends React.PureComponent<Props, State> {
   mounted = false;
   state: State = {

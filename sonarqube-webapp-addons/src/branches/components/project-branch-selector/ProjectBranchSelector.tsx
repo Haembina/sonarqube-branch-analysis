@@ -40,6 +40,12 @@ enum BranchLikeFilter {
     'PullRequests' = 'pull_requests',
 }
 
+/**
+ * Button naming the current branch or pull request that opens a popover to switch: search,
+ * an all/branches/pull requests filter with optional "see all" links, and the main branch
+ * (except under the pull requests filter) above the ten most recently analyzed matches.
+ * Never-analyzed branches and pull requests are not listed.
+ */
 export default function ProjectBranchSelector(props: Readonly<ProjectBranchSelectorProps>) {
     const {
         className,

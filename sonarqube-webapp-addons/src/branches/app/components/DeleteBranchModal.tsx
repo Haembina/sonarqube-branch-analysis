@@ -36,6 +36,10 @@ interface Props {
 
 const FORM_ID = 'confirm-branch-delete-form';
 
+/**
+ * Confirmation dialog that deletes a branch or pull request via `useDeletBranchMutation`.
+ * Closes only on success; on failure it stays open with the button re-enabled.
+ */
 export default function DeleteBranchModal(props: Props) {
   const { branchLike, component, onClose } = props;
   const { mutate: deleteBranch, isPending } = useDeletBranchMutation();

@@ -58,6 +58,11 @@ interface State {
 
 const FORM_ID = 'branch-new-code-definition-setting-form';
 
+/**
+ * Dialog that sets one branch's new code definition via `setNewCodeDefinition`, where the
+ * branch cannot be its own reference. On success it toasts and calls `onClose` with the branch
+ * name and new setting; on failure it stays open. Cancel calls `onClose` with no arguments.
+ */
 export default class BranchNewCodeDefinitionSettingModal extends React.PureComponent<Props, State> {
   mounted = false;
 

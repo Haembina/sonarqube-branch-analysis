@@ -40,6 +40,7 @@ import { BranchLike } from '~sq-server-commons/types/branch-like';
 import { Component } from '~sq-server-commons/types/types';
 import BranchPurgeSetting from './BranchPurgeSetting';
 
+/** Props for {@link BranchLikeRow}; the three callbacks open the matching action dialog. */
 export interface BranchLikeRowProps {
   branchLike: BranchLike;
   component: Component;
@@ -49,6 +50,11 @@ export interface BranchLikeRowProps {
   onSetAsMain: () => void;
 }
 
+/**
+ * One table row for a branch or pull request: name, quality gate status, last analysis date,
+ * the keep-when-inactive switch (branches only, when `displayPurgeSetting` is set) and an
+ * actions menu. The main branch offers rename only; every other entry offers delete.
+ */
 function BranchLikeRow(props: BranchLikeRowProps) {
   const { branchLike, component, displayPurgeSetting } = props;
   const branchLikeDisplayName = getBranchLikeDisplayName(branchLike);

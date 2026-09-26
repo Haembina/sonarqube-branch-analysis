@@ -33,6 +33,11 @@ interface Props {
   component: Component;
 }
 
+/**
+ * Switch that excludes a branch from automatic purge of inactive branches, saved at once via
+ * `useExcludeFromPurgeMutation`. Disabled while saving and for the main branch, which is
+ * never purged; a tooltip says why.
+ */
 export default function BranchPurgeSetting(props: Props) {
   const { branch, component } = props;
   const { mutate: excludeFromPurge, isPending } = useExcludeFromPurgeMutation();

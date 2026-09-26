@@ -32,6 +32,10 @@ interface Props {
   pullRequest: PullRequest;
 }
 
+/**
+ * Bar above the pull request overview: new line count (0 when unmeasured) on the left, target
+ * and source branches on the right.
+ */
 export default function PullRequestMetaTopBar({ pullRequest, measures }: Readonly<Props>) {
   const intl = useIntl();
 

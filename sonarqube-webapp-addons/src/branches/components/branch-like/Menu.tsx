@@ -49,6 +49,11 @@ interface State {
   selectedBranchLike: BranchLike | undefined;
 }
 
+/**
+ * Branch and pull request switcher dropdown: a search box filtering branches by name and pull
+ * requests by title or key, arrow-key highlighting, and Enter or click to close and navigate
+ * to the chosen entry. Admins of a project also get a link to the branches page.
+ */
 export class Menu extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props);

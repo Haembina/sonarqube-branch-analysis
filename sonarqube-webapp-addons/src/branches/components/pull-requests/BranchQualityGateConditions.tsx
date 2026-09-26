@@ -52,6 +52,10 @@ interface Props {
   failedConditions: QualityGateStatusConditionEnhanced[];
 }
 
+/**
+ * Row of failed quality gate conditions, each a button linking to the issues, hotspots or
+ * measure drilldown behind it. Skips metrics the overview measure cards already report.
+ */
 export default function BranchQualityGateConditions(props: Readonly<Props>) {
   const { branchLike, component, failedConditions } = props;
 
@@ -94,6 +98,10 @@ interface FailedMetricProps {
   condition: QualityGateStatusConditionEnhanced;
 }
 
+/**
+ * Sentence describing one failed condition: the required rating for a rating metric, or the
+ * actual value against its threshold for any other metric.
+ */
 export function FailedMetric(props: Readonly<FailedMetricProps>) {
   const {
     condition: {
