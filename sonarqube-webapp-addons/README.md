@@ -1,6 +1,6 @@
 # sq-server-addons
 
-This library reimplements removed features from the SonarQube Community Build frontend to support the community branch plugin.
+This library reimplements removed features from the SonarQube Community Build frontend to support Haembina Branch Analysis.
 
 Most code is refactored from the [`SonarSource/sonarqube-webapp@2025.1.0.10869`](https://github.com/SonarSource/sonarqube-webapp/tree/2025.1.0.10869).
 

@@ -34,4 +34,4 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 #
-com.github.mc1arke.sonarqube.plugin.CommunityBranchPlugin
+com.haembina.branchanalysis.CommunityBranchPlugin
