@@ -41,6 +41,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | --- | --- |
 | `./gradlew build` | Compiles with javac's lint as errors, runs the suite, fails under the JaCoCo floor, builds the jar |
 | `./gradlew test` | The Java suite and its JaCoCo report in `build/reports/jacoco/test` |
+| `npm run test:addons` | The webapp addons' Jest suite, with its coverage floor and `coverage/addons/lcov.info` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with the jar and webapp and runs a main, branch and pull request analysis |
 | `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts |
 | `npm run lint:md` | markdownlint over every document |
@@ -118,7 +119,15 @@ SonarQube reads Haembina Branch Analysis as a different plugin: its key, its jar
 
 ## Testing
 
-`./gradlew build` runs the JUnit 5 suite and fails under the floor `conventions.json` declares. The integration test
+`./gradlew build` runs the JUnit 5 suite and fails under the floor `conventions.json` declares. The webapp addons'
+suites sit beside the files they cover as `*.test.tsx` and run in the submodule's own Jest setup, once its dependencies
+are installed; the run fails under the same floor:
+
+```bash
+npm run test:addons
+```
+
+The integration test
 boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request analysis.
 Without Docker, `jq` and `curl`, it cannot start:
 
