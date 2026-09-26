@@ -124,8 +124,10 @@ tasks.shadowJar.configure {
     archiveClassifier = null
 }
 
+// javac is the Java linter: every lint category fails the build except classfile, whose only findings are
+// annotations missing from the SonarQube jars on the compile classpath
 tasks.withType(JavaCompile) {
-    options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:all,-classfile' << '-Werror'
     options.deprecation = true
 }
 
@@ -143,8 +145,25 @@ jacocoTestReport {
     }
 }
 
+// The Java floor conventions.json declares; `check` fails under it
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.93
+            }
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.87
+            }
+        }
+    }
+}
+
 plugins.withType(JacocoPlugin) {
     tasks["test"].finalizedBy 'jacocoTestReport'
+    tasks["check"].dependsOn 'jacocoTestCoverageVerification'
 }
 
 test {

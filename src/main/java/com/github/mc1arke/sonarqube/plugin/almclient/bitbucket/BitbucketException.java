@@ -25,6 +25,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BitbucketException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
     public static final int PAYLOAD_TOO_LARGE = 413;
 
     private final int code;

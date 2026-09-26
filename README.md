@@ -1,127 +1,170 @@
 # SonarQube Community Branch Plugin
 
-A plugin for SonarQube to allow branch analysis and pull request decoration in the
-Community version.
+A plugin for SonarQube Community Build that adds branch analysis and pull request decoration. It is built with Java 21
+and Gradle against the SonarQube plugin API, and ships a patched SonarQube webapp whose branch pages are TypeScript and
+React in [`sonarqube-webapp-addons`](sonarqube-webapp-addons/README.md).
 
-# This fork
+This repository is Haembina's copy of
+[mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), kept on the
+SonarQube Community Build release the Haembina server runs. Changes from mc1arke's repository are adapted and merged
+here; nothing is sent back, and the `upstream` remote has its push URL disabled. Releases come from this repository's
+own GitHub releases, not from mc1arke's repository or Docker Hub.
 
-A private fork of [mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin),
-kept on the SonarQube Community Build release the Haembina server runs. Upstream pull requests are adapted and merged
-here; nothing is sent back upstream, and the `upstream` remote has its push URL disabled.
+This repository adds one setting, `com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled`
+(Administration, General, Branches and Pull Requests; default `true`). Set to `false`, a scan that names no branch or
+pull request analyses the main branch instead of reading its CI environment, so CI that scans pull requests onto main
+keeps doing so.
 
-Releases come from this repository's own GitHub releases, not from upstream or Docker Hub, so the release links below
-that name `mc1arke` do not carry this fork's versions. Take the plugin jar and `sonarqube-webapp.zip` from a release
-here and follow the manual installation steps.
+## Getting started
 
-The fork adds one setting, `com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled` (Administration,
-General, Branches and Pull Requests; default `true`). Set to `false`, a scan that names no branch or pull request
-analyses the main branch instead of reading its CI environment, so CI that scans pull requests onto main keeps doing so:
+The build needs JDK 21, the version `build.yml` runs. Gradle downloads the SonarQube distribution it compiles against
+into `sonarqube-lib` on the first build:
 
 ```bash
-curl -u "$SONAR_ADMIN_TOKEN:" -X POST "$SONAR_HOST_URL/api/settings/set" -d key=com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled -d value=false
+./gradlew build
 ```
 
-Every build boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request
-analysis. Without Docker, `jq` and `curl`, the script cannot start:
+The release and the conventions gate are npm scripts, on the Node version in [`.nvmrc`](.nvmrc). The `@haembina` scope
+installs from GitHub Packages, which `.npmrc` names:
+
+```bash
+npm ci
+```
+
+The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its setup is in
+[`sonarqube-webapp-addons/README.md`](sonarqube-webapp-addons/README.md).
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `./gradlew build` | Compiles with javac's lint as errors, runs the suite, fails under the JaCoCo floor, builds the jar |
+| `./gradlew test` | The Java suite and its JaCoCo report in `build/reports/jacoco/test` |
+| `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with the jar and webapp and runs a main, branch and pull request analysis |
+| `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts |
+| `npm run lint:md` | markdownlint over every document |
+| `npm run conventions:check` | The conventions gate |
+| `npm run version:check` | Every version mirror agrees with `package.json`, and a tag released it |
+| `npm run release` | Derives the version from the commits, writes the mirrors and the changelog, tags and pushes |
+| `bash scripts/install-proxmox-ct.sh <version>` | Installs a release on the Haembina server |
+
+## Layout
+
+| Path | Holds |
+| --- | --- |
+| `src/main/java` | The plugin: the Java agent, the compute-engine and web-server extensions, one client per ALM |
+| `src/main/resources/static` | The images pull request decorations link to |
+| `src/test` | The JUnit 5 suite and its fixtures |
+| `sonarqube-webapp-addons` | The branch and pull request pages, linked into `sonarqube-webapp` at build time |
+| `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
+| `docker` | The Docker image's entrypoint and its upgrade test |
+| `scripts` | The integration test and the Haembina server install script |
+| `docs` | Architecture, local conventions and project status |
+
+## Common tasks
+
+### Release
+
+1. Merge the changes to `master` through pull requests.
+2. Run the release from a clean `master` in sync with origin. It writes the version into `package.json`,
+   `gradle.properties` and `.env`, writes `CHANGELOG.md`, tags `v<version>` and pushes:
+
+   ```bash
+   npm run release
+   ```
+
+3. The tag runs `build.yml`, which publishes the jar and `sonarqube-webapp.zip` only once the integration test passes.
+
+### Install a release on the Haembina server
+
+1. Wait for the release's GitHub release to carry both assets.
+2. Run the install script with the version, without the `v`. It stops SonarQube for the swap, so run it while no
+   analysis is queued. Without `gh` signed in to Haembina and `ssh <proxmox host>`, it cannot start:
+
+   ```bash
+   bash scripts/install-proxmox-ct.sh <version>
+   ```
+
+### Switch off branch detection from CI
+
+1. Set the setting to `false` with an administrator token:
+
+   ```bash
+   curl -u "$SONAR_ADMIN_TOKEN:" -X POST "$SONAR_HOST_URL/api/settings/set" -d key=com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled -d value=false
+   ```
+
+### Take a change from mc1arke's repository
+
+1. Fetch its pull requests:
+
+   ```bash
+   git fetch upstream '+refs/pull/*/head:refs/remotes/upstream/pr/*'
+   ```
+
+2. Merge or cherry-pick the change onto a `claude/` branch and open a pull request here.
+
+## Testing
+
+`./gradlew build` runs the JUnit 5 suite and fails under the floor `conventions.json` declares. The integration test
+boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request analysis.
+Without Docker, `jq` and `curl`, it cannot start:
 
 ```bash
 bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-*.jar path/to/unzipped/webapp
 ```
 
-A release is an annotated `v` tag on `master` naming the version `gradle.properties` builds, without `-SNAPSHOT`. CI
-refuses a tag that does not match, and publishes the jar and webapp only once the integration test passes. watchcat
-reads the released version from that `v` tag, since there is no `package.json`:
+`build.yml` runs both on every pull request, and `ci.yml` runs the conventions gate, the linters and the dependency
+audit.
 
-```bash
-v=$(sed -n 's/^version=\(.*\)-SNAPSHOT$/\1/p' gradle.properties) && git tag -a "v$v" -m "v$v" && git push origin "v$v"
-```
+## Versioning
 
-Then move `version` in `gradle.properties` and `PLUGIN_VERSION` in `.env` to the next `-SNAPSHOT`, or the next tag
-releases the same number again.
+The version follows SemVer, derived from Conventional Commits by `npm run release`. It is the plugin's own number;
+the SonarQube Community Build it is built and tested against is `sonarqubeVersion` in `build.gradle` and the
+`sonarqube-webapp` submodule's tag. A level is what a SonarQube administrator notices:
 
-A release reaches the Haembina server with the install script, which stops SonarQube for the swap. Take the version
-from the release you just tagged; without `gh` signed in to Haembina and `ssh <proxmox host>`, it cannot start:
+- **Major**: upgrading needs more than swapping the jar and the webapp. A renamed setting or plugin key, a changed
+  `javaagent` path, or a SonarQube build no longer supported.
+- **Minor**: something new to use: a setting, an ALM, a decoration, or a newer SonarQube build.
+- **Patch**: a fix, with nothing to change on the server.
 
-```bash
-bash scripts/install-proxmox-ct.sh 26.9.1
-```
+## Deploying
 
-To take a newer upstream change, fetch it and merge or cherry-pick it onto a `claude/` branch:
+Take the plugin jar and `sonarqube-webapp.zip` from a release in this repository.
 
-```bash
-git fetch upstream '+refs/pull/*/head:refs/remotes/upstream/pr/*'
-```
-
-# Support
-
-This plugin is not maintained or supported by SonarSource and has no official upgrade path for migrating from the
-SonarQube Community Edition to any of the Commercial Editions (Developer, Enterprise, or Data Center Edition). Support
-for any problems is only available through issues on the Github repository or through alternative channels (e.g.
-StackOverflow) and any attempt to request support for this plugin directly from SonarSource or an affiliated channel (
-e.g. Sonar Community forum) is likely to result in your request being closed or ignored.
-
-If you plan on migrating your SonarQube data to a commercial edition after using this plugin then please be aware that
-this may result in some or all of your data being lost due to this compatibility of this plugin and the official
-SonarQube branch features being untested.
-
-# Compatibility
-
-The plugin major and minor versions match the SonarQube version it is compatible with,
-e.g. `25.4.0` of the plugin is compatible with SonarQube 25.4.x. Any older plugin
-version is not guaranteed to work, nor are newer SonarQube versions guaranteed to work
-with previous plugin versions.
-
-# Features
-
-The plugin is intended to support the
-features and parameters from the SonarQube [branch](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/branch-analysis)
-and [pull request](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/pull-request-analysis) documentation.
-
-# Installation
-
-## Manual Install
-
-**Please ensure you follow the installation instructions for the version of the plugin you're installing by looking at
-the README on the relevant release tag.**
-
-Either build the project
-or [download a compatible release version of the plugin JAR and associated sonarqube-webapp.zip](https://github.com/mc1arke/sonarqube-community-branch-plugin/releases)
-.
+### Manual install
 
 1. Copy the plugin JAR file to the `extensions/plugins/` directory of your SonarQube instance
 2. Add `-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=web` to
    the `sonar.web.javaAdditionalOpts` property in your SonarQube installation's `conf/sonar.properties` file,
    e.g. `sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=web`
-   where ${version} is the version of the plugin being worked with. e.g `1.8.0`
+   where ${version} is the version of the plugin being worked with.
 3. Add `-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=ce` to
    the `sonar.ce.javaAdditionalOpts` property in your SonarQube installation's `conf/sonar.properties` file,
    e.g. `sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=ce`
-4. Replace the contents of the `web` directory in your SonarQube installation with the contents of the sonarqube-webapp zip archive
+4. Replace the contents of the `web` directory in your SonarQube installation with the contents of the
+   sonarqube-webapp zip archive
 5. Start SonarQube, and accept the warning about using third-party plugins
 
-## Docker
+### Docker
 
-The plugin is distributed in
-the [mc1arke/sonarqube-with-community-branch-plugin](https://hub.docker.com/r/mc1arke/sonarqube-with-community-branch-plugin)
-Docker image, with the image versions matching the up-stream SonarQube image version.
+`Dockerfile` builds an image from this source, and `release.Dockerfile` one from a release. If you set the
+`SONAR_WEB_JAVAADDITIONALOPTS` or `SONAR_CE_JAVAADDITIONALOPTS` environment variables in your container launch, add the
+`javaagent` configuration to your overrides to match what's in the provided Dockerfile.
 
-**Note:** If you're setting the `SONAR_WEB_JAVAADDITIONALOPTS` or `SONAR_CE_JAVAADDITIONALOPTS` environment variables in
-your container launch then you'll need to add the `javaagent` configuration to your overrides to match what's in the
-provided Dockerfile.
+### Docker Compose
 
-## Docker Compose
+`docker-compose.yml` reads `SONARQUBE_VERSION`, `DOCKERFILE` and `PLUGIN_VERSION` from `.env`. To build and run a
+container with the plugin and modified frontend code:
 
-A `docker-compose.yml` file is provided.
-It uses the env variables available in `.env`.
+```bash
+docker compose up --build
+```
 
-To use it, clone the repository, create a `.env` with `SONARQUBE_VERSION` defined, and execute `docker compose up`. Note that you need to have `docker compose` installed in your system and added to your PATH.
-
-## Kubernetes with the Official Helm Chart
+### Kubernetes with the official Helm chart
 
 When using the
 [SonarQube official Helm Chart](https://github.com/SonarSource/helm-chart-sonarqube/tree/master/charts/sonarqube),
-add the following settings to your helm values, where `${version}` should be replaced with the plugin
-version (e.g. `25.4.0`).
+add the following settings to your helm values, where `${version}` should be replaced with the plugin version.
 
 ```yaml
 community:
@@ -129,7 +172,7 @@ community:
 
 plugins:
   install:
-    - https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/${version}/sonarqube-community-branch-plugin-${version}.jar
+    - https://github.com/Haembina/sonarqube-community-branch-plugin/releases/download/v${version}/sonarqube-community-branch-plugin-${version}.jar
 sonarProperties:
   sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=web"
   sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=ce"
@@ -150,53 +193,46 @@ extraInitContainers:
     command:
       - sh
       - -c
-      - wget -O /tmp/sonarqube-webapp.zip https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/${version}/sonarqube-webapp.zip &&
+      - wget -O /tmp/sonarqube-webapp.zip https://github.com/Haembina/sonarqube-community-branch-plugin/releases/download/v${version}/sonarqube-webapp.zip &&
         unzip -o /tmp/sonarqube-webapp.zip -d /web &&
         chmod -R 755 /web &&
         chown -R 1000:0 /web &&
         rm -f /tmp/sonarqube-webapp.zip
 ```
 
-# Configuration
+## Configuration
 
-## Global configuration
+### Global configuration
 
-Make sure `sonar.core.serverBaseURL` in SonarQube [/admin/settings](https://docs.sonarsource.com/sonarqube-server/instance-administration/server-base-url) is properly
-set in order to for the links in the comment to work.
+Make sure `sonar.core.serverBaseURL` in SonarQube
+[/admin/settings](https://docs.sonarsource.com/sonarqube-server/instance-administration/server-base-url) is properly set
+in order for the links in the comment to work.
 
 Set all other properties that you can define globally for all of your projects.
 
-## How to decorate a Pull Request
+### How to decorate a pull request
 
 In order to decorate your Pull Request's source branch, you need to analyze your target branch first.
-
-### Run analysis of branches
 
 If the scan is being run from a CI supporting auto-configuration then the scanner can be launched without any branch
 parameters. Otherwise, the analysis needs the following setting:
 `sonar.branch.name = branch_name (e.g master)`
 
-### Run analysis of the PR branch
+For the pull request branch, read the official SonarQube guide for
+[pull request decoration](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/pull-request-analysis#decoration).
+Unless your CI supports auto-configuration, set these properties:
 
-Carefully read the official SonarQube guide
-for [pull request decoration](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/pull-request-analysis#decoration)
-
-In there you'll find the following properties that need to be set, unless your CI support auto-configuration.
-
-```
+```properties
 sonar.pullrequest.key = pull_request_id (e.g. 100)
 sonar.pullrequest.branch = source_branch_name (e.g feature/TICKET-123)
 sonar.pullrequest.base = target_branch_name (e.g master)
 ```
 
-:warning: There must not be any `sonar.branch` properties like `sonar.branch.name` arguments set when you analyze a
-pull-request. These properties indicate to sonar that a branch is being analyzed rather than a pull-request so no
-pull-request decoration will be executed.
+There must not be any `sonar.branch` properties like `sonar.branch.name` set when you analyze a pull request. These
+properties tell SonarQube a branch is being analyzed rather than a pull request, so no decoration runs.
 
-If you are scanning a GitHub pull request, you will also need to set the `sonar.scm.revision` argument.
-
-For example, using the official [SonarQube Scan](https://github.com/marketplace/actions/official-sonarqube-scan)
-on GitHub Actions:
+If you are scanning a GitHub pull request, you will also need to set the `sonar.scm.revision` argument. For example,
+using the official [SonarQube Scan](https://github.com/marketplace/actions/official-sonarqube-scan) on GitHub Actions:
 
 ```yaml
 - name: SonarQube Scan
@@ -209,30 +245,51 @@ on GitHub Actions:
     SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 ```
 
-## Serving images for PR decoration
+### Serving images for pull request decoration
 
-By default, images for PR decoration are served as static resources on the SonarQube server as a part of Community
-Branch Plugin.
+By default, images for decoration are served as static resources on the SonarQube server as part of this plugin.
 
-If you use a SonarQube server behind a firewall and/or PR service (Github, Gitlab etc.) doesn't have access to SonarQube
-server, you should change `Images base URL` property in `General > Pull Request` settings.
+If your SonarQube server sits behind a firewall, or the ALM cannot reach it, change the `Images base URL` property in
+`General > Pull Request` settings to a location the ALM can reach, and copy the files under
+`src/main/resources/static` there.
 
-Anyone needing to set this value can use the
-URL `https://raw.githubusercontent.com/mc1arke/sonarqube-community-branch-plugin/master/src/main/resources/static`, or
-download the files from this location and host them themself.
+## Support
 
-# Building the plugin from source
+This plugin is not maintained or supported by SonarSource and has no official upgrade path for migrating from the
+SonarQube Community Build to any of the commercial editions (Developer, Enterprise, or Data Center Edition). Support
+for any problems is only available through issues on this repository. Any attempt to request support for this plugin
+from SonarSource or an affiliated channel (e.g. the Sonar Community forum) is likely to result in your request being
+closed or ignored.
 
-Run the following command to build and run a container with the plugin and modified frontend code:
+If you plan on migrating your SonarQube data to a commercial edition after using this plugin, be aware that this may
+result in some or all of your data being lost, as the compatibility of this plugin with the official branch features is
+untested.
 
-```bash
-docker compose up --build
-```
+## Where this bites
 
-# License
+- A jar and a webapp from different releases load, and the branch pages then fail at runtime. Install both from the
+  same release.
+- Without both `javaagent` lines in `conf/sonar.properties`, SonarQube starts with the plugin listed and no branch
+  support. `grep javaAdditionalOpts conf/sonar.properties` shows whether they are there.
+- A hand-edited version in `gradle.properties` makes `build.yml` refuse the tag. `npm run version:check` names the
+  mirror that disagrees.
+- With CI detection left on, a CI scan of a pull request lands on that pull request instead of main, and main stops
+  moving. The Haembina server keeps the setting `false`.
+
+## License
 
 The plugin is licensed under the GNU Lesser General Public License, version 3 ([LICENSE](LICENSE)), which adds
 permissions to the GNU General Public License, version 3 ([COPYING](COPYING)). It is derived from
 [mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin),
 Copyright (C) 2020-2026 Michael Clarke, and modified by Haembina since 2026-09-25; [NOTICE](NOTICE) says who holds
 what.
+
+## Further reading
+
+- [Architecture](docs/architecture.md): how the agent, the extensions and the webapp fit together
+- [Conventions](docs/conventions.md): the local kind set and naming
+- [Project status](docs/project-status.md): where the work stands
+- [Webapp addons](sonarqube-webapp-addons/README.md): building the branch pages
+- [Changelog](CHANGELOG.md)
+- Agent instructions
+- [License](LICENSE) and [Notice](NOTICE)

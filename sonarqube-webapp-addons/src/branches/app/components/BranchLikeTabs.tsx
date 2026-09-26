@@ -43,6 +43,7 @@ interface Props {
   fetchComponent: () => Promise<void>;
 }
 
+/** The two tabs of the project branches page. */
 export enum Tabs {
   Branch,
   PullRequest,
@@ -73,6 +74,11 @@ const TABS = [
   },
 ];
 
+/**
+ * Branches and pull requests tabs of the project branches page, fetched with
+ * `useProjectBranchesQuery` and sorted, plus the delete, rename and set-as-main dialogs.
+ * Calls `fetchComponent` after the main branch changes so the page reloads the project.
+ */
 export default function BranchLikeTabs(props: Props) {
   const { component, fetchComponent } = props;
   const [currentTab, setCurrentTab] = useState<Tabs>(Tabs.Branch);

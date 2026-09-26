@@ -20,6 +20,7 @@
 package com.github.mc1arke.sonarqube.plugin;
 
 public class InvalidConfigurationException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
     private final Scope scope;
 

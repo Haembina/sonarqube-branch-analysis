@@ -28,11 +28,16 @@ import { Component } from '~sq-server-commons/types/types';
 import BranchLikeTabs from './components/BranchLikeTabs';
 import LifetimeInformation from './components/LifetimeInformation';
 
+/** Props for {@link ProjectBranchesApp}; both are supplied by the component context. */
 export interface ProjectBranchesAppProps {
   component: Component;
   fetchComponent: () => Promise<void>;
 }
 
+/**
+ * The project "Branches and Pull Requests" page: the lifetime notice and the branch and pull
+ * request tabs. Exported wrapped so the project component and its branches come from context.
+ */
 function ProjectBranchesApp(props: ProjectBranchesAppProps) {
   const { component, fetchComponent } = props;
   const intl = useIntl();

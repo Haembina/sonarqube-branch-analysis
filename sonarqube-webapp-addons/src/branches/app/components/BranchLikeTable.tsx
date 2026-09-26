@@ -31,6 +31,7 @@ import BranchLikeRow from './BranchLikeRow';
 const COLUMN_WIDTHS_WITH_PURGE_SETTING = ['auto', '10%', '15%', '15%', '5%'];
 const COLUMN_WIDTHS_WITHOUT_PURGE_SETTING = ['auto', '10%', '15%', '5%'];
 
+/** Props for {@link BranchLikeTable}; `title` heads the name column. */
 export interface BranchLikeTableProps {
   branchLikes: BranchLike[];
   component: Component;
@@ -41,6 +42,10 @@ export interface BranchLikeTableProps {
   title: string;
 }
 
+/**
+ * Table of branches or pull requests in the order given, one {@link BranchLikeRow} each. The
+ * keep-when-inactive column appears only when `displayPurgeSetting` is set.
+ */
 function BranchLikeTable(props: BranchLikeTableProps) {
   const { branchLikes, component, displayPurgeSetting, title } = props;
 

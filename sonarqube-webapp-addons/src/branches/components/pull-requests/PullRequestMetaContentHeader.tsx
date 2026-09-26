@@ -35,6 +35,10 @@ interface Props {
   pullRequest: PullRequest;
 }
 
+/**
+ * Metadata line under the pull request title: last analysis date (when analyzed), new line
+ * count (0 when unmeasured) and the target and source branches.
+ */
 export function PullRequestMetaContentHeader({ measures, pullRequest }: Readonly<Props>) {
   return (
     <>

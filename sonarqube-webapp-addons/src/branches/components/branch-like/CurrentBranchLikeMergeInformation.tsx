@@ -23,10 +23,15 @@ import * as React from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { PullRequest } from '~shared/types/branch-like';
 
+/** Props for {@link CurrentBranchLikeMergeInformation}. */
 export interface CurrentBranchLikeMergeInformationProps {
   pullRequest: PullRequest;
 }
 
+/**
+ * One truncated line naming the target and source branches of a pull request ("for merge into
+ * X from Y"), with the full text as its hover title.
+ */
 export function CurrentBranchLikeMergeInformation({
   pullRequest,
 }: Readonly<CurrentBranchLikeMergeInformationProps>) {

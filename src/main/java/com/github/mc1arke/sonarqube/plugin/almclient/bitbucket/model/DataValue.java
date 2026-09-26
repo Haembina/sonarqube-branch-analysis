@@ -29,6 +29,8 @@ import java.math.BigDecimal;
 public interface DataValue extends Serializable {
 
     class Link implements DataValue {
+        private static final long serialVersionUID = 1L;
+
         private final String linktext;
         private final String href;
 
@@ -48,6 +50,8 @@ public interface DataValue extends Serializable {
     }
 
     class CloudLink implements DataValue {
+        private static final long serialVersionUID = 1L;
+
         private final String text;
         private final String href;
 
@@ -67,6 +71,8 @@ public interface DataValue extends Serializable {
     }
 
     class Text implements DataValue {
+        private static final long serialVersionUID = 1L;
+
         private final String value;
 
         @JsonCreator
@@ -81,6 +87,7 @@ public interface DataValue extends Serializable {
     }
 
     class Percentage implements DataValue {
+        private static final long serialVersionUID = 1L;
 
         private final BigDecimal value;
 

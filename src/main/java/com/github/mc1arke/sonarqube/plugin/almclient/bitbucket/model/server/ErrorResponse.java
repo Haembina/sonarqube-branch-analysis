@@ -23,14 +23,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
 public class ErrorResponse implements Serializable {
-    private final Set<Error> errors;
+    private static final long serialVersionUID = 1L;
+
+    private final LinkedHashSet<Error> errors;
 
     public ErrorResponse(@JsonProperty("errors") Set<Error> errors) {
-        this.errors = errors;
+        this.errors = Optional.ofNullable(errors).map(LinkedHashSet::new).orElse(null);
     }
 
     public Set<Error> getErrors() {
@@ -38,6 +41,7 @@ public class ErrorResponse implements Serializable {
     }
 
     public static class Error implements Serializable {
+        private static final long serialVersionUID = 1L;
 
         private final String message;
 
