@@ -16,8 +16,8 @@ to [Semantic Versioning](https://semver.org/).
 
 * **BREAKING** rename the plugin Haembina Branch Analysis
 
-## [26.9.1](https://github.com/Haembina/sonarqube-community-branch-plugin/compare/v26.9.0...v26.9.1) (2026-09-25)
+## 26.9.1 (2026-09-25)
 
 ### Features
 
-* a server setting that switches off branch detection from CI ([4488f9e](https://github.com/Haembina/sonarqube-community-branch-plugin/commit/4488f9e4f29f2b8441a8bc1499d7623e70886917))
+* a server setting that switches off branch detection from CI
