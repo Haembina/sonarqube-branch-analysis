@@ -39,6 +39,13 @@ v=$(sed -n 's/^version=\(.*\)-SNAPSHOT$/\1/p' gradle.properties) && git tag -a "
 Then move `version` in `gradle.properties` and `PLUGIN_VERSION` in `.env` to the next `-SNAPSHOT`, or the next tag
 releases the same number again.
 
+A release reaches the Haembina server with the install script, which stops SonarQube for the swap. Take the version
+from the release you just tagged; without `gh` signed in to Haembina and `ssh <proxmox host>`, it cannot start:
+
+```bash
+bash scripts/install-proxmox-ct.sh 26.9.1
+```
+
 To take a newer upstream change, fetch it and merge or cherry-pick it onto a `claude/` branch:
 
 ```bash
