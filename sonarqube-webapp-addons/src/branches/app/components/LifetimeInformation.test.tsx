@@ -53,7 +53,7 @@ it('shows nothing when the setting cannot be read', async () => {
 });
 
 it('ignores an answer that arrives after the page is gone', async () => {
-  let answer: (value: { key: string; value: string }) => void = () => undefined;
+  let answer: ((value: { key: string; value: string }) => void) | undefined;
   jest.mocked(getValue).mockReturnValueOnce(
     new Promise((resolve) => {
       answer = resolve;
@@ -62,7 +62,7 @@ it('ignores an answer that arrives after the page is gone', async () => {
   const { unmount } = renderComponent(<LifetimeInformation />);
 
   unmount();
-  answer({ key: SettingsKey.DaysBeforeDeletingInactiveBranchesAndPRs, value: '30' });
+  answer?.({ key: SettingsKey.DaysBeforeDeletingInactiveBranchesAndPRs, value: '30' });
 
   await waitFor(() => {
     expect(getValue).toHaveBeenCalled();
