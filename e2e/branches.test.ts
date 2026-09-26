@@ -20,6 +20,7 @@ import { expect, test } from '@playwright/test';
 import {
   BRANCH,
   CI_PULL_REQUEST,
+  expectNoAxeViolations,
   expectVisibleFocus,
   openBranchesPage,
   PULL_REQUEST,
@@ -30,6 +31,7 @@ import {
 test.describe('capability list-branches: see every branch and pull request of a project', () => {
   test('lists the branches, main first, then the pull requests on their tab', async ({ page }) => {
     await openBranchesPage(page);
+    await expectNoAxeViolations(page);
 
     await expect(page).toHaveTitle(/Branches & Pull Requests/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -53,6 +55,7 @@ test.describe('capability list-branches: see every branch and pull request of a 
     await expect(rowOf(page, PULL_REQUEST)).toBeVisible();
     await expect(rowOf(page, CI_PULL_REQUEST)).toBeVisible();
     await expect(rowOf(page, BRANCH)).toHaveCount(0);
+    await expectNoAxeViolations(page);
   });
 
   test('switches tabs by keyboard alone, and only when asked', async ({ page }) => {
@@ -72,7 +75,9 @@ test.describe('capability list-branches: see every branch and pull request of a 
 
   test('keeps a branch when it is inactive, from its switch', async ({ page }) => {
     await openBranchesPage(page);
-    const keep = rowOf(page, BRANCH).getByRole('switch');
+    const keep = rowOf(page, BRANCH).getByRole('switch', {
+      name: `Keep when inactive: ${BRANCH}`,
+    });
     const kept = await keep.isChecked();
 
     await tabTo(page, keep);

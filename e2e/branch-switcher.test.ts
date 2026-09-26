@@ -17,13 +17,19 @@
  */
 
 import { expect, test, type Page } from '@playwright/test';
-import { BRANCH, expectVisibleFocus, PROJECT, PULL_REQUEST, tabTo } from './sonarqube.helper';
+import {
+  BRANCH,
+  expectNoAxeViolations,
+  expectVisibleFocus,
+  OPEN_DIALOG,
+  PROJECT,
+  PULL_REQUEST,
+  tabTo,
+} from './sonarqube.helper';
 
-/** The switcher's popover: a dialog whose heading, not its name, says what it is. */
+/** The switcher's popover: a dialog named, like its heading, for what it lists. */
 function switcherOf(page: Page) {
-  return page
-    .getByRole('dialog')
-    .filter({ has: page.getByRole('heading', { name: 'Branches and pull requests' }) });
+  return page.getByRole('dialog', { name: 'Branches and pull requests' });
 }
 
 async function openSwitcher(page: Page) {
@@ -38,6 +44,7 @@ async function openSwitcher(page: Page) {
 test.describe('capability switch-branch: open another branch or pull request of a project', () => {
   test('lists main first and opens the branch a user picks', async ({ page }) => {
     const { popover } = await openSwitcher(page);
+    await expectNoAxeViolations(page, OPEN_DIALOG);
 
     await expect(popover.getByRole('listitem').first()).toContainText('main');
     // A second way to the branches page, beside the project's own navigation.
@@ -69,12 +76,15 @@ test.describe('capability switch-branch: open another branch or pull request of 
     await popover.getByRole('searchbox').fill('');
     await popover.getByRole('radio', { name: 'Pull Requests' }).click();
     await expect(popover.getByRole('link', { name: new RegExp(PULL_REQUEST) })).toBeVisible();
+    await expectNoAxeViolations(page, OPEN_DIALOG);
     await expect(popover.getByRole('link', { name: new RegExp(BRANCH) })).toHaveCount(0);
   });
 
   test('opens, walks and leaves by keyboard alone', async ({ page }) => {
     await page.goto(`/dashboard?id=${PROJECT}`);
     const button = page.getByRole('button', { name: 'main', exact: true });
+    await expect(button).toBeVisible();
+    await expectNoAxeViolations(page);
 
     await tabTo(page, button);
     await expectVisibleFocus(page);

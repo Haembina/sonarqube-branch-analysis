@@ -17,7 +17,15 @@
  */
 
 import { expect, test, type Page } from '@playwright/test';
-import { arrowTo, BRANCH, expectVisibleFocus, PROJECT, tabTo } from './sonarqube.helper';
+import {
+  arrowTo,
+  BRANCH,
+  expectNoAxeViolations,
+  expectVisibleFocus,
+  OPEN_DIALOG,
+  PROJECT,
+  tabTo,
+} from './sonarqube.helper';
 
 /** The fixture branch's row: its name sits beside an icon, not in an element of its own. */
 const branchRow = (page: Page) => page.getByRole('row').filter({ hasText: BRANCH });
@@ -31,6 +39,7 @@ test.describe('capability set-branch-new-code: give a branch its own new code de
       page.getByRole('heading', { name: 'Set a specific setting for a branch' }),
     ).toBeVisible();
     await expect(branchRow(page)).toContainText('Project setting');
+    await expectNoAxeViolations(page);
 
     await tabTo(page, branchRow(page).getByRole('button', { name: `Edit ${BRANCH}` }));
     await expectVisibleFocus(page);
@@ -38,6 +47,7 @@ test.describe('capability set-branch-new-code: give a branch its own new code de
     const dialog = page.getByRole('dialog', { name: `New Code for ${BRANCH}` });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled();
+    await expectNoAxeViolations(page, OPEN_DIALOG);
 
     // Tab enters the group of choices at its first; the arrows move between them.
     const days = dialog.getByRole('radio', { name: /Number of days/ });

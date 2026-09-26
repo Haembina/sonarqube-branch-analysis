@@ -86,7 +86,10 @@ function renderSelector(
 async function open() {
   const user = userEvent.setup();
   await user.click(screen.getByRole('button', { name: /main/ }));
-  return { user, popover: await screen.findByRole('dialog') };
+  return {
+    user,
+    popover: await screen.findByRole('dialog', { name: 'project_branch_selector.title' }),
+  };
 }
 
 describe('capability switch-branch: open another branch or pull request of a project', () => {

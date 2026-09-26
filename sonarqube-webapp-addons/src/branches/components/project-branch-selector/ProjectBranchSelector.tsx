@@ -84,6 +84,7 @@ export default function ProjectBranchSelector(props: Readonly<ProjectBranchSelec
 
     return (
         <StyledPopover
+            contentProps={{ 'aria-label': formatMessage({ id: 'project_branch_selector.title' }) }}
             extraContent={
                 <div className="sw-mt-4">
                     <SearchInput
