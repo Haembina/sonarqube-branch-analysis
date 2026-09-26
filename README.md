@@ -47,7 +47,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `npm run conventions:check` | The conventions gate |
 | `npm run version:check` | Every version mirror agrees with `package.json`, and a tag released it |
 | `npm run release` | Derives the version from the commits, writes the mirrors and the changelog, tags and pushes |
-| `bash scripts/install-proxmox-ct.sh <version>` | Installs a release on the Haembina server |
+| `bash scripts/install-proxmox-ct.sh <version> <host> <ct> <url>` | Installs a release on a SonarQube in a Proxmox container |
 
 ## Layout
 
@@ -59,7 +59,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `sonarqube-webapp-addons` | The branch and pull request pages, linked into `sonarqube-webapp` at build time |
 | `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
 | `docker` | The Docker image's entrypoint and its upgrade test |
-| `scripts` | The integration test and the Haembina server install script |
+| `scripts` | The integration test and the Proxmox container install script |
 | `docs` | Architecture, local conventions and project status |
 
 ## Common tasks
@@ -76,14 +76,15 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 
 3. The tag runs `build.yml`, which publishes the jar and `sonarqube-webapp.zip` only once the integration test passes.
 
-### Install a release on the Haembina server
+### Install a release on SonarQube in a Proxmox container
 
 1. Wait for the release's GitHub release to carry both assets.
-2. Run the install script with the version, without the `v`. It stops SonarQube for the swap, so run it while no
-   analysis is queued. Without `gh` signed in to Haembina and `ssh <proxmox host>`, it cannot start:
+2. Run the install script with the version, without the `v`, the Proxmox host as `ssh` reaches it, the container id
+   and the SonarQube URL. It stops SonarQube for the swap, so run it while no
+   analysis is queued. Without `gh` able to read this repository and `ssh` to the host, it cannot start:
 
    ```bash
-   bash scripts/install-proxmox-ct.sh <version>
+   bash scripts/install-proxmox-ct.sh <version> <proxmox host> <container id> <sonarqube url>
    ```
 
 ### Switch off branch detection from CI
