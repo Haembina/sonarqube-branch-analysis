@@ -26,3 +26,6 @@
 
 #Node
 /node_modules/
+
+#SonarQube scanner
+/.scannerwork/

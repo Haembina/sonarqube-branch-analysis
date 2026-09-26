@@ -146,6 +146,15 @@ jacocoTestReport {
     }
 }
 
+// The jars the Java analyzer resolves types against beside sonarqube-lib, which sonar-project.properties names:
+// the scanner reads files on disk and cannot ask Gradle for its classpath
+tasks.register('sonarLibraries', Sync) {
+    from(files(configurations.compileClasspath, configurations.testCompileClasspath).filter { jar ->
+        !jar.path.startsWith(file(sonarqubeLibDir).path)
+    })
+    into(layout.buildDirectory.dir('sonar-libraries'))
+}
+
 // The Java floor conventions.json declares; `check` fails under it
 jacocoTestCoverageVerification {
     violationRules {

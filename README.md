@@ -41,6 +41,8 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | --- | --- |
 | `./gradlew build` | Compiles with javac's lint as errors, runs the suite, fails under the JaCoCo floor, builds the jar |
 | `./gradlew test` | The Java suite and its JaCoCo report in `build/reports/jacoco/test` |
+| `npm test` | The Java suite with its JaCoCo floor, and the jars the SonarQube scan resolves types against |
+| `npm run sonar:ceiling` | Fails when the SonarQube project's open issues rise above `issues.ceiling` in `conventions.json` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with the jar and webapp and runs a main, branch and pull request analysis |
 | `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts |
 | `npm run lint:md` | markdownlint over every document |
@@ -126,8 +128,9 @@ Without Docker, `jq` and `curl`, it cannot start:
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
 ```
 
-`build.yml` runs both on every pull request, and `ci.yml` runs the conventions gate, the linters and the dependency
-audit.
+`build.yml` runs both on every pull request, and `ci.yml` runs the conventions gate, the linters, `npm test` and the
+dependency audit, then scans the tree on the estate SonarQube with `sonar-project.properties`. The scan reads the
+classes and the JaCoCo report `npm test` writes; without them the Java analysis has no types and no coverage.
 
 ## Versioning
 

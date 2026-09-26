@@ -11,7 +11,9 @@ and pull request analysis through it. The server keeps `auto-configuration.enabl
 no branch land on main.
 
 The repository has adopted the conventions record. `build.yml` builds, tests and releases the plugin; `ci.yml` runs the
-conventions gate beside it. No analysis server scans this repository yet, so `ci.yml` runs no SonarQube step.
+conventions gate, the Java suite and the SonarQube scan on ct 102 beside it. The scan's open issues are `java:S2143`
+findings where jjwt, github-api and SonarQube's `ComponentDto` take a `java.util.Date`; `npm run sonar:ceiling` holds
+their count to the record's `issues.ceiling`.
 
 The plugin is Haembina Branch Analysis: package `com.haembina.branchanalysis`, plugin key `haembinabranchanalysis`,
 setting keys under `com.haembina.branchanalysis.`. The class names still carry mc1arke's `CommunityBranch` prefix.
