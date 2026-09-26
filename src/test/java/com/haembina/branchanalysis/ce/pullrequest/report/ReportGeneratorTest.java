@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.sonar.api.ce.posttask.Project;
 import org.sonar.api.ce.posttask.QualityGate;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.issue.IssueStatus;
@@ -170,9 +169,6 @@ class ReportGeneratorTest {
             .filter(condition -> condition.getMetricKey().equals(i.getArgument(0, String.class)))
             .findFirst());
         when(analysisDetails.getQualityGateStatus()).thenReturn(QualityGate.Status.ERROR);
-
-        Project project = mock();
-        when(project.getKey()).thenReturn("Project Key");
 
         Component rootComponent = mock();
         when(treeRootHolder.getRoot()).thenReturn(rootComponent);

@@ -89,7 +89,7 @@ public class BitbucketPullRequestDecorator implements PullRequestBuildStatusDeco
             CodeInsightsReport codeInsightsReport = client.createCodeInsightsReport(
                     toReport(client, analysisSummary),
                     reportDescription(analysisDetails, analysisSummary),
-                    analysisDetails.getAnalysisDate().toInstant(),
+                    analysisDetails.getAnalysisDate(),
                     analysisSummary.getDashboardUrl(),
                     analysisSummary.getSummaryImageUrl(),
                     analysisDetails.getQualityGateStatus() == QualityGate.Status.OK ? ReportStatus.PASSED : ReportStatus.FAILED

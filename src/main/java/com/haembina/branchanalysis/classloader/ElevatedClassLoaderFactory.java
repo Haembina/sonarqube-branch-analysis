@@ -24,7 +24,7 @@ import org.sonar.api.Plugin;
 import java.net.URLClassLoader;
 
 /**
- * @author Michael Clarke
+ * Creates the class loader the scanner-side plugin classes load through, so they can see SonarQube's core types.
  */
 public interface ElevatedClassLoaderFactory {
 
@@ -53,7 +53,7 @@ public interface ElevatedClassLoaderFactory {
      */
     /*package*/
     default ClassLoader createClassLoader(ClassLoader pluginClassLoader, ClassLoader coreClassLoader) {
-        if (!(pluginClassLoader instanceof URLClassLoader)) {
+        if (!(pluginClassLoader instanceof URLClassLoader urlPluginClassLoader)) {
             throw new IllegalStateException(String.format("Incorrect ClassLoader type. Expected '%s' but got '%s'",
                                                           URLClassLoader.class.getName(),
                                                           pluginClassLoader.getClass().getName()));
@@ -66,7 +66,7 @@ public interface ElevatedClassLoaderFactory {
         therefore marked as 'NOSONAR' to suppress the warning.
          */
         ClassLoader newPluginClassLoader =
-                URLClassLoader.newInstance(((URLClassLoader) pluginClassLoader).getURLs(), coreClassLoader); //NOSONAR java:S2095 lives until JVM shutdown, as SonarQube never signals a plugin unload
+                URLClassLoader.newInstance(urlPluginClassLoader.getURLs(), coreClassLoader); //NOSONAR java:S2095 lives until JVM shutdown, as SonarQube never signals a plugin unload
         return new ClassLoader() {
             @Override
             public Class<?> loadClass(String name) throws ClassNotFoundException {

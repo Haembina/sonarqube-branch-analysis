@@ -26,3 +26,7 @@
 
 #Node
 /node_modules/
+/coverage/
+
+#SonarQube scanner
+/.scannerwork/

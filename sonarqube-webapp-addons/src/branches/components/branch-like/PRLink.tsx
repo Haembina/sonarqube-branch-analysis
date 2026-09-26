@@ -19,8 +19,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { Button, LinkStandalone, Tooltip, TooltipSide } from '@sonarsource/echoes-react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { Button, Tooltip, TooltipSide } from '@sonarsource/echoes-react';
+import { FormattedMessage } from 'react-intl';
 import { Image } from '~adapters/components/common/Image';
 import { isDefined, isStringDefined } from '~shared/helpers/types';
 import { PullRequest } from '~shared/types/branch-like';
@@ -45,47 +45,6 @@ function getPRUrlAlmKey(url = '') {
   }
 
   return undefined;
-}
-
-/**
- * Link to a pull request on its DevOps platform, with the platform's logo when the binding or
- * the URL identifies it. Renders nothing when the pull request has no URL.
- */
-export function PRLinkLegacy({
-  currentBranchLike,
-  component,
-}: Readonly<{
-  component: Component;
-  currentBranchLike: PullRequest;
-}>) {
-  const intl = useIntl();
-  const almKey = component.alm?.key || getPRUrlAlmKey(currentBranchLike.url) || '';
-
-  return (
-    <>
-      {isDefined(currentBranchLike.url) && (
-        <LinkStandalone
-          iconLeft={
-            almKey !== '' && (
-              <Image
-                alt={almKey}
-                height={16}
-                src={`/images/alm/${almKey}.svg`}
-                title={intl.formatMessage(
-                  { id: 'branches.see_the_pr_on_x' },
-                  { dop: intl.formatMessage({ id: `alm.${almKey}` }) },
-                )}
-              />
-            )
-          }
-          key={currentBranchLike.key}
-          to={currentBranchLike.url}
-        >
-          {almKey === '' && <FormattedMessage id="branches.see_the_pr" />}
-        </LinkStandalone>
-      )}
-    </>
-  );
 }
 
 interface Props {

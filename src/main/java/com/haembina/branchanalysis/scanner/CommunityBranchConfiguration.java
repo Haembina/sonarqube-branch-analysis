@@ -23,7 +23,7 @@ import org.sonar.scanner.scan.branch.BranchConfiguration;
 import org.sonar.scanner.scan.branch.BranchType;
 
 /**
- * @author Michael Clarke
+ * The branch or pull request a scan analyses, as the scanner resolved it from its parameters or its CI environment.
  */
 public class CommunityBranchConfiguration implements BranchConfiguration {
 

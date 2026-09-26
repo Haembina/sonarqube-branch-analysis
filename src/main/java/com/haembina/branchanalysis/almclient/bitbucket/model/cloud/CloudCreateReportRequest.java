@@ -25,13 +25,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsReport;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 public class CloudCreateReportRequest extends CodeInsightsReport {
     @JsonProperty("created_on")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
-    private final Date createdDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
+    private final Instant createdDate;
     @JsonProperty("logo_url")
     private final String logoUrl;
     @JsonProperty("report_type")
@@ -45,7 +45,7 @@ public class CloudCreateReportRequest extends CodeInsightsReport {
             String details,
             String title,
             String reporter,
-            Date createdDate,
+            Instant createdDate,
             String link,
             String logoUrl,
             String reportType,
@@ -57,7 +57,7 @@ public class CloudCreateReportRequest extends CodeInsightsReport {
         this.remoteLinkEnabled = true;
     }
 
-    public Date getCreatedDate() {
+    public Instant getCreatedDate() {
         return createdDate;
     }
 

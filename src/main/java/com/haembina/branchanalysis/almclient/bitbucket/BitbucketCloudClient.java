@@ -19,6 +19,7 @@
  */
 package com.haembina.branchanalysis.almclient.bitbucket;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -107,7 +107,7 @@ class BitbucketCloudClient implements BitbucketClient {
                 reportDescription,
                 TITLE,
                 REPORTER,
-                Date.from(creationDate),
+                creationDate,
                 dashboardUrl, // you need to change this to a real https URL for local debugging since localhost will get declined by the API
                 logoUrl,
                 "COVERAGE",
@@ -239,6 +239,7 @@ class BitbucketCloudClient implements BitbucketClient {
 
         private final String accessToken;
 
+        @JsonCreator
         AuthToken(@JsonProperty("access_token") String accessToken) {
             this.accessToken = accessToken;
         }

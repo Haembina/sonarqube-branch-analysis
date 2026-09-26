@@ -62,7 +62,7 @@ public class CommunityProjectBranchesLoader implements ProjectBranchesLoader {
     public ProjectBranches load(String projectKey) {
         try {
             GetRequest branchesGetRequest =
-                    new GetRequest(PROJECT_BRANCHES_URL + URLEncoder.encode(projectKey, StandardCharsets.UTF_8.name()));
+                    new GetRequest(PROJECT_BRANCHES_URL + URLEncoder.encode(projectKey, StandardCharsets.UTF_8));
             try (WsResponse branchesResponse = scannerWsClient
                     .call(branchesGetRequest); Reader reader = branchesResponse
                 .contentReader()) {

@@ -26,12 +26,13 @@ import {
   IconMoreVertical,
 } from '@sonarsource/echoes-react';
 import * as React from 'react';
+import { useIntl } from 'react-intl';
 import { ActionCell, Badge, ContentCell, TableRowInteractive } from '~design-system';
 import BranchLikeIcon from '~sq-server-commons/components/icon-mappers/BranchLikeIcon';
 import DateFromNow from '~shared/components/intl/DateFromNow';
 import QualityGateStatus from '~sq-server-commons/components/nav/QualityGateStatus';
 import { getBranchLikeDisplayName } from '~sq-server-commons/helpers/branch-like';
-import { translate, translateWithParameters } from '~sq-server-commons/helpers/l10n';
+import { translate } from '~sq-server-commons/helpers/l10n';
 import {
   isBranch,
   isMainBranch,
@@ -58,6 +59,7 @@ export interface BranchLikeRowProps {
  */
 function BranchLikeRow(props: BranchLikeRowProps) {
   const { branchLike, component, displayPurgeSetting } = props;
+  const intl = useIntl();
   const branchLikeDisplayName = getBranchLikeDisplayName(branchLike);
 
   return (
@@ -113,9 +115,9 @@ function BranchLikeRow(props: BranchLikeRowProps) {
         >
           <ButtonIcon
             Icon={IconMoreVertical}
-            ariaLabel={translateWithParameters(
-              'project_branch_pull_request.branch.actions_label',
-              branchLikeDisplayName,
+            ariaLabel={intl.formatMessage(
+              { id: 'project_branch_pull_request.branch.actions_label' },
+              { branchName: branchLikeDisplayName },
             )}
             variety={ButtonVariety.Default}
           />

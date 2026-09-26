@@ -11,13 +11,18 @@
 # then switched off on the server. It fails when any compute engine task fails, when
 # SonarQube lists the wrong branches or pull requests, or when a server log carries an ERROR.
 #
-# Usage: scripts/integration-test.sh <plugin jar> <webapp directory>
+# Usage: scripts/integration-test.sh <plugin jar> <webapp directory> [command...]
 # Needs docker, curl and jq. Reads SONARQUBE_VERSION from .env unless it is set.
+#
+# A command after the two paths runs once every check has passed, while the server is still up,
+# with SONARQUBE_URL and SONARQUBE_PROJECT exported; its failure fails the script. build.yml
+# runs the Playwright suite this way, with these analyses as its fixture.
 
 set -euo pipefail
 
 plugin_jar=$(realpath "${1:?plugin jar}")
 webapp_dir=$(realpath "${2:?webapp directory}")
+shift 2
 repository_root=$(cd -- "$(dirname "$0")/.." && pwd)
 
 SONARQUBE_VERSION="${SONARQUBE_VERSION:-$(sed -n 's/^SONARQUBE_VERSION=//p' "${repository_root}/.env")}"
@@ -174,3 +179,8 @@ if [ -n "${errors}" ]; then
 fi
 
 echo "Integration test passed: main, branch and pull request analyses and the CI detection switch, with no logged errors"
+
+if [ "$#" -gt 0 ]; then
+  echo "Running $* against ${SONARQUBE_URL}"
+  SONARQUBE_URL="${SONARQUBE_URL}" SONARQUBE_PROJECT="${project_key}" "$@"
+fi
