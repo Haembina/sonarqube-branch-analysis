@@ -14,7 +14,10 @@ component.
 | Language | Linted by | Measured by |
 | --- | --- | --- |
 | Java | Error Prone and javac, every finding an error | JUnit 5 and JaCoCo, failing under the declared floor |
-| TypeScript | The `sonarqube-webapp` workspace's TypeScript build | The integration test loading the built webapp |
+| TypeScript | ESLint with typescript-eslint and sonarjs, and the `sonarqube-webapp` workspace's TypeScript build | The integration test loading the built webapp |
+| JavaScript | ESLint with sonarjs | Nothing: both files are configuration |
+| JSON | ESLint with @eslint/json | Nothing |
+| Gradle | npm-groovy-lint | Nothing |
 | Shell | shellcheck | Nothing: the Docker upgrade test and the integration test run them |
 | Workflows | actionlint | Nothing |
 | Markdown | markdownlint-cli2 | Nothing |

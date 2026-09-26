@@ -45,7 +45,8 @@ def sonarqubeVersion = '26.9.0.129388'
 def sonarqubeLibDir = "${projectDir}/sonarqube-lib"
 def sonarLibraries = "${sonarqubeLibDir}/sonarqube-${sonarqubeVersion}/lib"
 def sonarServerLibraries = fileTree(dir: sonarLibraries, include: 'sonar-application-*.jar')
-def sonarOtherLibraries = fileTree(dir: sonarLibraries, include: '**/*.jar', excludes: ['extensions/*.jar', 'sonar-application-*.jar'])
+def sonarOtherLibraries = fileTree(dir: sonarLibraries, include: '**/*.jar',
+        excludes: ['extensions/*.jar', 'sonar-application-*.jar'])
 
 java.sourceCompatibility = JavaVersion.VERSION_21
 java.targetCompatibility = JavaVersion.VERSION_21
@@ -66,7 +67,8 @@ tasks.withType(JavaCompile) {
 dependencies {
     customTestRuntime('org.wiremock:wiremock:3.13.2')
     customTestRuntime('org.kohsuke:github-api-unbridged:1.330')
-    // The server jar goes first: the scanner engine bundles an older copy of the plugin API that would otherwise shadow it
+    // The server jar goes first: the scanner engine bundles an older copy of the plugin API that would otherwise
+    // shadow it
     compileOnly(sonarServerLibraries)
     compileOnly(sonarOtherLibraries)
     testImplementation(sonarServerLibraries)
@@ -127,8 +129,9 @@ tasks.shadowJar.configure {
     archiveClassifier = null
 }
 
-// javac and Error Prone are the Java linters: every lint category and every Error Prone finding fails the build,
-// except javac's classfile, whose only findings are annotations missing from the SonarQube jars on the compile classpath
+// javac and Error Prone are the Java linters: every lint category and every Error Prone finding fails the
+// build, except javac's classfile, whose only findings are annotations missing from the SonarQube jars on the
+// compile classpath
 tasks.withType(JavaCompile) {
     options.compilerArgs << '-Xlint:all,-classfile' << '-Werror'
     options.deprecation = true
