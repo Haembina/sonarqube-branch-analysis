@@ -139,7 +139,6 @@ request analysis. Without Docker, `jq` and `curl`, it cannot start:
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
 ```
 
-
 PIT measures whether the suite's assertions notice a change, which coverage cannot. `mutation.yml` runs it every
 Tuesday night and on demand, writes the score into the run summary and keeps the per-mutant report as the
 `mutation-report` artifact for a fortnight. It never fails a build: equivalent mutants make a threshold noise. On
