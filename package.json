@@ -1,0 +1,17 @@
+{
+  "name": "sonarqube-community-branch-plugin",
+  "version": "26.9.1",
+  "private": true,
+  "type": "module",
+  "description": "The version, the release and the conventions gate for the Gradle-built branch plugin.",
+  "scripts": {
+    "lint": "npm run lint:sh",
+    "lint:sh": "shellcheck scripts/*.sh docker/*.sh sonarqube-webapp-addons/setup.sh",
+    "lint:md": "markdownlint-cli2",
+    "docs:fresh": "conventions-docs-fresh",
+    "gate": "npm run lint && npm run lint:md"
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "^0.23.3"
+  }
+}
