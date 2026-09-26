@@ -30,6 +30,9 @@ import { BranchLike } from '~sq-server-commons/types/branch-like';
 import { Feature } from '~sq-server-commons/types/features';
 import ProjectBranchSelector from './ProjectBranchSelector';
 
+/** Where the bound platform lives; the selector never reads it. */
+const ALM_URL = 'https://alm.example.com';
+
 jest.mock('~sq-server-commons/api/branches');
 
 const branchesHandler = new BranchesServiceMock();
@@ -71,7 +74,7 @@ function renderSelector(
   const { almKey, current, ...rest } = props;
   return renderComponent(
     <ProjectBranchSelector
-      component={mockComponent(almKey ? { alm: { key: almKey } } : {})}
+      component={mockComponent(almKey ? { alm: { key: almKey, url: ALM_URL } } : {})}
       currentBranchLike={current ?? main}
       {...rest}
     />,

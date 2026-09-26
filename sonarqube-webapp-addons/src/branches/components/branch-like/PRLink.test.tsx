@@ -22,10 +22,13 @@ import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
 import { renderComponent } from '~sq-server-commons/helpers/testReactTestingUtils';
 import PRLink from './PRLink';
 
+/** Where the bound platform lives; the link never reads it. */
+const ALM_URL = 'https://alm.example.com';
+
 function renderLink(url: string | undefined, almKey?: string) {
   return renderComponent(
     <PRLink
-      component={mockComponent(almKey ? { alm: { key: almKey } } : {})}
+      component={mockComponent(almKey ? { alm: { key: almKey, url: ALM_URL } } : {})}
       pullRequest={mockPullRequest({ url })}
     />,
   );

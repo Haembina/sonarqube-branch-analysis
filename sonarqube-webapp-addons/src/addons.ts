@@ -20,8 +20,17 @@
 import branches from './branches';
 import * as entitlements from './feature-license/entitlements';
 
+const registry = { branches, entitlements };
+
+/**
+ * The registry's type: the addons this build ships, and any other addon the webapp asks for,
+ * which is absent here and so reads as `undefined`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- the webapp reads addons of other editions, each typed where it is called
+export type AddonsType = { [key: string]: any | undefined } & typeof registry;
+
 /**
  * The addon registry the SonarQube webapp loads: the branch and pull request UI, and the
  * entitlement hooks, which always answer "not entitled" in this community build.
  */
-export const addons = { branches, entitlements };
+export const addons: AddonsType = registry;

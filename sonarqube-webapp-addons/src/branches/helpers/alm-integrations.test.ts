@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
 import { AlmType, getComponentAlmKey, isAzure, isBitbucket, sanitizeAlmId } from './alm-integrations';
 
 describe('sanitizeAlmId', () => {
@@ -47,12 +48,12 @@ describe('isBitbucket and isAzure', () => {
 
 describe('getComponentAlmKey', () => {
   it('is undefined for a component with no binding', () => {
-    expect(getComponentAlmKey({ key: 'project', name: 'Project' })).toBeUndefined();
+    expect(getComponentAlmKey(mockComponent())).toBeUndefined();
   });
 
   it('sanitizes the key of a bound component', () => {
-    expect(
-      getComponentAlmKey({ key: 'project', name: 'Project', alm: { key: 'bitbucketcloud' } }),
-    ).toBe(AlmType.Bitbucket);
+    const bound = mockComponent({ alm: { key: 'bitbucketcloud', url: 'https://bitbucket.org' } });
+
+    expect(getComponentAlmKey(bound)).toBe(AlmType.Bitbucket);
   });
 });
