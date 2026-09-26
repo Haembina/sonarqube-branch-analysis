@@ -46,7 +46,7 @@ public class BitbucketException extends RuntimeException {
         return Optional.ofNullable(errors)
                 .map(ErrorResponse::getErrors)
                 .map(e -> e.stream()
-                        .map(ErrorResponse.Error::getMessage)
+                        .map(ErrorResponse.ErrorMessage::getMessage)
                         .collect(Collectors.joining(System.lineSeparator())))
                 .orElse(String.format("Bitbucket responded with an error status (%d)", code));
     }

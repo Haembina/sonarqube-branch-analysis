@@ -23,7 +23,7 @@ import org.sonar.ce.task.projectanalysis.analysis.Branch;
 import org.sonar.db.component.BranchType;
 
 /**
- * @author Michael Clarke
+ * The branch or pull request a compute engine task analyses, as SonarQube's core reads it.
  */
 public class CommunityBranch implements Branch {
 

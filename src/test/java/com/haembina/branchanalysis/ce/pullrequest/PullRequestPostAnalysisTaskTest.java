@@ -41,6 +41,7 @@ import org.sonar.db.protobuf.DbProjectBranches;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -305,7 +306,7 @@ class PullRequestPostAnalysisTaskTest {
 
         Analysis analysis = mock();
         doReturn(Optional.of("revision")).when(analysis).getRevision();
-        doReturn(new Date()).when(analysis).getDate();
+        doReturn(Date.from(Instant.now())).when(analysis).getDate();
         doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
 
         QualityGate qualityGate = mock();
@@ -335,9 +336,7 @@ class PullRequestPostAnalysisTaskTest {
         doReturn(dbSession).when(dbClient).openSession(anyBoolean());
         BranchDao branchDao = mock();
         doReturn(branchDao).when(dbClient).branchDao();
-        BranchDto branchDto = mock();
         doReturn(Optional.empty()).when(branchDao).selectByPullRequestKey(any(), any(), any());
-        doReturn(DbProjectBranches.PullRequestData.newBuilder().build()).when(branchDto).getPullRequestData();
 
 
         testCase.finished(context);
@@ -364,7 +363,7 @@ class PullRequestPostAnalysisTaskTest {
 
         Analysis analysis = mock();
         doReturn(Optional.of("revision")).when(analysis).getRevision();
-        doReturn(new Date()).when(analysis).getDate();
+        doReturn(Date.from(Instant.now())).when(analysis).getDate();
         doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
 
         QualityGate qualityGate = mock();
@@ -433,7 +432,7 @@ class PullRequestPostAnalysisTaskTest {
 
         Analysis analysis = mock();
         doReturn(Optional.of("revision")).when(analysis).getRevision();
-        doReturn(new Date()).when(analysis).getDate();
+        doReturn(Date.from(Instant.now())).when(analysis).getDate();
         doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
 
         QualityGate qualityGate = mock();
@@ -466,9 +465,7 @@ class PullRequestPostAnalysisTaskTest {
         doReturn(dbSession).when(dbClient).openSession(anyBoolean());
         BranchDao branchDao = mock();
         doReturn(branchDao).when(dbClient).branchDao();
-        BranchDto branchDto = mock();
         doReturn(Optional.empty()).when(branchDao).selectByPullRequestKey(any(), any(), any());
-        doReturn(DbProjectBranches.PullRequestData.newBuilder().build()).when(branchDto).getPullRequestData();
 
         testCase.finished(context);
 
@@ -488,7 +485,6 @@ class PullRequestPostAnalysisTaskTest {
         assertThat(almSettingDtoArgumentCaptor.getValue()).isSameAs(almSettingDto);
         assertThat(projectAlmSettingDtoArgumentCaptor.getValue()).isSameAs(projectAlmSettingDto);
 
-        verify(branchDto, never()).setPullRequestData(any());
         verify(dbSession, never()).commit();
         verify(branchDao, never()).upsert(any(), any());
 

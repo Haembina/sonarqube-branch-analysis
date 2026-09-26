@@ -75,14 +75,18 @@ class ValidateBindingActionTest {
         Response response = mock();
         DbSession dbSession = mock();
 
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
+        when(componentFinder.getProjectByKey(dbSession, "project")).thenReturn(projectDto);
+
         ProjectAlmSettingDao projectAlmSettingDao = mock();
         when(projectAlmSettingDao.selectByProject(dbSession, projectDto)).thenReturn(Optional.empty());
         when(dbClient.projectAlmSettingDao()).thenReturn(projectAlmSettingDao);
 
-        when(request.param("project")).thenReturn("project");
+        when(request.mandatoryParam("project")).thenReturn("project");
 
         underTest.handle(request, response);
 
+        verify(projectAlmSettingDao).selectByProject(dbSession, projectDto);
         verify(dbClient, never()).almSettingDao();
     }
 

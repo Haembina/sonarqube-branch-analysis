@@ -73,6 +73,9 @@ import com.haembina.branchanalysis.ce.pullrequest.report.ReportGenerator;
 
 class GithubPullRequestDecoratorTest {
 
+    private static final List<SoftwareQuality> QUALITIES = List.of(SoftwareQuality.MAINTAINABILITY, SoftwareQuality.RELIABILITY, SoftwareQuality.SECURITY);
+    private static final List<Severity> SEVERITIES = List.of(Severity.INFO, Severity.LOW, Severity.MEDIUM, Severity.HIGH, Severity.BLOCKER);
+
     private final AnalysisDetails analysisDetails = mock();
     private final GithubClientFactory githubClientFactory = mock();
     private final ReportGenerator reportGenerator = mock();
@@ -103,7 +106,7 @@ class GithubPullRequestDecoratorTest {
             PostAnalysisIssueVisitor.LightIssue lightIssue = mock();
             when(lightIssue.getMessage()).thenReturn("issue message " + i);
             when(lightIssue.getLine()).thenReturn(i);
-            when(lightIssue.impacts()).thenReturn(Map.of(SoftwareQuality.values()[i % SoftwareQuality.values().length], Severity.values()[i % Severity.values().length]));
+            when(lightIssue.impacts()).thenReturn(Map.of(QUALITIES.get(i % QUALITIES.size()), severityOf(i)));
             when(componentIssue.getIssue()).thenReturn(lightIssue);
             return componentIssue;
         }).toList();
@@ -175,7 +178,7 @@ class GithubPullRequestDecoratorTest {
             output.add(new GHCheckRunBuilder.Annotation(
                 "path" + i,
                 i,
-                GHCheckRun.AnnotationLevel.values()[i % Severity.values().length < 2 ? 0 : i % Severity.values().length > 2 ? 2 : 1],
+                expectedLevel(severityOf(i)),
                 "issue message " + i));
         }
 
@@ -234,7 +237,7 @@ class GithubPullRequestDecoratorTest {
             output.add(new GHCheckRunBuilder.Annotation(
                 "path" + i,
                 i,
-                GHCheckRun.AnnotationLevel.values()[i % Severity.values().length < 2 ? 0 : i % Severity.values().length > 2 ? 2 : 1],
+                expectedLevel(severityOf(i)),
                 "issue message " + i));
         }
 
@@ -258,5 +261,17 @@ class GithubPullRequestDecoratorTest {
         when(user.getType()).thenReturn(userType);
         when(comment.getUser()).thenReturn(user);
         return comment;
+    }
+
+    private static Severity severityOf(int issueIndex) {
+        return SEVERITIES.get(issueIndex % SEVERITIES.size());
+    }
+
+    private static GHCheckRun.AnnotationLevel expectedLevel(Severity severity) {
+        return switch (severity) {
+            case INFO, LOW -> GHCheckRun.AnnotationLevel.NOTICE;
+            case MEDIUM -> GHCheckRun.AnnotationLevel.WARNING;
+            case HIGH, BLOCKER -> GHCheckRun.AnnotationLevel.FAILURE;
+        };
     }
 }

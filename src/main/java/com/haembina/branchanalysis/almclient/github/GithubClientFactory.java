@@ -101,8 +101,9 @@ public class GithubClientFactory {
         if (!projectPath.contains("/")) {
             throw new InvalidConfigurationException(InvalidConfigurationException.Scope.PROJECT, "Repository name must be in the format 'owner/repo'");
         }
-        String owner = projectPath.split("/")[0];
-        String repo = projectPath.split("/")[1];
+        String[] ownerAndRepo = projectPath.split("/", -1);
+        String owner = ownerAndRepo[0];
+        String repo = ownerAndRepo[1];
         GitHub github = gitHubBuilderSupplier.get()
             .withEndpoint(apiUrl)
             .withConnector(new OkHttpGitHubConnector(new OkHttpClient()))

@@ -76,12 +76,12 @@ public class CommunityBranchPluginBootstrap implements Plugin {
                     elevatedClassLoaderFactory.createClassLoader(getClass());
             Class<?> targetClass = classLoader.loadClass(getClass().getName().replace("Bootstrap", ""));
             Object instance = targetClass.getDeclaredConstructor().newInstance();
-            if (!(instance instanceof Plugin)) {
+            if (!(instance instanceof Plugin plugin)) {
                 throw new IllegalStateException(
                         String.format("Expected loaded class to be instance of '%s' but was '%s'",
                                       Plugin.class.getName(), instance.getClass().getName()));
             }
-            ((Plugin) instance).define(context);
+            plugin.define(context);
         } catch (ReflectiveOperationException ex) {
             throw new IllegalStateException("Could not create CommunityBranchPlugin instance", ex);
         }

@@ -77,7 +77,7 @@ public class PostAnalysisIssueVisitor extends IssueVisitor {
         }
     }
 
-    public static class LightIssue {
+    public static final class LightIssue {
 
         private final String key;
         private final Integer line;
@@ -145,10 +145,9 @@ public class PostAnalysisIssueVisitor extends IssueVisitor {
             if (this == obj) {
                 return true;
             }
-            if (obj == null || getClass() != obj.getClass()) {
+            if (!(obj instanceof LightIssue other)) {
                 return false;
             }
-            LightIssue other = (LightIssue) obj;
             return Objects.equals(key, other.key)
                     && Objects.equals(line, other.line)
                     && Objects.equals(message, other.message)

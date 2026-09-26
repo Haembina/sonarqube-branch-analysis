@@ -19,6 +19,7 @@
  */
 package com.haembina.branchanalysis.almclient.bitbucket;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -238,6 +239,7 @@ class BitbucketCloudClient implements BitbucketClient {
 
         private final String accessToken;
 
+        @JsonCreator
         AuthToken(@JsonProperty("access_token") String accessToken) {
             this.accessToken = accessToken;
         }

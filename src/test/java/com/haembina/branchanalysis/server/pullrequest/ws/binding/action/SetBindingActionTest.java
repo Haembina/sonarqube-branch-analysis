@@ -100,13 +100,12 @@ class SetBindingActionTest {
         when(componentDto.getUuid()).thenReturn("projectUuid");
         when(componentFinder.getProjectByKey(dbSession, "project")).thenReturn(componentDto);
         UserSession userSession = mock();
-        ThreadLocal<WebService.NewAction> capturedAction = new ThreadLocal<>();
         ProjectAlmSettingDto projectAlmSettingDto = mock();
         SetBindingAction testCase = new SetBindingAction(dbClient, componentFinder, userSession, "dummy") {
 
             @Override
             protected void configureAction(WebService.NewAction action) {
-                capturedAction.set(action);
+                // The test handles a request and never defines the action
             }
 
             @Override

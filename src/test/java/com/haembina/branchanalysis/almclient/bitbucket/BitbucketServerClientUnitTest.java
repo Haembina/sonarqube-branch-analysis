@@ -225,7 +225,7 @@ class BitbucketServerClientUnitTest {
     @Test
     void testUploadReportFailsWithMessage() throws IOException {
         // given
-        ErrorResponse.Error error = new ErrorResponse.Error("error!");
+        ErrorResponse.ErrorMessage error = new ErrorResponse.ErrorMessage("error!");
         ErrorResponse errorResponse = new ErrorResponse(Sets.newHashSet(error));
 
         CodeInsightsReport report = mock();

@@ -27,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -65,12 +66,13 @@ class AnalysisDetailsTest {
         Analysis analysis = mock();
         PostProjectAnalysisTask.ProjectAnalysis projectAnalysis = mock();
         doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
-        doReturn(new Date()).when(analysis).getDate();
+        Instant analysisDate = Instant.parse("2026-09-26T12:00:00Z");
+        doReturn(Date.from(analysisDate)).when(analysis).getDate();
 
         AnalysisDetails testCase =
                 new AnalysisDetails("pullRequestKey", "commitHash", new ArrayList<>(), qualityGate, projectAnalysis);
 
-        assertEquals(analysis.getDate().toInstant(), testCase.getAnalysisDate());
+        assertEquals(analysisDate, testCase.getAnalysisDate());
     }
 
     @Test
@@ -153,8 +155,6 @@ class AnalysisDetailsTest {
         when(component4.getReportAttributes()).thenReturn(reportAttributes4);
         PostAnalysisIssueVisitor.ComponentIssue componentIssue4 = new PostAnalysisIssueVisitor.ComponentIssue(component4, lightIssue4);
 
-        PostAnalysisIssueVisitor postAnalysisIssueVisitor = mock();
-        when(postAnalysisIssueVisitor.getIssues()).thenReturn(Arrays.asList(componentIssue1, componentIssue2, componentIssue3, componentIssue4));
         
         AnalysisDetails underTest = new AnalysisDetails("pullRequest", "commmitId",
                 Arrays.asList(componentIssue1, componentIssue2, componentIssue3, componentIssue4),

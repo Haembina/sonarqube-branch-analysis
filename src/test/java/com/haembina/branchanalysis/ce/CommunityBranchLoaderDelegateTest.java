@@ -175,13 +175,6 @@ class CommunityBranchLoaderDelegateTest {
 
     @Test
     void testBranchNameMatchingBranchWithNonExistingTargetBranch() {
-        BranchDto branchDto = mock();
-        when(branchDto.getBranchType()).thenReturn(BranchType.BRANCH);
-        when(branchDto.getKey()).thenReturn("branchKey");
-        when(branchDto.getMergeBranchUuid()).thenReturn("mergeBranchUuid");
-        when(branchDto.getProjectUuid()).thenReturn("projectUuid");
-        when(branchDto.getUuid()).thenReturn("branchUuid");
-
         BranchDao branchDao = mock();
 
         ScannerReport.Metadata metadata =

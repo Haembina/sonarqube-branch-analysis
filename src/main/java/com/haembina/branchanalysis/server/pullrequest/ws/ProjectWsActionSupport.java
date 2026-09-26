@@ -102,7 +102,9 @@ public abstract class ProjectWsActionSupport implements WsAction {
     protected abstract void handleProjectRequest(ProjectDto project, Request request, Response response, DbSession dbSession);
 
     /**
-     * @return the client the action's sessions come from
+     * Returns the client the action's sessions come from.
+     *
+     * @return the client passed to the constructor
      */
     protected DbClient getDbClient() {
         return dbClient;

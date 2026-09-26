@@ -24,7 +24,7 @@ import org.sonar.scanner.scan.branch.BranchParamsValidator;
 import java.util.List;
 
 /**
- * @author Michael Clarke
+ * Accepts every branch parameter combination: the loader reports what it cannot resolve.
  */
 public class CommunityBranchParamsValidator implements BranchParamsValidator {
 

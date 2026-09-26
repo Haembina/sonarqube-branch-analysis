@@ -40,7 +40,7 @@ import org.sonar.server.ce.queue.BranchSupportDelegate;
 import org.sonar.server.setting.ProjectConfigurationLoader;
 
 /**
- * @author Michael Clarke
+ * Creates the component keys and database rows of a branch or pull request the first time the web server receives its analysis.
  */
 public class CommunityBranchSupportDelegate implements BranchSupportDelegate {
 
@@ -97,7 +97,7 @@ public class CommunityBranchSupportDelegate implements BranchSupportDelegate {
             .setUuid(branchUuid)
             .setBranchUuid(branchUuid)
             .setUuidPath(ComponentDto.UUID_PATH_OF_ROOT)
-            .setCreatedAt(new Date(clock.millis()));
+            .setCreatedAt(Date.from(clock.instant()));
         dbClient.componentDao().insert(dbSession, componentDto, false);
 
         BranchDto branchDto = new BranchDto()

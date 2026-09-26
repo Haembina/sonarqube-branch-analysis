@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 /**
- * @author Michael Clarke
+ * Resolves the branch or pull request a scanner report belongs to, from the report's metadata and the project's stored branches.
  */
 public class CommunityBranchLoaderDelegate implements BranchLoaderDelegate {
 

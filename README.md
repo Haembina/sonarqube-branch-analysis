@@ -39,12 +39,12 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 
 | Command | What it does |
 | --- | --- |
-| `./gradlew build` | Compiles with javac's lint as errors, runs the suite, fails under the JaCoCo floor, builds the jar |
+| `./gradlew build` | Compiles with Error Prone and javac's lint as errors, runs the suite, fails under the JaCoCo floor, builds the jar |
 | `./gradlew test` | The Java suite and its JaCoCo report in `build/reports/jacoco/test` |
 | `npm test` | The Java suite with its JaCoCo floor, and the jars the SonarQube scan resolves types against |
 | `npm run sonar:ceiling` | Fails when the SonarQube project's open issues rise above `issues.ceiling` in `conventions.json` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with the jar and webapp and runs a main, branch and pull request analysis |
-| `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts |
+| `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts, Error Prone and javac over the Java |
 | `npm run lint:md` | markdownlint over every document |
 | `npm run conventions:check` | The conventions gate |
 | `npm run version:check` | Every version mirror agrees with `package.json`, and a tag released it |

@@ -212,6 +212,7 @@ public class AzureDevOpsPullRequestDecorator extends DiscussionAwarePullRequestD
         }
     }
 
+    @Override
     protected List<CommentThread> getDiscussions(AzureDevopsClient client, PullRequest pullRequest) {
         try {
             return client.retrieveThreads(pullRequest.getRepository().getProject().getName(), pullRequest.getRepository().getName(), pullRequest.getId());

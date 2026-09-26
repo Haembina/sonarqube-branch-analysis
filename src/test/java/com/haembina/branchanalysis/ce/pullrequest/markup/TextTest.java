@@ -32,7 +32,7 @@ class TextTest {
 
     @Test
     void shouldRejectTextAsChildElement() {
-        assertThat((new Text("").isValidChild(new Text("")))).isFalse();
+        assertThat(new Text("").isValidChild(new Text(""))).isFalse();
     }
 
 }
