@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024-2026 Michael Clarke, Sebastiaan Speck
+ * Copyright (C) 2026 Haembina
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

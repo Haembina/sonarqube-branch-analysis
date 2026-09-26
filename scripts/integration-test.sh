@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (C) 2026 Haembina
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
 # End-to-end test of a built plugin jar and webapp against a real SonarQube.
 #
 # Installs the artifacts the way a manual (non-Docker) installation does: the jar in
