@@ -82,12 +82,18 @@ describe('capability list-branches: see every branch and pull request of a proje
     const user = userEvent.setup();
     renderPage();
 
-    const branchSwitch = within(await rowOf('delete-branch')).getByRole('switch');
+    const branchSwitch = within(await rowOf('delete-branch')).getByRole('switch', {
+      name: 'project_branch_pull_request.branch.auto_deletion.keep_when_inactive: delete-branch',
+    });
     expect(branchSwitch).not.toBeChecked();
     await user.click(branchSwitch);
     expect(await within(await rowOf('delete-branch')).findByRole('switch')).toBeChecked();
 
-    expect(within(await rowOf('main')).getByRole('switch')).toBeDisabled();
+    expect(
+      within(await rowOf('main')).getByRole('switch', {
+        name: 'project_branch_pull_request.branch.auto_deletion.keep_when_inactive: main',
+      }),
+    ).toBeDisabled();
   });
 
   it('says how long an inactive branch is kept, and links an admin to the setting', async () => {

@@ -49,10 +49,15 @@ export default function BranchPurgeSetting(props: Props) {
 
   const isTheMainBranch = isMainBranch(branch);
   const disabled = isTheMainBranch || isPending;
+  // The column header names the setting; the switch's own name adds which branch it keeps.
+  const keepWhenInactive = translate(
+    'project_branch_pull_request.branch.auto_deletion.keep_when_inactive',
+  );
 
   return (
     <>
       <Switch
+        ariaLabel={`${keepWhenInactive}: ${branch.name}`}
         disabled={disabled}
         name={branch.name}
         onChange={handleOnChange}
