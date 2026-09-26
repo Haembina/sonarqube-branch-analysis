@@ -66,8 +66,8 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 
 ### Release
 
-1. Merge the changes to `master` through pull requests.
-2. Run the release from a clean `master` in sync with origin. It writes the version into `package.json`,
+1. Merge the changes to `main` through pull requests.
+2. Run the release from a clean `main` in sync with origin. It writes the version into `package.json`,
    `gradle.properties` and `.env`, writes `CHANGELOG.md`, tags `v<version>` and pushes:
 
    ```bash
