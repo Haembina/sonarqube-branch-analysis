@@ -28,8 +28,8 @@ STARTUP_TIMEOUT_SECONDS="${STARTUP_TIMEOUT_SECONDS:-300}"
 CE_TIMEOUT_SECONDS="${CE_TIMEOUT_SECONDS:-180}"
 POLL_SECONDS=5
 
-container="community-branch-plugin-it-$$"
-project_key="community-branch-plugin-it"
+container="branch-analysis-it-$$"
+project_key="branch-analysis-it"
 project_dir=$(mktemp -d)
 # The scanner container runs as its own user and writes .scannerwork into the project
 chmod 777 "${project_dir}"
@@ -71,8 +71,8 @@ until curl --silent "${SONARQUBE_URL}/api/system/status" | jq -e '.status == "UP
 done
 
 auth="admin:admin"
-api "${SONARQUBE_URL}/api/plugins/installed" | jq -e '.plugins | any(.key == "communityBranchPlugin")' >/dev/null \
-  || { echo "communityBranchPlugin is not installed" >&2; exit 1; }
+api "${SONARQUBE_URL}/api/plugins/installed" | jq -e '.plugins | any(.key == "haembinabranchanalysis")' >/dev/null \
+  || { echo "haembinabranchanalysis is not installed" >&2; exit 1; }
 api "${SONARQUBE_URL}/api/features/list" | jq -e 'index("monorepo") != null' >/dev/null \
   || { echo "the plugin's monorepo feature is not registered" >&2; exit 1; }
 curl --silent --show-error --fail "${SONARQUBE_URL}/" | grep -q 'id="content"' \
@@ -157,7 +157,7 @@ pull_request_listed 7 || { echo "CI detection did not turn the scan into pull re
 
 echo "5/5 GitHub Actions pull request 8 with CI detection switched off on the server"
 api -X POST "${SONARQUBE_URL}/api/settings/set" \
-  -d "key=com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled" -d "value=false"
+  -d "key=com.haembina.branchanalysis.auto-configuration.enabled" -d "value=false"
 github_pull_request 8
 analyse
 scanner_env=()

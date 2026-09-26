@@ -1,19 +1,20 @@
-# SonarQube Community Branch Plugin
+# Haembina Branch Analysis
 
-A plugin for SonarQube Community Build that adds branch analysis and pull request decoration. It is built with Java 21
-and Gradle against the SonarQube plugin API, and ships a patched SonarQube webapp whose branch pages are TypeScript and
-React in [`sonarqube-webapp-addons`](sonarqube-webapp-addons/README.md).
+Branch analysis and pull request decoration for SonarQube Community Build. It is built with Java 21 and Gradle against
+the SonarQube plugin API, and ships a patched SonarQube webapp whose branch pages are TypeScript and React in
+[`sonarqube-webapp-addons`](sonarqube-webapp-addons/README.md). SonarQube is a trademark of SonarSource; this plugin is
+not made or supported by SonarSource.
 
-This repository is Haembina's copy of
-[mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), kept on the
-SonarQube Community Build release the Haembina server runs. Changes from mc1arke's repository are adapted and merged
-here; nothing is sent back, and the `upstream` remote has its push URL disabled. Releases come from this repository's
-own GitHub releases, not from mc1arke's repository or Docker Hub.
+It is derived from
+[mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin)
+by Michael Clarke, and kept on the SonarQube Community Build release the Haembina server runs. Changes from mc1arke's
+repository are adapted and merged here; nothing is sent back, and the `upstream` remote has its push URL disabled.
+Releases come from this repository's own GitHub releases.
 
-This repository adds one setting, `com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled`
-(Administration, General, Branches and Pull Requests; default `true`). Set to `false`, a scan that names no branch or
-pull request analyses the main branch instead of reading its CI environment, so CI that scans pull requests onto main
-keeps doing so.
+Every setting key starts `com.haembina.branchanalysis.`. One setting is Haembina's own,
+`com.haembina.branchanalysis.auto-configuration.enabled` (Administration, General, Branches and Pull Requests; default
+`true`). Set to `false`, a scan that names no branch or pull request analyses the main branch instead of reading its CI
+environment, so CI that scans pull requests onto main keeps doing so.
 
 ## Getting started
 
@@ -90,8 +91,19 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 1. Set the setting to `false` with an administrator token:
 
    ```bash
-   curl -u "$SONAR_ADMIN_TOKEN:" -X POST "$SONAR_HOST_URL/api/settings/set" -d key=com.github.mc1arke.sonarqube.plugin.branch.auto-configuration.enabled -d value=false
+   curl -u "$SONAR_ADMIN_TOKEN:" -X POST "$SONAR_HOST_URL/api/settings/set" -d key=com.haembina.branchanalysis.auto-configuration.enabled -d value=false
    ```
+
+### Upgrade from the Community Branch Plugin
+
+SonarQube reads Haembina Branch Analysis as a different plugin: its key, its jar name and every setting key changed.
+
+1. Note the value of each `com.github.mc1arke.sonarqube.plugin.branch.*` setting on the server.
+2. Stop SonarQube, delete `sonarqube-community-branch-plugin-*.jar` from `extensions/plugins`, and install this
+   plugin's jar and webapp as in [Manual install](#manual-install), with both `javaagent` lines naming the new jar.
+3. Start SonarQube and set each value again under `com.haembina.branchanalysis.*`, with the same suffix.
+4. Scanners that pass `com.github.mc1arke.sonarqube.plugin.branch.pullrequest.gitlab.pipelineId` pass
+   `com.haembina.branchanalysis.pullrequest.gitlab.pipelineId` instead.
 
 ### Take a change from mc1arke's repository
 
@@ -110,7 +122,7 @@ boots the stock SonarQube image with the built jar and webapp, then runs a main,
 Without Docker, `jq` and `curl`, it cannot start:
 
 ```bash
-bash scripts/integration-test.sh build/libs/sonarqube-community-branch-plugin-*.jar path/to/unzipped/webapp
+bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
 ```
 
 `build.yml` runs both on every pull request, and `ci.yml` runs the conventions gate, the linters and the dependency
@@ -134,13 +146,13 @@ Take the plugin jar and `sonarqube-webapp.zip` from a release in this repository
 ### Manual install
 
 1. Copy the plugin JAR file to the `extensions/plugins/` directory of your SonarQube instance
-2. Add `-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=web` to
+2. Add `-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=web` to
    the `sonar.web.javaAdditionalOpts` property in your SonarQube installation's `conf/sonar.properties` file,
-   e.g. `sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=web`
+   e.g. `sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=web`
    where ${version} is the version of the plugin being worked with.
-3. Add `-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=ce` to
+3. Add `-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=ce` to
    the `sonar.ce.javaAdditionalOpts` property in your SonarQube installation's `conf/sonar.properties` file,
-   e.g. `sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=ce`
+   e.g. `sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=ce`
 4. Replace the contents of the `web` directory in your SonarQube installation with the contents of the
    sonarqube-webapp zip archive
 5. Start SonarQube, and accept the warning about using third-party plugins
@@ -172,10 +184,10 @@ community:
 
 plugins:
   install:
-    - https://github.com/Haembina/sonarqube-community-branch-plugin/releases/download/v${version}/sonarqube-community-branch-plugin-${version}.jar
+    - https://github.com/Haembina/sonarqube-branch-analysis/releases/download/v${version}/haembina-branch-analysis-${version}.jar
 sonarProperties:
-  sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=web"
-  sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-${version}.jar=ce"
+  sonar.web.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/haembina-branch-analysis-${version}.jar=web"
+  sonar.ce.javaAdditionalOpts: "-javaagent:/opt/sonarqube/extensions/plugins/haembina-branch-analysis-${version}.jar=ce"
 
 extraVolumes:
   - name: webapp
@@ -193,7 +205,7 @@ extraInitContainers:
     command:
       - sh
       - -c
-      - wget -O /tmp/sonarqube-webapp.zip https://github.com/Haembina/sonarqube-community-branch-plugin/releases/download/v${version}/sonarqube-webapp.zip &&
+      - wget -O /tmp/sonarqube-webapp.zip https://github.com/Haembina/sonarqube-branch-analysis/releases/download/v${version}/sonarqube-webapp.zip &&
         unzip -o /tmp/sonarqube-webapp.zip -d /web &&
         chmod -R 755 /web &&
         chown -R 1000:0 /web &&

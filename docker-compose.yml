@@ -3,7 +3,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    image: mc1arke/sonarqube-with-community-branch-plugin:${SONARQUBE_VERSION}
+    image: haembina-branch-analysis:${SONARQUBE_VERSION}
     build:
       context: .
       dockerfile: ${DOCKERFILE}

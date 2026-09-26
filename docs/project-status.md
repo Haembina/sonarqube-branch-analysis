@@ -13,5 +13,5 @@ no branch land on main.
 The repository has adopted the conventions record. `build.yml` builds, tests and releases the plugin; `ci.yml` runs the
 conventions gate beside it. No analysis server scans this repository yet, so `ci.yml` runs no SonarQube step.
 
-The code from mc1arke's repository still carries its package names, its plugin key and its setting keys, and the
-rebrand to Haembina's names is an item in the store.
+The plugin is Haembina Branch Analysis: package `com.haembina.branchanalysis`, plugin key `haembinabranchanalysis`,
+setting keys under `com.haembina.branchanalysis.`. The class names still carry mc1arke's `CommunityBranch` prefix.

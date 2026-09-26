@@ -27,15 +27,15 @@ FROM sonarqube:${SONARQUBE_VERSION}
 ARG PLUGIN_VERSION
 ARG WORKDIR
 
-COPY --from=builder --chown=sonarqube:root ${WORKDIR}/build/libs/sonarqube-community-branch-plugin-*.jar /opt/sonarqube/lib/community-branch-plugin/
-COPY --chown=sonarqube:root docker/community-branch-entrypoint.sh /opt/sonarqube/docker/community-branch-entrypoint.sh
-RUN chmod 755 /opt/sonarqube/docker/community-branch-entrypoint.sh
+COPY --from=builder --chown=sonarqube:root ${WORKDIR}/build/libs/haembina-branch-analysis-*.jar /opt/sonarqube/lib/haembina-branch-analysis/
+COPY --chown=sonarqube:root docker/branch-analysis-entrypoint.sh /opt/sonarqube/docker/branch-analysis-entrypoint.sh
+RUN chmod 755 /opt/sonarqube/docker/branch-analysis-entrypoint.sh
 
 RUN chmod -R 770 /opt/sonarqube/web && rm -rf /opt/sonarqube/web/*
 COPY --from=webapp-builder --chown=sonarqube:root /home/build/sonarqube-webapp/apps/sq-server/build/webapp /opt/sonarqube/web
 RUN chmod -R 550 /opt/sonarqube/web
 
 ENV PLUGIN_VERSION=${PLUGIN_VERSION}
-ENV SONAR_WEB_JAVAADDITIONALOPTS="-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-${PLUGIN_VERSION}.jar=web"
-ENV SONAR_CE_JAVAADDITIONALOPTS="-javaagent:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin-${PLUGIN_VERSION}.jar=ce"
-ENTRYPOINT ["/opt/sonarqube/docker/community-branch-entrypoint.sh"]
+ENV SONAR_WEB_JAVAADDITIONALOPTS="-javaagent:/opt/sonarqube/extensions/plugins/haembina-branch-analysis-${PLUGIN_VERSION}.jar=web"
+ENV SONAR_CE_JAVAADDITIONALOPTS="-javaagent:/opt/sonarqube/extensions/plugins/haembina-branch-analysis-${PLUGIN_VERSION}.jar=ce"
+ENTRYPOINT ["/opt/sonarqube/docker/branch-analysis-entrypoint.sh"]

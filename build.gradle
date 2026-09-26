@@ -25,7 +25,7 @@ plugins {
     id('com.gradleup.shadow') version('9.6.1')
 }
 
-group = 'com.github.mc1arke.sonarqube.plugin'
+group = 'com.haembina.branchanalysis'
 
 repositories {
     mavenCentral()
@@ -99,18 +99,19 @@ project.afterEvaluate {
 
 jar {
     manifest {
-        attributes 'Plugin-Description': 'Enables branch and pull request analysis in SonarQube Community Edition, without having to upgrade to Developer Edition',
+        attributes 'Plugin-Description': 'Branch analysis and pull request decoration for SonarQube Community Build',
           'SonarLint-Supported': false,
-          'Plugin-Homepage': 'https://github.com/mc1arke/sonarqube-community-branch-plugin',
+          'Plugin-Homepage': 'https://github.com/Haembina/sonarqube-branch-analysis',
           'Plugin-License': 'GNU LGPL 3',
           'Plugin-Version': "${project.version}",
-          'Plugin-Organization': 'Michael Clarke',
+          'Plugin-Organization': 'Haembina',
+          'Plugin-OrganizationUrl': 'https://haembina.com',
           'Sonar-Version': "9.14.0.375",
-          'Plugin-IssueTrackerUrl': 'https://github.com/mc1arke/sonarqube-community-branch-plugin/issues',
-          'Plugin-Key': 'communityBranchPlugin',
-          'Plugin-Class': 'com.github.mc1arke.sonarqube.plugin.CommunityBranchPluginBootstrap',
-          'Plugin-Name': 'Community Branch Plugin',
-          'Premain-Class': 'com.github.mc1arke.sonarqube.plugin.CommunityBranchAgent',
+          'Plugin-IssueTrackerUrl': 'https://github.com/Haembina/sonarqube-branch-analysis/issues',
+          'Plugin-Key': 'haembinabranchanalysis',
+          'Plugin-Class': 'com.haembina.branchanalysis.CommunityBranchPluginBootstrap',
+          'Plugin-Name': 'Haembina Branch Analysis',
+          'Premain-Class': 'com.haembina.branchanalysis.CommunityBranchAgent',
           'Can-Retransform-Classes': 'true'
     }
 }
