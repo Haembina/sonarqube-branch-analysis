@@ -1,0 +1,17 @@
+This project is derived from mc1arke/sonarqube-community-branch-plugin
+<https://github.com/mc1arke/sonarqube-community-branch-plugin>,
+Copyright (C) 2020-2026 Michael Clarke and its contributors,
+licensed under the GNU Lesser General Public License, version 3.
+
+Haembina has modified it since 2026-09-25. Each source file names its copyright
+holders in its header; a file carrying code from that repository keeps its
+original copyright lines, and Haembina's line beside them marks it as modified.
+
+The pages under sonarqube-webapp-addons are derived from SonarSource's
+sonarqube-webapp <https://github.com/SonarSource/sonarqube-webapp>,
+Copyright (C) 2009-2025 SonarSource SA, licensed under the GNU Lesser General
+Public License, version 3.
+
+The whole is distributed under the GNU Lesser General Public License, version 3
+(LICENSE), which adds permissions to the GNU General Public License, version 3
+(COPYING). It comes with no warranty.
