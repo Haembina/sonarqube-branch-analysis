@@ -31,7 +31,7 @@ If applicable, add screenshots to help explain your problem.
 ## Software versions
 
 - SonarQube version: [e.g. Version 7.8 (build 26217)]
-- Plugin version: [e.g. 1.1.0, or custom build from master at commit 004AD34FAA]
+- Plugin version: [e.g. 1.1.0, or custom build from main at commit 004AD34FAA]
 
 ## Additional context
 
