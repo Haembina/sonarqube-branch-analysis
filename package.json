@@ -1,6 +1,6 @@
 {
   "name": "haembina-branch-analysis",
-  "version": "27.0.0",
+  "version": "27.0.1",
   "private": true,
   "type": "module",
   "description": "The version, the release and the conventions gate for Haembina Branch Analysis.",
