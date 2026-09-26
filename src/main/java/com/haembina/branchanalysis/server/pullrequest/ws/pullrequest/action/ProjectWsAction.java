@@ -19,53 +19,16 @@
  */
 package com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action;
 
-import org.sonar.api.server.ws.Request;
-import org.sonar.api.server.ws.Response;
-import org.sonar.api.server.ws.WebService;
+import com.haembina.branchanalysis.server.pullrequest.ws.ProjectWsActionSupport;
 import org.sonar.db.DbClient;
-import org.sonar.db.DbSession;
-import org.sonar.db.project.ProjectDto;
 import org.sonar.server.component.ComponentFinder;
 
-public abstract class ProjectWsAction implements PullRequestWsAction {
-
-    private static final String PROJECT_PARAMETER = "project";
-
-    private final String actionName;
-    private final DbClient dbClient;
-    private final ComponentFinder componentFinder;
+/**
+ * A pull request web service action about one project, open to every caller who can reach the project.
+ */
+public abstract class ProjectWsAction extends ProjectWsActionSupport implements PullRequestWsAction {
 
     protected ProjectWsAction(String actionName, DbClient dbClient, ComponentFinder componentFinder) {
-        super();
-        this.actionName = actionName;
-        this.dbClient = dbClient;
-        this.componentFinder = componentFinder;
-    }
-
-    @Override
-    public void define(WebService.NewController context) {
-        WebService.NewAction action = context.createAction(actionName).setHandler(this);
-        action.createParam(PROJECT_PARAMETER).setRequired(true);
-
-        configureAction(action);
-    }
-
-    protected abstract void configureAction(WebService.NewAction action);
-
-
-    @Override
-    public void handle(Request request, Response response) {
-        String projectKey = request.mandatoryParam(PROJECT_PARAMETER);
-
-        try (DbSession dbSession = dbClient.openSession(false)) {
-            ProjectDto project = componentFinder.getProjectByKey(dbSession, projectKey);
-            handleProjectRequest(project, request, response, dbSession);
-        }
-    }
-
-    protected abstract void handleProjectRequest(ProjectDto project, Request request, Response response, DbSession dbSession);
-
-    protected DbClient getDbClient() {
-        return dbClient;
+        super(actionName, dbClient, componentFinder);
     }
 }

@@ -120,7 +120,8 @@ class PullRequestPostAnalysisTaskTest {
         when(almSettingDto.getAppId()).thenReturn("app id");
         when(almSettingDto.getDecryptedPrivateKey(any())).thenReturn("private key");
         when(almSettingDto.getAlm()).thenReturn(ALM.GITHUB);
-        when(dbClient.openSession(anyBoolean())).thenReturn(mock());
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
         AlmSettingDao almSettingDao = mock();
         when(almSettingDao.selectByUuid(any(), any())).thenReturn(Optional.of(almSettingDto));
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);
@@ -156,7 +157,8 @@ class PullRequestPostAnalysisTaskTest {
         when(almSettingDto.getAppId()).thenReturn("app id");
         when(almSettingDto.getDecryptedPrivateKey(any())).thenReturn("private key");
         when(almSettingDto.getAlm()).thenReturn(ALM.AZURE_DEVOPS);
-        when(dbClient.openSession(anyBoolean())).thenReturn(mock());
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
         AlmSettingDao almSettingDao = mock();
         when(almSettingDao.selectByUuid(any(), any())).thenReturn(Optional.of(almSettingDto));
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);
@@ -194,7 +196,8 @@ class PullRequestPostAnalysisTaskTest {
         when(almSettingDto.getAppId()).thenReturn("app id");
         when(almSettingDto.getDecryptedPrivateKey(any())).thenReturn("private key");
         when(almSettingDto.getAlm()).thenReturn(ALM.GITHUB);
-        when(dbClient.openSession(anyBoolean())).thenReturn(mock());
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
         AlmSettingDao almSettingDao = mock();
         when(almSettingDao.selectByUuid(any(), any())).thenReturn(Optional.of(almSettingDto));
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);
@@ -234,7 +237,8 @@ class PullRequestPostAnalysisTaskTest {
         when(almSettingDto.getAppId()).thenReturn("app id");
         when(almSettingDto.getDecryptedPrivateKey(any())).thenReturn("private key");
         when(almSettingDto.getAlm()).thenReturn(ALM.GITHUB);
-        when(dbClient.openSession(anyBoolean())).thenReturn(mock());
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
         AlmSettingDao almSettingDao = mock();
         when(almSettingDao.selectByUuid(any(), any())).thenReturn(Optional.of(almSettingDto));
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);
@@ -266,7 +270,8 @@ class PullRequestPostAnalysisTaskTest {
         when(almSettingDto.getAppId()).thenReturn("app id");
         when(almSettingDto.getDecryptedPrivateKey(any())).thenReturn("private key");
         when(almSettingDto.getAlm()).thenReturn(ALM.GITHUB);
-        when(dbClient.openSession(anyBoolean())).thenReturn(mock());
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
         AlmSettingDao almSettingDao = mock();
         when(almSettingDao.selectByUuid(any(), any())).thenReturn(Optional.of(almSettingDto));
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);
@@ -319,7 +324,6 @@ class PullRequestPostAnalysisTaskTest {
         AlmSettingDto almSettingDto = mock();
         doReturn(ALM.GITHUB).when(almSettingDto).getAlm();
 
-        when(dbClient.openSession(anyBoolean())).thenReturn(mock());
         AlmSettingDao almSettingDao = mock();
         when(almSettingDao.selectByUuid(any(), any())).thenReturn(Optional.of(almSettingDto));
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);
@@ -451,7 +455,6 @@ class PullRequestPostAnalysisTaskTest {
         when(almSettingDto.getAppId()).thenReturn("app id");
         when(almSettingDto.getDecryptedPrivateKey(any())).thenReturn("private key");
         when(almSettingDto.getAlm()).thenReturn(ALM.GITHUB);
-        when(dbClient.openSession(anyBoolean())).thenReturn(mock());
         AlmSettingDao almSettingDao = mock();
         when(almSettingDao.selectByUuid(any(), any())).thenReturn(Optional.of(almSettingDto));
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);

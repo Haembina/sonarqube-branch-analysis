@@ -20,6 +20,7 @@
 package com.haembina.branchanalysis.almclient.bitbucket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BitbucketConfiguration;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
@@ -241,6 +242,16 @@ class BitbucketCloudClientUnitTest {
         assertEquals("logoUrl", ((CloudCreateReportRequest) result).getLogoUrl());
         assertEquals("FAILED", result.getResult());
 
+    }
+
+    @Test
+    void shouldWriteCreationDateInUtcWithOffset() throws IOException {
+        CodeInsightsReport report = underTest.createCodeInsightsReport(new ArrayList<>(), "reportDescription",
+            Instant.parse("2026-09-26T12:34:56.789Z"), "dashboardUrl", "logoUrl", ReportStatus.PASSED);
+
+        String json = JsonMapper.builder().findAndAddModules().build().writeValueAsString(report);
+
+        assertThat(json).contains("\"created_on\":\"2026-09-26T12:34:56+0000\"");
     }
 
     @Test

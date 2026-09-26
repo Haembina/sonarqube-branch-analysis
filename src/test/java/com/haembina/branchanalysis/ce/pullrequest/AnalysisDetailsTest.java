@@ -70,7 +70,7 @@ class AnalysisDetailsTest {
         AnalysisDetails testCase =
                 new AnalysisDetails("pullRequestKey", "commitHash", new ArrayList<>(), qualityGate, projectAnalysis);
 
-        assertEquals(analysis.getDate(), testCase.getAnalysisDate());
+        assertEquals(analysis.getDate().toInstant(), testCase.getAnalysisDate());
     }
 
     @Test

@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -107,7 +106,7 @@ class BitbucketCloudClient implements BitbucketClient {
                 reportDescription,
                 TITLE,
                 REPORTER,
-                Date.from(creationDate),
+                creationDate,
                 dashboardUrl, // you need to change this to a real https URL for local debugging since localhost will get declined by the API
                 logoUrl,
                 "COVERAGE",

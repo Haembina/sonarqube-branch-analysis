@@ -20,7 +20,6 @@
  */
 
 import { Layout, Spinner } from '@sonarsource/echoes-react';
-import { uniq } from 'lodash';
 import { useIntl } from 'react-intl';
 import { useFlags } from '~adapters/helpers/feature-flags';
 import { BasicSeparator } from '~design-system';
@@ -80,7 +79,7 @@ export default function PullRequestOverview(props: Readonly<Readonly<Props>>) {
   const { data: componentMeasures, isLoading: isLoadingMeasures } = useMeasuresComponentQuery(
     {
       componentKey: component.key,
-      metricKeys: uniq([...PR_METRICS, ...(conditions?.map((c) => c.metric) ?? [])]),
+      metricKeys: [...new Set([...PR_METRICS, ...(conditions?.map((c) => c.metric) ?? [])])],
       branchLike: pullRequest,
     },
     { enabled: !isLoadingBranchStatusesData },

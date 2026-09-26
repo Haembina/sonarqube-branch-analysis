@@ -89,7 +89,7 @@ class GithubPullRequestDecoratorTest {
         when(projectAlmSettingDto.getAlmRepo()).thenReturn("alm-repo");
         when(projectAlmSettingDto.getMonorepo()).thenReturn(false);
         when(analysisDetails.getPullRequestId()).thenReturn("123");
-        when(analysisDetails.getAnalysisDate()).thenReturn(Date.from(clock.instant()));
+        when(analysisDetails.getAnalysisDate()).thenReturn(clock.instant());
         when(analysisDetails.getAnalysisId()).thenReturn("analysis-id");
         when(analysisDetails.getAnalysisProjectKey()).thenReturn("project-key");
         when(analysisDetails.getAnalysisProjectName()).thenReturn("Project Name");
