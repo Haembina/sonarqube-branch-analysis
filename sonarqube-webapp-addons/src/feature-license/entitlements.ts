@@ -2,6 +2,7 @@
  * SonarQube
  * Copyright (C) 2009-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
+ * Copyright (C) 2026 Haembina
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

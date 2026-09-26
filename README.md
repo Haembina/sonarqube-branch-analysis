@@ -276,6 +276,14 @@ untested.
 - With CI detection left on, a CI scan of a pull request lands on that pull request instead of main, and main stops
   moving. The Haembina server keeps the setting `false`.
 
+## License
+
+The plugin is licensed under the GNU Lesser General Public License, version 3 ([LICENSE](LICENSE)), which adds
+permissions to the GNU General Public License, version 3 ([COPYING](COPYING)). It is derived from
+[mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin),
+Copyright (C) 2020-2026 Michael Clarke, and modified by Haembina since 2026-09-25; [NOTICE](NOTICE) says who holds
+what.
+
 ## Further reading
 
 - [Architecture](docs/architecture.md): how the agent, the extensions and the webapp fit together
@@ -284,4 +292,4 @@ untested.
 - [Webapp addons](sonarqube-webapp-addons/README.md): building the branch pages
 - [Changelog](CHANGELOG.md)
 - Agent instructions
-- [License](LICENSE)
+- [License](LICENSE) and [Notice](NOTICE)

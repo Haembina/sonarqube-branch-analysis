@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020-2026 Marvin Wichmann, Michael Clarke
+ * Copyright (C) 2026 Haembina
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

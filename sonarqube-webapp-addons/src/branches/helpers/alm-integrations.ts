@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2009-2025 SonarSource Sàrl
+ * Copyright (C) 2026 Haembina
  * All rights reserved
  * mailto:info AT sonarsource DOT com
  */
