@@ -25,6 +25,13 @@ conventions check reads their `capability <name>: <what>` titles; the capabiliti
 
 `conventions.json` carries the reason for each entry.
 
+## What the SonarQube scan reads
+
+`sonar-project.properties` names the product's code and its tests. Tool configs at the root that no suite measures,
+such as `jest.config.cjs` and `playwright.config.ts`, stay out of `sonar.sources`, because the quality gate asks
+every new line to be covered. The `sonarqube-webapp` submodule stays out too: `npm test` removes it once the addons'
+suite has run, and its dependencies are SonarSource's.
+
 ## Headers
 
 Every Java and TSX file opens with its LGPL-3.0 licence header. Keep it when changing a file.
