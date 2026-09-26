@@ -42,9 +42,11 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `./gradlew build` | Compiles with Error Prone and javac's lint as errors, runs the suite, fails under the JaCoCo floor, builds the jar |
 | `./gradlew test` | The Java suite and its JaCoCo report in `build/reports/jacoco/test` |
 | `npm test` | The Java suite with its JaCoCo floor, and the jars the SonarQube scan resolves types against |
+| `npm run test:addons` | The webapp addons' Jest suite, with its coverage floor and `coverage/addons/lcov.info` |
 | `./gradlew pitest` | PIT's mutation run over the Java, reported in `build/reports/pitest`; `mutation.yml` runs it weekly |
 | `npm run sonar:ceiling` | Fails when the SonarQube project's open issues rise above `issues.ceiling` in `conventions.json` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with the jar and webapp and runs a main, branch and pull request analysis |
+| `bash scripts/integration-test.sh <jar> <webapp dir> npm run test:e2e` | The same, then the Playwright suite over the branch pages against that server |
 | `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts, ESLint over the TypeScript, JavaScript and JSON, npm-groovy-lint over the Gradle scripts, Error Prone and javac over the Java |
 | `npm run lint:md` | markdownlint over every document |
 | `npm run conventions:check` | The conventions gate |
@@ -63,6 +65,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
 | `docker` | The Docker image's entrypoint and its upgrade test |
 | `scripts` | The integration test and the Proxmox container install script |
+| `e2e` | The Playwright suite over the branch pages, run against the integration test's server |
 | `docs` | Architecture, local conventions and project status |
 
 ## Common tasks
@@ -121,17 +124,21 @@ SonarQube reads Haembina Branch Analysis as a different plugin: its key, its jar
 
 ## Testing
 
-`./gradlew build` runs the JUnit 5 suite and fails under the floor `conventions.json` declares. The integration test
-boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request analysis.
-Without Docker, `jq` and `curl`, it cannot start:
+`./gradlew build` runs the JUnit 5 suite and fails under the floor `conventions.json` declares. The webapp addons'
+suites sit beside the files they cover as `*.test.tsx` and run in the submodule's own Jest setup, once its dependencies
+are installed; the run fails under the same floor:
+
+```bash
+npm run test:addons
+```
+
+The integration test boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull
+request analysis. Without Docker, `jq` and `curl`, it cannot start:
 
 ```bash
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
 ```
 
-`build.yml` runs both on every pull request, and `ci.yml` runs the conventions gate, the linters, `npm test` and the
-dependency audit, then scans the tree on the estate SonarQube with `sonar-project.properties`. The scan reads the
-classes and the JaCoCo report `npm test` writes; without them the Java analysis has no types and no coverage.
 
 PIT measures whether the suite's assertions notice a change, which coverage cannot. `mutation.yml` runs it every
 Tuesday night and on demand, writes the score into the run summary and keeps the per-mutant report as the
@@ -142,6 +149,24 @@ locally with:
 ```bash
 ./gradlew pitest
 ```
+
+A command after the two paths runs against that server once its checks pass. The Playwright suite in `e2e` runs this
+way: it signs in as a user it creates, drives the branch list, the switcher, the pull request overview, the branch new
+code settings and the rename, set-as-main and delete dialogs, each also by keyboard alone, and needs Chromium from
+`npx playwright install chromium`:
+
+```bash
+bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp npm run test:e2e
+```
+
+Pointed at a server by hand, the suite reads `SONARQUBE_URL`, `SONARQUBE_PROJECT` and, when the admin password is not
+`admin`, `SONARQUBE_ADMIN_PASSWORD`; the project must hold the integration test's analyses, and the dialog specs
+rename, re-point and delete them. A failure leaves its report in `build/reports/e2e`.
+
+`build.yml` runs the Java suite and the addons' suite on every pull request, then the integration test with the
+Playwright suite behind it. `ci.yml` runs the conventions gate, the linters, both suites and the dependency audit, then
+scans the tree on the estate SonarQube with `sonar-project.properties`. The scan reads the classes and the JaCoCo report
+`npm test` writes and the lcov `npm run test:addons` writes; without them the analysis has no types and no coverage.
 
 ## Versioning
 

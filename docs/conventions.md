@@ -7,14 +7,15 @@ The estate's conventions apply here as written in `haembina-conventions/CONVENTI
 No kind set is declared, so S1, S2 and S8 are off. Java names a file after the public class it holds, and a test after
 its subject with `Test` appended (`AnalysisDetails.java`, `AnalysisDetailsTest.java`), which is how Gradle's JUnit
 platform finds the suites. The TSX under `sonarqube-webapp-addons` follows SonarSource's webapp: a PascalCase file per
-component.
+component, and its suite beside it as `<Component>.test.tsx`. The Playwright specs in `e2e` are `<page>.test.ts`, so the
+conventions check reads their `capability <name>: <what>` titles; the capabilities in `conventions.json` name them.
 
 ## Languages
 
 | Language | Linted by | Measured by |
 | --- | --- | --- |
 | Java | Error Prone and javac, every finding an error | JUnit 5 and JaCoCo, failing under the declared floor |
-| TypeScript | ESLint with typescript-eslint and sonarjs, and the `sonarqube-webapp` workspace's TypeScript build | The integration test loading the built webapp |
+| TypeScript | ESLint with typescript-eslint and sonarjs, and the `sonarqube-webapp` workspace's TypeScript build | Jest in that workspace, failing under the declared floor; Playwright over the built webapp |
 | JavaScript | ESLint with sonarjs | Nothing: both files are configuration |
 | JSON | ESLint with @eslint/json | Nothing |
 | Gradle | npm-groovy-lint | Nothing |
