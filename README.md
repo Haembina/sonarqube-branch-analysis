@@ -166,6 +166,8 @@ rename, re-point and delete them. A failure leaves its report in `build/reports/
 Playwright suite behind it. `ci.yml` runs the conventions gate, the linters, both suites and the dependency audit, then
 scans the tree on the estate SonarQube with `sonar-project.properties`. The scan reads the classes and the JaCoCo report
 `npm test` writes and the lcov `npm run test:addons` writes; without them the analysis has no types and no coverage.
+`npm test` checks the `sonarqube-webapp` submodule out for the addons' suite and removes it again afterwards, so the
+dependency audit and the scan read this repository's lockfiles: the submodule's dependencies are SonarSource's to fix.
 
 ## Versioning
 
