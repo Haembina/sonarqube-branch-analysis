@@ -42,6 +42,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `./gradlew build` | Compiles with Error Prone and javac's lint as errors, runs the suite, fails under the JaCoCo floor, builds the jar |
 | `./gradlew test` | The Java suite and its JaCoCo report in `build/reports/jacoco/test` |
 | `npm test` | The Java suite with its JaCoCo floor, and the jars the SonarQube scan resolves types against |
+| `./gradlew pitest` | PIT's mutation run over the Java, reported in `build/reports/pitest`; `mutation.yml` runs it weekly |
 | `npm run sonar:ceiling` | Fails when the SonarQube project's open issues rise above `issues.ceiling` in `conventions.json` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with the jar and webapp and runs a main, branch and pull request analysis |
 | `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts, ESLint over the TypeScript, JavaScript and JSON, npm-groovy-lint over the Gradle scripts, Error Prone and javac over the Java |
@@ -131,6 +132,16 @@ bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/
 `build.yml` runs both on every pull request, and `ci.yml` runs the conventions gate, the linters, `npm test` and the
 dependency audit, then scans the tree on the estate SonarQube with `sonar-project.properties`. The scan reads the
 classes and the JaCoCo report `npm test` writes; without them the Java analysis has no types and no coverage.
+
+PIT measures whether the suite's assertions notice a change, which coverage cannot. `mutation.yml` runs it every
+Tuesday night and on demand, writes the score into the run summary and keeps the per-mutant report as the
+`mutation-report` artifact for a fortnight. It never fails a build: equivalent mutants make a threshold noise. On
+2026-09-26 it killed 785 of 988 mutants (79%), with a test strength of 86% over the 916 a test covers. Run it
+locally with:
+
+```bash
+./gradlew pitest
+```
 
 ## Versioning
 

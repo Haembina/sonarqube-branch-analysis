@@ -139,10 +139,16 @@ tasks.withType(JavaCompile) {
 
 assemble.dependsOn('shadowJar')
 
+// Mutation testing, run weekly by .github/workflows/mutation.yml and never by the build: a score is read, not gated
 pitest {
+    pitestVersion = '1.30.0'
     junit5PluginVersion = '1.2.3'
     timestampedReports = false
     avoidCallsTo = ['org.slf4j.Logger']
+    outputFormats = ['HTML', 'XML']
+    threads = Runtime.runtime.availableProcessors()
+    // The agent tests append to the boot class path, which class data sharing cannot cover
+    jvmArgs = ['-Xshare:off']
 }
 
 jacocoTestReport {
