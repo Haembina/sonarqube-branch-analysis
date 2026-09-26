@@ -13,8 +13,11 @@ component.
 
 | Language | Linted by | Measured by |
 | --- | --- | --- |
-| Java | javac, every lint category as an error | JUnit 5 and JaCoCo, failing under the declared floor |
-| TypeScript | The `sonarqube-webapp` workspace's TypeScript build | The integration test loading the built webapp |
+| Java | Error Prone and javac, every finding an error | JUnit 5 and JaCoCo, failing under the declared floor |
+| TypeScript | ESLint with typescript-eslint and sonarjs, and the `sonarqube-webapp` workspace's TypeScript build | The integration test loading the built webapp |
+| JavaScript | ESLint with sonarjs | Nothing: both files are configuration |
+| JSON | ESLint with @eslint/json | Nothing |
+| Gradle | npm-groovy-lint | Nothing |
 | Shell | shellcheck | Nothing: the Docker upgrade test and the integration test run them |
 | Workflows | actionlint | Nothing |
 | Markdown | markdownlint-cli2 | Nothing |
@@ -27,7 +30,7 @@ Every Java and TSX file opens with its LGPL-3.0 licence header. Keep it when cha
 
 ## Where this bites
 
-- A lint warning fails the Java build: `-Werror` is on every compile task. Run `./gradlew compileJava compileTestJava`
+- An Error Prone or javac warning fails the Java build: `-Werror` is on every compile task. Run `npm run lint:java`
   to see one before pushing.
 - A suite dropping under the JaCoCo floor fails `./gradlew build`, which `build.yml` runs. The report is
   `build/reports/jacoco/test/html/index.html`.

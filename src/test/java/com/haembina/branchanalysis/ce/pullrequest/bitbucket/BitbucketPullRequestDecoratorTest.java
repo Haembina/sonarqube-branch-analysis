@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -189,7 +188,7 @@ class BitbucketPullRequestDecoratorTest {
         when(analysisDetails.getQualityGateStatus()).thenReturn(QualityGate.Status.OK);
         when(analysisDetails.getAnalysisProjectKey()).thenReturn(REPORT_KEY);
 
-        when(analysisDetails.getAnalysisDate()).thenReturn(Date.from(Instant.now()));
+        when(analysisDetails.getAnalysisDate()).thenReturn(Instant.now());
 
         ReportAttributes reportAttributes = mock();
         when(reportAttributes.getScmPath()).thenReturn(Optional.of(ISSUE_PATH));

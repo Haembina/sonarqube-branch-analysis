@@ -142,7 +142,7 @@ class GitlabMergeRequestDecoratorDiscussionCleanupTest extends GitlabMergeReques
         ArgumentCaptor<String> discussionIdArgumentCaptor = ArgumentCaptor.captor();
         verify(gitlabClient).resolveMergeRequestDiscussion(eq(PROJECT_ID), eq(MERGE_REQUEST_IID), discussionIdArgumentCaptor.capture());
 
-        assertThat(discussionIdArgumentCaptor.getValue()).isEqualTo(discussion.getId());
+        assertThat(discussionIdArgumentCaptor.getValue()).isEqualTo("discussionId2");
     }
 
     @Test
@@ -233,7 +233,7 @@ class GitlabMergeRequestDecoratorDiscussionCleanupTest extends GitlabMergeReques
         ArgumentCaptor<String> noteContentArgumentCaptor = ArgumentCaptor.captor();
         verify(gitlabClient).addMergeRequestDiscussionNote(eq(PROJECT_ID), eq(MERGE_REQUEST_IID), discussionIdArgumentCaptor.capture(), noteContentArgumentCaptor.capture());
 
-        assertThat(discussionIdArgumentCaptor.getValue()).isEqualTo(discussion.getId());
+        assertThat(discussionIdArgumentCaptor.getValue()).isEqualTo("discussionId5");
         assertThat(noteContentArgumentCaptor.getValue()).isEqualTo(OLD_SONARQUBE_ISSUE_COMMENT);
     }
 
@@ -268,7 +268,7 @@ class GitlabMergeRequestDecoratorDiscussionCleanupTest extends GitlabMergeReques
         ArgumentCaptor<String> noteContentArgumentCaptor = ArgumentCaptor.captor();
         verify(gitlabClient).addMergeRequestDiscussionNote(eq(PROJECT_ID), eq(MERGE_REQUEST_IID), discussionIdArgumentCaptor.capture(), noteContentArgumentCaptor.capture());
 
-        assertThat(discussionIdArgumentCaptor.getValue()).isEqualTo(discussion.getId());
+        assertThat(discussionIdArgumentCaptor.getValue()).isEqualTo("discussionId5");
         assertThat(noteContentArgumentCaptor.getValue()).isEqualTo(OLD_SONARQUBE_ISSUE_COMMENT);
     }
 

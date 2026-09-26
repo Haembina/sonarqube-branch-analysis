@@ -20,7 +20,7 @@
 package com.haembina.branchanalysis.ce.pullrequest;
 
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,8 +71,8 @@ public class AnalysisDetails {
         return Optional.ofNullable(projectAnalysis.getScannerContext().getProperties().get(propertyName));
     }
 
-    public Date getAnalysisDate() {
-        return getAnalysis().getDate();
+    public Instant getAnalysisDate() {
+        return getAnalysis().getDate().toInstant();
     }
 
     public String getAnalysisId() {

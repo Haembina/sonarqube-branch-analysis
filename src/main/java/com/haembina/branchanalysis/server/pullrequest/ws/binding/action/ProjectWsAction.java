@@ -19,65 +19,43 @@
  */
 package com.haembina.branchanalysis.server.pullrequest.ws.binding.action;
 
-import org.sonar.api.server.ws.Request;
-import org.sonar.api.server.ws.Response;
-import org.sonar.api.server.ws.WebService;
+import com.haembina.branchanalysis.server.pullrequest.ws.ProjectWsActionSupport;
 import org.sonar.db.DbClient;
-import org.sonar.db.DbSession;
-import org.sonar.db.project.ProjectDto;
 import org.sonar.db.permission.ProjectPermission;
+import org.sonar.db.project.ProjectDto;
 import org.sonar.server.almsettings.ws.AlmSettingsWsAction;
 import org.sonar.server.component.ComponentFinder;
 import org.sonar.server.user.UserSession;
 
-public abstract class ProjectWsAction implements AlmSettingsWsAction {
+/**
+ * An ALM binding web service action about one project, refused to a caller without its permission on the project.
+ */
+public abstract class ProjectWsAction extends ProjectWsActionSupport implements AlmSettingsWsAction {
 
-    private static final String PROJECT_PARAMETER = "project";
-
-    private final String actionName;
-    private final DbClient dbClient;
-    private final ComponentFinder componentFinder;
     private final UserSession userSession;
     private final ProjectPermission permission;
 
+    /**
+     * An action that needs {@link ProjectPermission#ADMIN} on the project.
+     */
     protected ProjectWsAction(String actionName, DbClient dbClient, ComponentFinder componentFinder, UserSession userSession) {
         this(actionName, dbClient, componentFinder, userSession, ProjectPermission.ADMIN);
     }
 
+    /**
+     * An action that needs {@code permission} on the project.
+     */
     protected ProjectWsAction(String actionName, DbClient dbClient, ComponentFinder componentFinder, UserSession userSession, ProjectPermission permission) {
-        super();
-        this.actionName = actionName;
-        this.dbClient = dbClient;
-        this.componentFinder = componentFinder;
+        super(actionName, dbClient, componentFinder);
         this.userSession = userSession;
         this.permission = permission;
     }
 
+    /**
+     * Throws {@code ForbiddenException} when the caller lacks the action's permission on the project.
+     */
     @Override
-    public void define(WebService.NewController context) {
-        WebService.NewAction action = context.createAction(actionName).setHandler(this);
-        action.createParam(PROJECT_PARAMETER).setRequired(true);
-
-        configureAction(action);
-    }
-
-    protected abstract void configureAction(WebService.NewAction action);
-
-
-    @Override
-    public void handle(Request request, Response response) {
-        String projectKey = request.mandatoryParam(PROJECT_PARAMETER);
-
-        try (DbSession dbSession = dbClient.openSession(false)) {
-            ProjectDto project = componentFinder.getProjectByKey(dbSession, projectKey);
-            userSession.checkEntityPermission(permission, project);
-            handleProjectRequest(project, request, response, dbSession);
-        }
-    }
-
-    protected abstract void handleProjectRequest(ProjectDto project, Request request, Response response, DbSession dbSession);
-
-    protected DbClient getDbClient() {
-        return dbClient;
+    protected void checkProjectAccess(ProjectDto project) {
+        userSession.checkEntityPermission(permission, project);
     }
 }

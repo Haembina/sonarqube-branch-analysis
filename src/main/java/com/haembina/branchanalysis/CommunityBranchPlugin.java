@@ -67,7 +67,7 @@ import org.sonar.core.config.PurgeConstants;
 import org.sonar.core.extension.CoreExtension;
 
 /**
- * @author Michael Clarke
+ * Registers the plugin's settings and its web server, compute engine and scanner extensions.
  */
 public class CommunityBranchPlugin implements Plugin, CoreExtension {
 

@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,7 +118,7 @@ class CommunityBranchSupportDelegateTest {
         when(branchDto.getUuid()).thenReturn("componentUuid");
         when(branchDto.getBranchType()).thenReturn(BranchType.BRANCH);
 
-        when(clock.millis()).thenReturn(12345678901234L);
+        when(clock.instant()).thenReturn(Instant.ofEpochMilli(12345678901234L));
 
         BranchSupport.ComponentKey componentKey = mock();
         when(componentKey.getKey()).thenReturn("componentKey");
@@ -163,7 +164,7 @@ class CommunityBranchSupportDelegateTest {
         when(branchDto.getProjectUuid()).thenReturn("projectUuid");
         when(branchDto.getKey()).thenReturn("nonDummy");
 
-        when(clock.millis()).thenReturn(12345678901234L);
+        when(clock.instant()).thenReturn(Instant.ofEpochMilli(12345678901234L));
 
         BranchSupport.ComponentKey componentKey = mock();
         when(componentKey.getKey()).thenReturn("componentKey");
@@ -186,7 +187,7 @@ class CommunityBranchSupportDelegateTest {
         verify(componentDao).insert(dbSession, copyComponentDto, false);
         verify(copyComponentDto).setUuid("uuid0");
         verify(copyComponentDto).setUuidPath(".");
-        verify(copyComponentDto).setCreatedAt(new Date(12345678901234L));
+        verify(copyComponentDto).setCreatedAt(Date.from(Instant.ofEpochMilli(12345678901234L)));
 
         assertThat(result).isSameAs(copyComponentDto);
 

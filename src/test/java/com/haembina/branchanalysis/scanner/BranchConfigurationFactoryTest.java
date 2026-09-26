@@ -63,7 +63,8 @@ class BranchConfigurationFactoryTest {
         ProjectBranches projectBranches = mock();
         when(projectBranches.isEmpty()).thenReturn(false);
         when(projectBranches.defaultBranchName()).thenReturn("default");
-        when(projectBranches.get(any())).thenReturn(mock());
+        BranchInfo branchInfo = mock();
+        when(projectBranches.get(any())).thenReturn(branchInfo);
 
         BranchConfigurationFactory underTest = new BranchConfigurationFactory();
         BranchConfiguration actual = underTest.createBranchConfiguration("branch", projectBranches);

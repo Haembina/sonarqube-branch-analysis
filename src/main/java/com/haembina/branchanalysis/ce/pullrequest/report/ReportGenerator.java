@@ -30,6 +30,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 import com.haembina.branchanalysis.ce.pullrequest.report.AnalysisSummary.UrlIconMetric;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.ce.posttask.QualityGate;
@@ -151,9 +152,8 @@ public class ReportGenerator {
     }
 
     private String getBaseImageUrl() {
-        return configuration.get(CommunityBranchPlugin.IMAGE_URL_BASE)
-                .orElse(server.getPublicRootUrl() + "/static/haembinabranchanalysis")
-                .replaceAll("/*$", "");
+        return StringUtils.stripEnd(configuration.get(CommunityBranchPlugin.IMAGE_URL_BASE)
+                .orElse(server.getPublicRootUrl() + "/static/haembinabranchanalysis"), "/");
     }
 
     private String getIssueUrl(PostAnalysisIssueVisitor.LightIssue issue, AnalysisDetails analysisDetails) {

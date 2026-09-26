@@ -30,22 +30,22 @@ import java.util.Set;
 public class ErrorResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private final LinkedHashSet<Error> errors;
+    private final LinkedHashSet<ErrorMessage> errors;
 
-    public ErrorResponse(@JsonProperty("errors") Set<Error> errors) {
+    public ErrorResponse(@JsonProperty("errors") Set<ErrorMessage> errors) {
         this.errors = Optional.ofNullable(errors).map(LinkedHashSet::new).orElse(null);
     }
 
-    public Set<Error> getErrors() {
+    public Set<ErrorMessage> getErrors() {
         return Optional.ofNullable(errors).map(Collections::unmodifiableSet).orElse(null);
     }
 
-    public static class Error implements Serializable {
+    public static class ErrorMessage implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private final String message;
 
-        public Error(@JsonProperty("message") String message) {
+        public ErrorMessage(@JsonProperty("message") String message) {
             this.message = message;
         }
 

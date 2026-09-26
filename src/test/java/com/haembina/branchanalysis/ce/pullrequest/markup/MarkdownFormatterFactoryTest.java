@@ -95,6 +95,27 @@ class MarkdownFormatterFactoryTest {
     }
 
     @Test
+    void shouldFormatEachNodeThroughItsTypesFormatter() {
+        MarkdownFormatterFactory testCase = new MarkdownFormatterFactory();
+        assertEquals("Text", testCase.format(new Document(new Text("Text"))));
+        assertEquals("**Text**", testCase.format(new Bold(new Text("Text"))));
+    }
+
+    @Test
+    void shouldRefuseANodeTypeWithNoFormatter() {
+        MarkdownFormatterFactory testCase = new MarkdownFormatterFactory();
+        Node unknown = new Node() {
+            @Override
+            boolean isValidChild(Node child) {
+                return false;
+            }
+        };
+        assertThatThrownBy(() -> testCase.format(unknown))
+                .isExactlyInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unknown node type: " + unknown.getClass().getName());
+    }
+
+    @Test
     void testContentTextFormatterEscapedHtml(){
         MarkdownFormatterFactory testCase = new MarkdownFormatterFactory();
         assertEquals("&lt;p&gt; no html allowed  ", testCase.textFormatter().format(new Text("<p> no html allowed  ")));

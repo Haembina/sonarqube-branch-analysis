@@ -36,7 +36,7 @@ public class DefaultLinkHeaderReader implements LinkHeaderReader {
                 .map(i -> i.split(";"))
                 .filter(i -> i.length > 1)
                 .filter(i -> {
-                    String[] relParts = i[1].trim().split("=");
+                    String[] relParts = i[1].trim().split("=", -1);
 
                     if (relParts.length < 2) {
                         return false;

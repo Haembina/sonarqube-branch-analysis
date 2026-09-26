@@ -110,7 +110,7 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
             ? String.format("[%s] %s", analysisDetails.getAnalysisProjectName(), DEFAULT_CHECK_RUN_NAME)
             : DEFAULT_CHECK_RUN_NAME;
         repository.createCheckRun(checkRunName, analysisDetails.getCommitSha())
-            .withStartedAt(analysisDetails.getAnalysisDate())
+            .withStartedAt(Date.from(analysisDetails.getAnalysisDate()))
             .withCompletedAt(Date.from(clock.instant()))
             .withStatus(GHCheckRun.Status.COMPLETED)
             .withConclusion(analysisDetails.getQualityGateStatus() == QualityGate.Status.OK ? GHCheckRun.Conclusion.SUCCESS : GHCheckRun.Conclusion.FAILURE)

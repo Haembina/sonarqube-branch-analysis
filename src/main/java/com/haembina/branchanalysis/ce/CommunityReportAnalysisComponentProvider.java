@@ -41,7 +41,7 @@ import com.haembina.branchanalysis.ce.pullrequest.markup.MarkdownFormatterFactor
 import com.haembina.branchanalysis.ce.pullrequest.report.ReportGenerator;
 
 /**
- * @author Michael Clarke
+ * The compute engine components that load branches and decorate pull requests after an analysis.
  */
 public class CommunityReportAnalysisComponentProvider implements ReportAnalysisComponentProvider {
 

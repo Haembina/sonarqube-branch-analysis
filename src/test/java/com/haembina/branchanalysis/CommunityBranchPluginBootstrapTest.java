@@ -112,9 +112,6 @@ class CommunityBranchPluginBootstrapTest {
             }
         };
 
-        ElevatedClassLoaderFactory classLoaderFactory = mock();
-        when(classLoaderFactory.createClassLoader(any())).thenReturn(classLoader);
-
         Plugin.Context context = mock(Plugin.Context.class, Mockito.RETURNS_DEEP_STUBS);
         SonarRuntime sonarRuntime = mock();
         when(context.getRuntime()).thenReturn(sonarRuntime);

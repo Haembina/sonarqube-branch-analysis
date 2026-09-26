@@ -258,7 +258,7 @@ class CommunityBranchAgentTest {
 
     private static class CustomClassloader extends ClassLoader {
 
-        public Class<?> loadClass(String name, byte[] value) {
+        Class<?> loadClass(String name, byte[] value) {
             return defineClass(name, value, 0, value.length);
         }
 

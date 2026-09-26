@@ -41,7 +41,7 @@ import org.sonar.scanner.scan.branch.ProjectBranches;
 import com.haembina.branchanalysis.CommunityBranchPlugin;
 
 /**
- * @author Michael Clarke
+ * Resolves a scan's branch or pull request from its parameters, or from its CI environment when none are given.
  */
 public class CommunityBranchConfigurationLoader implements BranchConfigurationLoader {
 
@@ -118,7 +118,7 @@ public class CommunityBranchConfigurationLoader implements BranchConfigurationLo
      * that never set it keeps the upstream behaviour.
      */
     private static boolean isAutoConfigurationEnabled(Map<String, String> localSettings) {
-        return !Boolean.FALSE.toString().equalsIgnoreCase(StringUtils.trimToNull(localSettings.get(CommunityBranchPlugin.AUTO_CONFIGURATION_ENABLED)));
+        return !"false".equalsIgnoreCase(StringUtils.trimToNull(localSettings.get(CommunityBranchPlugin.AUTO_CONFIGURATION_ENABLED)));
     }
 
 }

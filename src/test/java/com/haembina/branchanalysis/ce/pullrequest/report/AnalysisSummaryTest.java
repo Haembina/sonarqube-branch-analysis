@@ -75,7 +75,7 @@ class AnalysisSummaryTest {
 
         Document expectedDocument = new Document(new Heading(3, new Image("status description", "statusImageUrl"),
             new Text(" "),
-            new Text(("Quality Gate passed"))),
+            new Text("Quality Gate passed")),
                 new Heading(4, new Text("Issues")),
                 new List(List.Style.BULLET,
                     new ListItem(
@@ -141,7 +141,7 @@ class AnalysisSummaryTest {
 
         Document expectedDocument = new Document(new Heading(3, new Image("status description", "statusImageUrl"),
             new Text(" "),
-            new Text(("Quality Gate passed"))),
+            new Text("Quality Gate passed")),
             new Heading(4, new Text("Issues")),
             new List(List.Style.BULLET,
                 new ListItem(
