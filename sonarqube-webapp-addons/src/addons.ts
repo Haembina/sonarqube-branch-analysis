@@ -27,7 +27,7 @@ const registry = { branches, entitlements };
  * which is absent here and so reads as `undefined`.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the webapp reads addons of other editions, each typed where it is called
-export type AddonsType = { [key: string]: any | undefined } & typeof registry;
+export type AddonsType = { [key: string]: any } & typeof registry;
 
 /**
  * The addon registry the SonarQube webapp loads: the branch and pull request UI, and the
