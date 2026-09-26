@@ -43,6 +43,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `./gradlew test` | The Java suite and its JaCoCo report in `build/reports/jacoco/test` |
 | `npm run test:addons` | The webapp addons' Jest suite, with its coverage floor and `coverage/addons/lcov.info` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with the jar and webapp and runs a main, branch and pull request analysis |
+| `bash scripts/integration-test.sh <jar> <webapp dir> npm run test:e2e` | The same, then the Playwright suite over the branch pages against that server |
 | `npm run lint` | actionlint over the workflows, shellcheck over the shell scripts |
 | `npm run lint:md` | markdownlint over every document |
 | `npm run conventions:check` | The conventions gate |
@@ -61,6 +62,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
 | `docker` | The Docker image's entrypoint and its upgrade test |
 | `scripts` | The integration test and the Proxmox container install script |
+| `e2e` | The Playwright suite over the branch pages, run against the integration test's server |
 | `docs` | Architecture, local conventions and project status |
 
 ## Common tasks
@@ -127,16 +129,28 @@ are installed; the run fails under the same floor:
 npm run test:addons
 ```
 
-The integration test
-boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull request analysis.
-Without Docker, `jq` and `curl`, it cannot start:
+The integration test boots the stock SonarQube image with the built jar and webapp, then runs a main, branch and pull
+request analysis. Without Docker, `jq` and `curl`, it cannot start:
 
 ```bash
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
 ```
 
-`build.yml` runs both on every pull request, and `ci.yml` runs the conventions gate, the linters and the dependency
-audit.
+A command after the two paths runs against that server once its checks pass. The Playwright suite in `e2e` runs this
+way: it signs in as a user it creates, drives the branch list, the switcher, the pull request overview, the branch new
+code settings and the rename, set-as-main and delete dialogs, each also by keyboard alone, and needs Chromium from
+`npx playwright install chromium`:
+
+```bash
+bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp npm run test:e2e
+```
+
+Pointed at a server by hand, the suite reads `SONARQUBE_URL`, `SONARQUBE_PROJECT` and, when the admin password is not
+`admin`, `SONARQUBE_ADMIN_PASSWORD`; the project must hold the integration test's analyses, and the dialog specs
+rename, re-point and delete them. A failure leaves its report in `build/reports/e2e`.
+
+`build.yml` runs the Java suite and the addons' suite on every pull request, then the integration test with the
+Playwright suite behind it; `ci.yml` runs the conventions gate, the linters and the dependency audit.
 
 ## Versioning
 
