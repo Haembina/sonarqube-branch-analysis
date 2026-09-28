@@ -59,8 +59,9 @@ async function namesOnEveryPage(page: Page, anchor: (page: Page) => Locator, con
 test.describe('WCAG 2.4.5 multiple ways', () => {
   test('reaches the branch list from the project sidebar', async ({ page }) => {
     await PAGES.overview(page);
-    const sidebar = page.getByTestId('sidebar-navigation-container');
-    await sidebar.hover();
+    // The sidebar is folded to no width until the header's button opens it.
+    await page.getByRole('button', { name: 'Open sidebar' }).click();
+    const sidebar = page.getByTestId('sidebar-navigation-wrapper');
     const link = sidebar.getByRole('link', { name: 'Branches & Pull Requests' });
     // The Project group folds its links away until it is opened, and may already be open.
     if (!(await link.isVisible())) {

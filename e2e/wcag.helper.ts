@@ -116,23 +116,25 @@ export const TEXT_SPACING_CSS = `
 `;
 
 /**
- * Lists every node inside `region`, tables excepted, whose right edge passes `width` CSS pixels
- * from the region's left edge once the region is held to that width. Data tables are the
- * exception WCAG 1.4.10 makes for content whose meaning needs two dimensions.
+ * Lists every node inside `region`, tables excepted, whose right edge passes the region's own
+ * once the region, padding and border included, is held to `width` CSS pixels. Data tables are
+ * the exception WCAG 1.4.10 makes for content whose meaning needs two dimensions.
  */
 export async function overflowPast(region: Locator, width: number): Promise<string[]> {
   return region.evaluate((root, limit) => {
     const html = root as HTMLElement;
+    html.style.boxSizing = 'border-box';
     html.style.maxWidth = `${limit}px`;
-    const left = html.getBoundingClientRect().left;
+    const { left, right } = html.getBoundingClientRect();
     const found: string[] = [];
     for (const element of Array.from(html.querySelectorAll('*'))) {
       if (element.closest('table')) {
         continue;
       }
       const box = element.getBoundingClientRect();
-      if (box.width > 0 && box.right > left + limit + 1) {
-        found.push(`${element.tagName.toLowerCase()} ends at ${Math.round(box.right - left)}px`);
+      if (box.width > 0 && box.right > right + 1) {
+        const text = element.textContent?.trim().slice(0, 40) ?? '';
+        found.push(`${element.tagName.toLowerCase()} "${text}" ends at ${Math.round(box.right - left)}px`);
       }
     }
     return found;
@@ -150,9 +152,13 @@ const WHITE: Rgb = [255, 255, 255];
 
 /**
  * Parses a computed `rgb()` or `rgba()` color, blending a translucent one over `behind`.
- * Returns undefined for a fully transparent color; throws on any other notation.
+ * Returns undefined for `none`, `transparent` and a fully transparent color; throws on any
+ * other notation.
  */
 function parseColor(color: string, behind: Rgb): Rgb | undefined {
+  if (color === 'none' || color === 'transparent') {
+    return undefined;
+  }
   const match = /^rgba?\(([^)]+)\)$/.exec(color);
   if (!match) {
     throw new Error(`Unparsed color ${color}`);

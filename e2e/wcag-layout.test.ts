@@ -38,7 +38,7 @@ const ZOOMED_200 = { width: 640, height: 400 };
 const REFLOW_WIDTH = 320;
 const REFLOW = { width: REFLOW_WIDTH, height: 256 };
 
-/** The largest box an icon is drawn in; an image any larger could be carrying words. */
+/** The largest box an icon bitmap is drawn in; a bitmap any larger could be carrying words. */
 const ICON_PX = 32;
 
 /** The shortest cycle an animation may repeat on: three flashes a second at most (2.3.1). */
@@ -90,19 +90,24 @@ for (const surface of ADDON_SURFACES) {
       expect(await clippedText(region)).toEqual([]);
     });
 
-    test('1.4.5: draws its words as text, with no image larger than an icon', async ({
+    test('1.4.5: draws its words as text: no bitmap larger than an icon, no SVG text', async ({
       page,
     }) => {
       const region = await surface.open(page);
       const images = await region.evaluate((root, icon) => {
-        const found: string[] = [];
-        for (const image of Array.from(root.querySelectorAll('img, canvas, svg, picture'))) {
+        const bitmaps = Array.from(root.querySelectorAll('img, canvas, picture')).filter(
+          (image) => {
+            const box = image.getBoundingClientRect();
+            return box.width > icon || box.height > icon;
+          },
+        );
+        const lettered = Array.from(root.querySelectorAll('svg')).filter((svg) =>
+          svg.querySelector('text'),
+        );
+        return [...bitmaps, ...lettered].map((image) => {
           const box = image.getBoundingClientRect();
-          if (box.width > icon || box.height > icon || image.querySelector('text')) {
-            found.push(`${image.tagName} ${Math.round(box.width)}x${Math.round(box.height)}`);
-          }
-        }
-        return found;
+          return `${image.tagName} ${Math.round(box.width)}x${Math.round(box.height)}`;
+        });
       }, ICON_PX);
       expect(images).toEqual([]);
     });

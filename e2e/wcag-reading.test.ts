@@ -23,6 +23,12 @@ import { ADDON_SURFACES } from './wcag.helper';
 /** How far one box may sit above the one before it and still read as the same line, in px. */
 const LINE_SLACK_PX = 2;
 
+/**
+ * Single keys SonarSource's webapp binds outside the addons, which are SonarSource's to answer
+ * for, each with what it does: `s` focuses the global search in the top bar.
+ */
+const SONARSOURCE_KEYS = new Set(['s']);
+
 /** How many Tab presses a walk through the branch list takes at most. */
 const WALK_LIMIT = 40;
 
@@ -58,7 +64,7 @@ async function outOfOrder(boxes: Locator): Promise<string[]> {
 /** Tabs from `start` until focus leaves `region`, returning the box of every stop inside it. */
 async function focusStops(page: Page, region: Locator, start: Locator) {
   await tabTo(page, start);
-  const stops: { top: number; left: number; name: string }[] = [];
+  const stops: { top: number; bottom: number; name: string }[] = [];
   for (let presses = 0; presses < WALK_LIMIT; presses++) {
     const stop = await region.evaluate((root) => {
       const focused = document.activeElement;
@@ -67,7 +73,7 @@ async function focusStops(page: Page, region: Locator, start: Locator) {
       }
       const box = focused.getBoundingClientRect();
       const name = focused.getAttribute('aria-label') ?? focused.textContent?.trim() ?? '';
-      return { top: box.top, left: box.left, name };
+      return { top: box.top, bottom: box.bottom, name };
     });
     if (!stop) {
       break;
@@ -100,9 +106,11 @@ test.describe('WCAG 2.4.3 focus order', () => {
     const stops = await focusStops(page, region, region.getByRole('tab').first());
 
     expect(stops.length).toBeGreaterThan(1);
+    // A stop drawn wholly above the one before it goes back up the page; controls of one row
+    // differ in height and so in top edge, and still read as that row.
     const backwards = stops.flatMap((stop, index) => {
       const before = stops[index - 1];
-      const above = before !== undefined && stop.top < before.top - LINE_SLACK_PX;
+      const above = before !== undefined && stop.bottom <= before.top;
       return above ? [`${stop.name} after ${before.name}`] : [];
     });
     expect(backwards).toEqual([]);
@@ -136,7 +144,15 @@ for (const surface of ADDON_SURFACES) {
         const selector =
           'a, button, [role="tab"], [role="switch"], [role="menuitem"], [role="radio"], [role="link"]';
         return Array.from(root.querySelectorAll(selector)).flatMap((control) => {
-          const visible = (control as HTMLElement).innerText.trim().replace(/\s+/g, ' ');
+          // Icon fonts draw glyphs from the private use area, which are pictures rather than
+          // words; a label of symbols alone, such as the "-" of a missing measure, is no text.
+          const visible = (control as HTMLElement).innerText
+            .replace(/[-]/g, '')
+            .trim()
+            .replace(/\s+/g, ' ');
+          if (!/[\p{L}\p{N}]/u.test(visible)) {
+            return [];
+          }
           const labelledBy = control
             .getAttribute('aria-labelledby')
             ?.split(' ')
@@ -145,7 +161,7 @@ for (const surface of ADDON_SURFACES) {
           const name = (labelledBy ?? control.getAttribute('aria-label') ?? visible)
             .trim()
             .replace(/\s+/g, ' ');
-          return visible && !name.toLowerCase().includes(visible.toLowerCase())
+          return !name.toLowerCase().includes(visible.toLowerCase())
             ? [`"${visible}" named "${name}"`]
             : [];
         });
@@ -175,7 +191,10 @@ test.describe('WCAG 2.1.4 character key shortcuts', () => {
     const tab = page.getByRole('tab', { name: 'Branches' });
     await tab.focus();
 
-    for (const key of 'abcdefghijklmnopqrstuvwxyz0123456789') {
+    const keys = [...'abcdefghijklmnopqrstuvwxyz0123456789'].filter(
+      (key) => !SONARSOURCE_KEYS.has(key),
+    );
+    for (const key of keys) {
       await page.keyboard.press(key);
       await expect(page).toHaveURL(url);
       await expect(page.getByRole('dialog')).toHaveCount(0);
