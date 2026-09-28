@@ -201,6 +201,23 @@ describe('capability rename-main-branch: rename the main branch of a project', (
     expect(await screen.findByText('trunk')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('puts focus back on the row’s actions button when the dialog closes', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const actions = within(await rowOf('main')).getByRole('button', {
+      name: 'project_branch_pull_request.branch.actions_label.main',
+    });
+
+    await user.click(actions);
+    await user.click(
+      screen.getByRole('menuitem', { name: 'project_branch_pull_request.branch.rename' }),
+    );
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cancel' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(actions).toHaveFocus();
+  });
 });
 
 describe('capability set-main-branch: make another branch the main branch of a project', () => {

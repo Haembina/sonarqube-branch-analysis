@@ -42,6 +42,14 @@ import { BranchLike } from '~sq-server-commons/types/branch-like';
 import { Component } from '~sq-server-commons/types/types';
 import BranchPurgeSetting from './BranchPurgeSetting';
 
+/**
+ * The id of a row's actions menu, from its branch or pull request display name. Echoes names
+ * the menu's trigger button with this id and a `-trigger` suffix.
+ */
+export function getBranchLikeActionsId(displayName: string): string {
+  return `branch-settings-action-${displayName}`;
+}
+
 /** Props for {@link BranchLikeRow}; the three callbacks open the matching action dialog. */
 export interface BranchLikeRowProps {
   branchLike: BranchLike;
@@ -88,7 +96,7 @@ function BranchLikeRow(props: BranchLikeRowProps) {
       )}
       <ActionCell>
         <DropdownMenu
-          id={`branch-settings-action-${branchLikeDisplayName}`}
+          id={getBranchLikeActionsId(branchLikeDisplayName)}
           items={
             <>
               {isBranch(branchLike) && !isMainBranch(branchLike) && (

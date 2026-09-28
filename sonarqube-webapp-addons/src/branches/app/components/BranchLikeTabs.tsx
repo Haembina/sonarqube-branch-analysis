@@ -20,10 +20,14 @@
  */
 
 import { IconGitBranch, IconPullrequest } from '@sonarsource/echoes-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToggleButton, getTabId, getTabPanelId } from '~design-system';
 import { PullRequest } from '~shared/types/branch-like';
-import { sortBranches, sortPullRequests } from '~sq-server-commons/helpers/branch-like';
+import {
+  getBranchLikeDisplayName,
+  sortBranches,
+  sortPullRequests,
+} from '~sq-server-commons/helpers/branch-like';
 import { translate } from '~sq-server-commons/helpers/l10n';
 import { useProjectBranchesQuery } from '~adapters/queries/branch';
 import {
@@ -33,6 +37,7 @@ import {
 } from '~shared/helpers/branch-like';
 import { Branch, BranchLike } from '~sq-server-commons/types/branch-like';
 import { Component } from '~sq-server-commons/types/types';
+import { getBranchLikeActionsId } from './BranchLikeRow';
 import BranchLikeTable from './BranchLikeTable';
 import DeleteBranchModal from './DeleteBranchModal';
 import RenameBranchModal from './RenameBranchModal';
@@ -86,7 +91,20 @@ export default function BranchLikeTabs(props: Props) {
   const [settingAsMain, setSettingAsMain] = useState<Branch>();
   const [deleting, setDeleting] = useState<BranchLike>();
 
+  const [returnFocusTo, setReturnFocusTo] = useState<string>();
+
+  // react-modal hands focus back to the menu item that opened the dialog, which the menu has
+  // already unmounted, so focus would fall to the page; the row's actions button takes it.
+  useEffect(() => {
+    if (returnFocusTo !== undefined) {
+      document.getElementById(`${getBranchLikeActionsId(returnFocusTo)}-trigger`)?.focus();
+      setReturnFocusTo(undefined);
+    }
+  }, [returnFocusTo]);
+
   const handleClose = () => {
+    const open = renaming ?? deleting ?? settingAsMain;
+    setReturnFocusTo(open && getBranchLikeDisplayName(open));
     setRenaming(undefined);
     setDeleting(undefined);
     setSettingAsMain(undefined);
