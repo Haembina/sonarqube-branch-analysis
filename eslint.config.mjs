@@ -36,6 +36,28 @@ export default [
     ...sonarjs.configs.recommended,
   },
   {
+    // S6: a tunable number lives in a named constant. The TypeScript form
+    // replaces the base rule so an enum member or a literal type is not one.
+    files: ['sonarqube-webapp-addons/src/**/*.{ts,tsx}'],
+    rules: {
+      'no-magic-numbers': 'off',
+      '@typescript-eslint/no-magic-numbers': [
+        'error',
+        {
+          ignore: [-1, 0, 1],
+          ignoreEnums: true,
+          ignoreNumericLiteralTypes: true,
+          ignoreReadonlyClassProperties: true,
+        },
+      ],
+    },
+  },
+  {
+    // S6 for the build scripts.
+    files: ['**/*.mjs'],
+    rules: { 'no-magic-numbers': ['error', { ignore: [-1, 0, 1] }] },
+  },
+  {
     // package.json, conventions.json and the addons' tsconfig.json and
     // project.json. Every reader downstream refuses a malformed file; none
     // refuses a well-formed one that names a key twice, which is what this
