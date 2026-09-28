@@ -124,7 +124,9 @@ SonarQube reads Haembina Branch Analysis as a different plugin: its key, its jar
 
 ## Testing
 
-`./gradlew build` runs the JUnit 5 suite and fails under the floor `conventions.json` declares. The webapp addons'
+`./gradlew build` runs the JUnit 5 suite and fails under the floor `conventions.json` declares. Both suites fail on
+any uncovered line; the branch floor sits below 100 only for arms no test can reach, each named beside the floor in
+`build.gradle` and `jest.config.cjs`. A new uncovered branch is tested, or deleted with the proof in its commit. The webapp addons'
 suites sit beside the files they cover as `*.test.tsx` and run in the submodule's own Jest setup, once its dependencies
 are installed; the run fails under the same floor:
 
