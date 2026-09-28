@@ -160,4 +160,16 @@ class BranchConfigurationFactoryTest {
         assertThatThrownBy(() -> underTest.createPullRequestConfiguration("key", "source", "target", projectBranches)).hasMessage("The branch 'target' of type PULL_REQUEST does not have a target");
     }
 
+    @Test
+    void shouldThrowExceptionIfPullRequestTargetsPullRequestWhoseTargetNoLongerExists() {
+        ProjectBranches projectBranches = mock();
+        when(projectBranches.isEmpty()).thenReturn(false);
+        BranchInfo branchInfo = new BranchInfo("target", BranchType.PULL_REQUEST, false, "deleted");
+        when(projectBranches.get("target")).thenReturn(branchInfo);
+
+        BranchConfigurationFactory underTest = new BranchConfigurationFactory();
+        assertThatThrownBy(() -> underTest.createPullRequestConfiguration("key", "source", "target", projectBranches))
+                .hasMessage("The branch 'target' of type PULL_REQUEST has a target 'deleted' which does not exist");
+    }
+
 }

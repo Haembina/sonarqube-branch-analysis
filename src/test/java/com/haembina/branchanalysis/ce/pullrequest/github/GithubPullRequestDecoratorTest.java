@@ -252,6 +252,23 @@ class GithubPullRequestDecoratorTest {
         verifyNoMoreInteractions(pullRequest);
     }
 
+    @Test
+    void shouldPrefixCheckRunWithProjectNameInMonorepo() throws IOException {
+        when(projectAlmSettingDto.getMonorepo()).thenReturn(true);
+        GHRepository repository = mock();
+        when(gitHub.getRepository(any())).thenReturn(repository);
+        GHCheckRunBuilder checkRunBuilder = mock(InvocationOnMock::getMock);
+        doReturn(null).when(checkRunBuilder).create();
+        when(repository.createCheckRun(any(), any())).thenReturn(checkRunBuilder);
+        GHPullRequest pullRequest = mock();
+        when(repository.getPullRequest(anyInt())).thenReturn(pullRequest);
+        when(pullRequest.getHtmlUrl()).thenReturn(URI.create("http://url.of/pull/request").toURL());
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(repository).createCheckRun("[Project Name] SonarQube Code Analysis", "commit-sha");
+    }
+
     private static GHIssueComment createComment(String body, String userType, long userId, long commentId) throws IOException {
         GHIssueComment comment = mock();
         when(comment.getBody()).thenReturn(body);

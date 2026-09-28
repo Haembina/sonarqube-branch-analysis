@@ -200,6 +200,20 @@ class CommunityBranchPluginBootstrapTest {
         verifyNoInteractions(elevatedClassLoaderFactory);
     }
 
+    @Test
+    void shouldRefuseServerStartWhenLoadedWithoutTheAgent() {
+        Plugin.Context context = mock();
+        SonarRuntime sonarRuntime = mock();
+        when(context.getRuntime()).thenReturn(sonarRuntime);
+        when(sonarRuntime.getSonarQubeSide()).thenReturn(SonarQubeSide.SERVER);
+
+        CommunityBranchPluginBootstrap underTest = new CommunityBranchPluginBootstrap();
+
+        assertThatThrownBy(() -> underTest.define(context))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageStartingWith("The plugin did not detect agent modifications");
+    }
+
     public static class MockPlugin implements Plugin {
 
         private static Context invokedContext;

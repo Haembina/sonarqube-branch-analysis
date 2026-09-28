@@ -110,6 +110,15 @@ class GithubClientFactoryTest {
     }
 
     @Test
+    void shouldRefuseMissingUrlWithDefaultGithubBuilder() {
+        when(almSettingDto.getUrl()).thenReturn(null);
+        GithubClientFactory underTest = new GithubClientFactory(clock, settings);
+        assertThatThrownBy(() -> underTest.createClient(almSettingDto, projectAlmSettingDto))
+                .isInstanceOf(InvalidConfigurationException.class)
+                .hasMessage("No URL has been set for Github connections");
+    }
+
+    @Test
     void shouldThrowExceptionIsPrivateKeyMissingInAlmSettings() {
         when(almSettingDto.getDecryptedPrivateKey(any())).thenReturn(null);
         GithubClientFactory underTest = new GithubClientFactory(clock, settings, () -> githubBuilder);
