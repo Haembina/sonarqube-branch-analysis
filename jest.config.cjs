@@ -34,7 +34,13 @@ const addons = path.join(__dirname, 'sonarqube-webapp-addons', 'src');
 const common = require('./sonarqube-webapp/apps/sq-server/jest.config.common.js');
 
 /** Coverage floor, in percent, the run fails under; the record's `coverage.enforcedBy` names it. */
-const FLOOR = 87;
+const FLOOR = 100;
+
+/**
+ * Branch floor, in percent. The one branch left is the type guard in BranchLikeTabs' set-as-main
+ * handler, which the row menu offers only for a branch, never a pull request.
+ */
+const BRANCH_FLOOR = 99;
 
 module.exports = {
   ...common,
@@ -71,7 +77,7 @@ module.exports = {
   coverageDirectory: path.join(__dirname, 'coverage', 'addons'),
   coverageReporters: [['lcovonly', { projectRoot: __dirname }], 'text-summary'],
   coverageThreshold: {
-    global: { branches: FLOOR, functions: FLOOR, lines: FLOOR, statements: FLOOR },
+    global: { branches: BRANCH_FLOOR, functions: FLOOR, lines: FLOOR, statements: FLOOR },
   },
   maxWorkers: '50%',
   reporters: ['default'],
