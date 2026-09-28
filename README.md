@@ -156,7 +156,10 @@ in `e2e` runs this way: it signs in as a user it creates, drives the branch list
 overview, the branch new code settings and the rename, set-as-main and delete dialogs, each also by keyboard alone, and
 needs Chromium from `npx playwright install chromium`. On each page and in each open dialog it runs an axe scan for
 WCAG 2.2 A and AA, and any violation fails the spec; the nodes SonarSource's webapp draws outside the addons, with what
-axe reports about each, are listed in `e2e/sonarqube.helper.ts`:
+axe reports about each, are listed in `e2e/sonarqube.helper.ts`. The `e2e/wcag-*.test.ts` specs hold the WCAG 2.2 AA
+criteria axe cannot measure, each titled with its criterion number, over the nodes `e2e/wcag.helper.ts` names as the
+addons' own; a row of `accessibility.criteria` in `conventions.json` whose spec is deleted or stops failing on a break
+leaves that criterion unproven:
 
 ```bash
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp npm run test:e2e
