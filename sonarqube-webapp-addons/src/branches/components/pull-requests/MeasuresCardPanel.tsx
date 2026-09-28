@@ -19,6 +19,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+import styled from '@emotion/styled';
 import {
   IconQuestionMark,
   Text,
@@ -110,7 +111,7 @@ export default function MeasuresCardPanel(props: React.PropsWithChildren<Props>)
 
   return (
     <Card className="sw-py-8 sw-px-6">
-      <GridContainer
+      <ReflowingGrid
         className={classNames('sw-relative sw-overflow-hidden js-summary', {
           'sw-grid-cols-3': totalFailedConditions.length === 0,
           'sw-grid-cols-4': totalFailedConditions.length > 0,
@@ -266,7 +267,22 @@ export default function MeasuresCardPanel(props: React.PropsWithChildren<Props>)
             showRequired
           />
         </div>
-      </GridContainer>
+      </ReflowingGrid>
     </Card>
   );
 }
+
+/** The widest viewport, in CSS pixels, at which the measure cards stack in one column. */
+const ONE_COLUMN_MAX_PX = 640;
+
+// Three or four columns squeeze each card under its own label on a narrow screen; one column
+// lets the cards reflow (WCAG 1.4.10). The column classes are `!important`, so this is too.
+const ReflowingGrid = styled(GridContainer)`
+  @media (max-width: ${ONE_COLUMN_MAX_PX}px) {
+    grid-template-columns: minmax(0, 1fr) !important;
+
+    & > * {
+      grid-row: auto !important;
+    }
+  }
+`;

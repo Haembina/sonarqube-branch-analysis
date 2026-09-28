@@ -30,8 +30,8 @@ export interface CurrentBranchLikeMergeInformationProps {
 
 /**
  * A line naming the target and source branches of a pull request ("for merge into X from Y"),
- * wrapping inside 400px rather than cutting a long branch name off, with the full text as its
- * hover title.
+ * wrapping inside 400px, or inside what the header row leaves it, rather than cutting a long
+ * branch name off, with the full text as its hover title.
  */
 export function CurrentBranchLikeMergeInformation({
   pullRequest,
@@ -39,8 +39,10 @@ export function CurrentBranchLikeMergeInformation({
   const intl = useIntl();
 
   return (
+    // The header row sets nowrap, and a branch name has no spaces to wrap at, so the line wraps
+    // again here and only the names break between any two letters.
     <span
-      className="sw-inline-block sw-max-w-[400px] sw-break-words"
+      className="sw-inline-block sw-min-w-0 sw-max-w-[400px] sw-whitespace-normal"
       title={intl.formatMessage(
         { id: 'branch_like_navigation.for_merge_into_x_from_y.title' },
         {
@@ -52,8 +54,8 @@ export function CurrentBranchLikeMergeInformation({
       <FormattedMessage
         id="branch_like_navigation.for_merge_into_x_from_y"
         values={{
-          target: <strong>{pullRequest.target}</strong>,
-          branch: <strong>{pullRequest.branch}</strong>,
+          target: <strong className="sw-break-all">{pullRequest.target}</strong>,
+          branch: <strong className="sw-break-all">{pullRequest.branch}</strong>,
         }}
       />
     </span>
