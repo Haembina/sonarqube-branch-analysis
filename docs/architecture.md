@@ -42,7 +42,8 @@ one release always match.
 
 SonarQube's own webapp installs no page-wide error handler. `error-boundary.ts` adds one when the webapp first loads the
 addon registry: an error or a rejected promise nothing caught shows as SonarQube's error toast, carrying the error's
-message, a thrown string as written, or anything else as JSON. A rejected `Response` is skipped, because SonarQube's API layer has already shown it.
+message, a thrown string as written, or anything else as JSON. A rejected `Response` is skipped, because SonarQube's
+API layer has already shown it.
 
 ## Build and release
 
