@@ -33,9 +33,6 @@ import org.sonar.ce.task.projectanalysis.scm.ScmInfoRepository;
 import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -176,7 +173,6 @@ public abstract class DiscussionAwarePullRequestDecorator<C, P, U, D, N> impleme
                 .map(issue -> new ImmutablePair<>(issue.getIssue(), scmInfoRepository.getScmInfo(issue.getComponent())))
                 .filter(issuePair -> issuePair.getRight().isPresent())
                 .map(issuePair -> new ImmutablePair<>(issuePair.getLeft(), issuePair.getRight().get()))
-                .filter(issuePair -> null != issuePair.getLeft().getLine())
                 .filter(issuePair -> issuePair.getRight().hasChangesetForLine(issuePair.getLeft().getLine()))
                 .map(issuePair -> issuePair.getRight().getChangesetForLine(issuePair.getLeft().getLine()))
                 .map(Changeset::getRevision)
@@ -285,16 +281,12 @@ public abstract class DiscussionAwarePullRequestDecorator<C, P, U, D, N> impleme
         if (noteContent == null) {
             return Optional.empty();
         }
-        try (BufferedReader reader = new BufferedReader(new StringReader(noteContent))) {
-            return reader.lines()
-                    .filter(line -> line.contains(label))
-                    .map(line -> parseIssueLineDetails(line, pattern))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .findFirst();
-        } catch (IOException ex) {
-            throw new IllegalStateException("Could not parse details from note", ex);
-        }
+        return noteContent.lines()
+                .filter(line -> line.contains(label))
+                .map(line -> parseIssueLineDetails(line, pattern))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst();
     }
 
     private static Optional<ProjectIssueIdentifier> parseIssueLineDetails(String noteLine, Pattern pattern) {
