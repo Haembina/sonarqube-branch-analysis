@@ -18,7 +18,11 @@
  *
  */
 import branches from './branches';
+import { installErrorBoundary } from './error-boundary';
 import * as entitlements from './feature-license/entitlements';
+
+// The webapp imports this registry once, at startup, so the boundary covers every page it draws.
+installErrorBoundary();
 
 const registry = { branches, entitlements };
 
