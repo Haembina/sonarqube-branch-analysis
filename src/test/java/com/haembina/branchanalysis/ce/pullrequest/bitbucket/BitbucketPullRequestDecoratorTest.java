@@ -59,6 +59,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.BitbucketClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.BitbucketException;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
+import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
@@ -261,8 +262,10 @@ class BitbucketPullRequestDecoratorTest {
         mockDecoratableAnalysis(List.of(componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH)),
                 componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.LOW))));
         when(client.getAnnotationUploadLimit()).thenReturn(new AnnotationUploadLimit(1, 1));
-        when(client.createCodeInsightsAnnotation(any(), anyInt(), any(), any(), any(), eq("HIGH"), any())).thenReturn(mock());
-        when(client.createCodeInsightsAnnotation(any(), anyInt(), any(), any(), any(), eq("LOW"), any())).thenReturn(mock());
+        CodeInsightsAnnotation high = mock();
+        CodeInsightsAnnotation low = mock();
+        when(client.createCodeInsightsAnnotation(any(), anyInt(), any(), any(), any(), eq("HIGH"), any())).thenReturn(high);
+        when(client.createCodeInsightsAnnotation(any(), anyInt(), any(), any(), any(), eq("LOW"), any())).thenReturn(low);
 
         underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
 

@@ -141,7 +141,8 @@ class SetBindingActionTest {
         when(almSettingDao.selectByKey(dbSession, "missing")).thenReturn(Optional.empty());
         when(dbClient.almSettingDao()).thenReturn(almSettingDao);
         ComponentFinder componentFinder = mock();
-        when(componentFinder.getProjectByKey(dbSession, "project")).thenReturn(mock());
+        ProjectDto project = mock();
+        when(componentFinder.getProjectByKey(dbSession, "project")).thenReturn(project);
         SetBindingAction testCase = new SetBindingAction(dbClient, componentFinder, mock(), "dummy") {
 
             @Override

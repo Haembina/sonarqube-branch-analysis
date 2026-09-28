@@ -245,8 +245,10 @@ class ListActionTest {
         when(userSession.hasPermission(any())).thenReturn(true);
         BranchDao branchDao = mock();
         when(dbClient.branchDao()).thenReturn(branchDao);
-        when(dbClient.measureDao()).thenReturn(mock());
-        when(dbClient.snapshotDao()).thenReturn(mock());
+        MeasureDao measureDao = mock();
+        when(dbClient.measureDao()).thenReturn(measureDao);
+        SnapshotDao snapshotDao = mock();
+        when(dbClient.snapshotDao()).thenReturn(snapshotDao);
         ByteArrayOutputStream written = new ByteArrayOutputStream();
         Response.Stream stream = mock();
         when(stream.output()).thenReturn(written);

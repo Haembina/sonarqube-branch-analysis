@@ -272,7 +272,8 @@ class ReportGeneratorTest {
         when(analysisDetails.findFailedQualityGateConditions()).thenReturn(List.of(duplicationPercent, reliabilityRating));
 
         TreeRootHolder treeRootHolder = mock();
-        when(treeRootHolder.getRoot()).thenReturn(mock());
+        Component root = mock();
+        when(treeRootHolder.getRoot()).thenReturn(root);
         MeasureRepository measureRepository = mock();
         when(measureRepository.getRawMeasure(any(), any())).thenReturn(Optional.empty());
         Server server = mock();
