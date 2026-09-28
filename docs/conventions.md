@@ -40,5 +40,7 @@ Every Java and TSX file opens with its LGPL-3.0 licence header. Keep it when cha
 
 - An Error Prone or javac warning fails the Java build: `-Werror` is on every compile task. Run `npm run lint:java`
   to see one before pushing.
+- A number other than -1, 0 or 1 written inline in the addons or an `.mjs` script fails `npm run lint:es` (S6). Name
+  it as a constant.
 - A suite dropping under the JaCoCo floor fails `./gradlew build`, which `build.yml` runs. The report is
   `build/reports/jacoco/test/html/index.html`.

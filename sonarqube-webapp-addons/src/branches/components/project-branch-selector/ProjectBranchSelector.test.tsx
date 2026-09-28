@@ -104,10 +104,11 @@ describe('capability switch-branch: open another branch or pull request of a pro
       expect.stringContaining('develop'),
     ]);
     expect(within(popover).queryByText('never-analyzed')).not.toBeInTheDocument();
-    expect(links[0]).toHaveTextContent('metric.level.OK');
+    const [mainLink, , developLink] = links;
+    expect(mainLink).toHaveTextContent('metric.level.OK');
     // Only the current entry, main, shows its check mark.
-    expect(links[0].querySelector('.sw-invisible')).toBeNull();
-    expect(links[2].querySelector('.sw-invisible')).not.toBeNull();
+    expect(mainLink.querySelector('.sw-invisible')).toBeNull();
+    expect(developLink.querySelector('.sw-invisible')).not.toBeNull();
   });
 
   it('links each entry to the same page on that branch or pull request', async () => {

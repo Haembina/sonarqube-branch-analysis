@@ -40,6 +40,11 @@ before the build. The release publishes the built webapp as `sonarqube-webapp.zi
 directory. The submodule is pinned to the Community Build tag the plugin compiles against, so a jar and a webapp from
 one release always match.
 
+SonarQube's own webapp installs no page-wide error handler. `error-boundary.ts` adds one when the webapp first loads the
+addon registry: an error or a rejected promise nothing caught shows as SonarQube's error toast, carrying the error's
+message, a thrown string as written, or anything else as JSON. A rejected `Response` is skipped, because SonarQube's
+API layer has already shown it.
+
 ## Build and release
 
 Gradle builds a shaded jar: the plugin's own dependencies are relocated inside it, and SonarQube's jars are
