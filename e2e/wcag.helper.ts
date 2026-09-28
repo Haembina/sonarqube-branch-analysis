@@ -188,8 +188,8 @@ function contrastRatio(a: Rgb, b: Rgb): number {
 
 /**
  * The computed colors `control` paints, and the first opaque background among its ancestors:
- * each border wider than zero, each background, each SVG fill and each glyph set as text, of
- * the control and of every element inside it.
+ * each border wider than zero, each box shadow, each background, each SVG fill and each glyph
+ * set as text, of the control and of every element inside it.
  */
 async function paintedColors(control: Locator): Promise<{ behind?: string; drawn: string[] }> {
   return control.evaluate((element) => {
@@ -211,6 +211,7 @@ async function paintedColors(control: Locator): Promise<{ behind?: string; drawn
       if (bordered) {
         drawn.push(style.borderTopColor);
       }
+      drawn.push(...(style.boxShadow.match(/rgba?\([^)]+\)/g) ?? []));
       if (part instanceof SVGElement) {
         drawn.push(style.fill === 'none' ? style.stroke : style.fill);
       }
