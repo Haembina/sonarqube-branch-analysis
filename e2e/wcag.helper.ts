@@ -142,64 +142,91 @@ export async function overflowPast(region: Locator, width: number): Promise<stri
 /** The ratio WCAG 1.4.11 asks of a control's boundary or state against what is beside it. */
 export const NON_TEXT_CONTRAST = 3;
 
-/**
- * The best contrast ratio any part of `control` draws against the color behind it: each border
- * wider than zero, each background, each SVG fill and each glyph set as text, of the control
- * and of every element inside it, against the first opaque background among the control's
- * ancestors. A translucent color is blended over that background first. Throws on a computed
- * color that is not `rgb()` or `rgba()`.
- */
-export async function nonTextContrast(control: Locator): Promise<number> {
-  return control.evaluate((element) => {
-    let behind: number[] = [255, 255, 255];
-    const parse = (color: string): number[] | undefined => {
-      const match = /^rgba?\(([^)]+)\)$/.exec(color);
-      if (!match) {
-        throw new Error(`Unparsed color ${color}`);
-      }
-      const [r, g, b, a = 1] = match[1].split(/[\s,/]+/).map(Number);
-      return a === 0 ? undefined : [r, g, b].map((c, i) => a * c + (1 - a) * behind[i]);
-    };
-    const luminance = ([r, g, b]: number[]) => {
-      const linear = (channel: number) => {
-        const c = channel / 255;
-        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-      };
-      return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
-    };
-    const ratio = (a: number[], b: number[]) => {
-      const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-      return (light + 0.05) / (dark + 0.05);
-    };
+/** An sRGB color as its red, green and blue channels, each 0 to 255. */
+type Rgb = [number, number, number];
 
+/** White, the page SonarQube draws when no ancestor paints a background of its own. */
+const WHITE: Rgb = [255, 255, 255];
+
+/**
+ * Parses a computed `rgb()` or `rgba()` color, blending a translucent one over `behind`.
+ * Returns undefined for a fully transparent color; throws on any other notation.
+ */
+function parseColor(color: string, behind: Rgb): Rgb | undefined {
+  const match = /^rgba?\(([^)]+)\)$/.exec(color);
+  if (!match) {
+    throw new Error(`Unparsed color ${color}`);
+  }
+  const [r, g, b, alpha = 1] = match[1].split(/[\s,/]+/).map(Number);
+  if (alpha === 0) {
+    return undefined;
+  }
+  const blend = (channel: number, under: number) => alpha * channel + (1 - alpha) * under;
+  return [blend(r, behind[0]), blend(g, behind[1]), blend(b, behind[2])];
+}
+
+/** WCAG's relative luminance of an sRGB color, from 0 for black to 1 for white. */
+function luminance([r, g, b]: Rgb): number {
+  const linear = (channel: number) => {
+    const c = channel / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+}
+
+/** WCAG's contrast ratio between two colors, from 1 for equal colors to 21 for black on white. */
+function contrastRatio(a: Rgb, b: Rgb): number {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (light + 0.05) / (dark + 0.05);
+}
+
+/**
+ * The computed colors `control` paints, and the first opaque background among its ancestors:
+ * each border wider than zero, each background, each SVG fill and each glyph set as text, of
+ * the control and of every element inside it.
+ */
+async function paintedColors(control: Locator): Promise<{ behind?: string; drawn: string[] }> {
+  return control.evaluate((element) => {
     const opaque = /^rgb\(|^rgba\([^)]*[\s,/]1\)$/;
-    for (let node = element.parentElement; node; node = node.parentElement) {
+    let behind: string | undefined;
+    for (let node = element.parentElement; node && !behind; node = node.parentElement) {
       const background = getComputedStyle(node).backgroundColor;
-      if (opaque.test(background)) {
-        behind = parse(background) ?? behind;
-        break;
-      }
+      behind = opaque.test(background) ? background : undefined;
     }
 
-    const drawn: number[][] = [];
+    const drawn: string[] = [];
     for (const part of [element, ...Array.from(element.querySelectorAll('*'))]) {
       const style = getComputedStyle(part);
-      if (parseFloat(style.borderTopWidth) > 0 && style.borderTopStyle !== 'none') {
-        drawn.push(parse(style.borderTopColor) ?? behind);
-      }
-      drawn.push(parse(style.backgroundColor) ?? behind);
-      if (part instanceof SVGElement) {
-        drawn.push(parse(style.fill === 'none' ? style.stroke : style.fill) ?? behind);
-      }
+      const bordered = parseFloat(style.borderTopWidth) > 0 && style.borderTopStyle !== 'none';
       const glyph = Array.from(part.childNodes).some(
         (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
       );
+      drawn.push(style.backgroundColor);
+      if (bordered) {
+        drawn.push(style.borderTopColor);
+      }
+      if (part instanceof SVGElement) {
+        drawn.push(style.fill === 'none' ? style.stroke : style.fill);
+      }
       if (glyph) {
-        drawn.push(parse(style.color) ?? behind);
+        drawn.push(style.color);
       }
     }
-    return Math.max(...drawn.map((color) => ratio(color, behind)));
+    return { behind, drawn };
   });
+}
+
+/**
+ * The best contrast ratio any part of `control` draws against the color behind it, as
+ * `paintedColors` reads them; a translucent color is blended over that background first.
+ * Throws on a computed color that is not `rgb()` or `rgba()`.
+ */
+export async function nonTextContrast(control: Locator): Promise<number> {
+  const { behind, drawn } = await paintedColors(control);
+  const ground = behind === undefined ? WHITE : (parseColor(behind, WHITE) ?? WHITE);
+  return Math.max(
+    ...drawn.map((color) => contrastRatio(parseColor(color, ground) ?? ground, ground)),
+  );
 }
 
 /**
