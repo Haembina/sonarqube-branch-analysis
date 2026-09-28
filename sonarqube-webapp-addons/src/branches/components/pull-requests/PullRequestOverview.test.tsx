@@ -16,13 +16,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { MetricKey } from '~shared/types/metrics';
 import AlmSettingsServiceMock from '~sq-server-commons/api/mocks/AlmSettingsServiceMock';
 import BranchesServiceMock from '~sq-server-commons/api/mocks/BranchesServiceMock';
 import { PARENT_COMPONENT_KEY } from '~sq-server-commons/api/mocks/data/ids';
 import { MeasuresServiceMock } from '~sq-server-commons/api/mocks/MeasuresServiceMock';
 import { QualityGatesServiceMock } from '~sq-server-commons/api/mocks/QualityGatesServiceMock';
+import { getMeasuresWithPeriodAndMetrics } from '~sq-server-commons/api/measures';
 import { getQualityGateProjectStatus } from '~sq-server-commons/api/quality-gates';
 import { mockPullRequest } from '~sq-server-commons/helpers/mocks/branch-like';
 import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
@@ -156,6 +157,52 @@ describe('capability pull-request-overview: read the quality gate and new-code m
     expect(screen.getAllByText('0').length).toBeGreaterThan(0);
     expect(screen.getByText('issue.type.SECURITY_HOTSPOT.plural')).toBeInTheDocument();
     expect(screen.queryByText('overview.sonarlint_ad.header')).not.toBeInTheDocument();
+  });
+
+  it('says how a passed issues condition was met, and warns of conditions it ignored', async () => {
+    measuresHandler.registerComponentMeasures({
+      [PARENT_COMPONENT_KEY]: {
+        [MetricKey.new_violations]: newCodeMeasure(MetricKey.new_violations, '0'),
+      },
+    });
+    qualityGatesHandler.setQualityGateProjectStatus(
+      mockQualityGateProjectStatus({
+        status: 'OK',
+        ignoredConditions: true,
+        conditions: [
+          {
+            actualValue: '0',
+            comparator: 'GT',
+            errorThreshold: '0',
+            metricKey: MetricKey.new_violations,
+            periodIndex: 1,
+            status: 'OK',
+          },
+        ],
+      }),
+    );
+    renderOverview();
+
+    expect(await screen.findByText('metric.level.OK')).toBeInTheDocument();
+    expect(screen.getByText('overview.quality_gate.ignored_conditions')).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId(`overview__measures-${MetricKey.new_violations}`)).getByText(
+        /overview\.quality_gate\.required_x/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the issues card without a count when the measures answer carries no measure list', async () => {
+    jest.mocked(getMeasuresWithPeriodAndMetrics).mockResolvedValueOnce({
+      component: { key: PARENT_COMPONENT_KEY, name: 'project', qualifier: 'TRK' },
+      metrics: [],
+    } as Awaited<ReturnType<typeof getMeasuresWithPeriodAndMetrics>>);
+    renderOverview();
+
+    expect(await screen.findByText('metric.level.ERROR')).toBeInTheDocument();
+    const issuesCard = screen.getByTestId(`overview__measures-${MetricKey.new_violations}`);
+    expect(issuesCard).toHaveTextContent('overview.new_issues');
+    expect(issuesCard).not.toHaveTextContent(/\d/);
   });
 
   it('renders nothing when the pull request has no gate status yet', async () => {
