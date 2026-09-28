@@ -22,10 +22,12 @@ package com.haembina.branchanalysis.scanner;
 import com.haembina.branchanalysis.ce.pullrequest.gitlab.GitlabMergeRequestDecorator;
 import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.sensor.SensorContext;
+import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.utils.System2;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,5 +64,33 @@ class ScannerPullRequestPropertySensorTest {
         verify(context, times(1)).addContextProperty(GitlabMergeRequestDecorator.PULLREQUEST_GITLAB_PROJECT_URL, "value");
         verify(context, times(1)).addContextProperty(GitlabMergeRequestDecorator.PULLREQUEST_GITLAB_PIPELINE_ID, "value");
         verify(context, times(2)).addContextProperty(anyString(), anyString());
+    }
+
+    @Test
+    void testPropertySensorWithScannerPropertiesOutsideGitlabCI() {
+        when(system2.property(GitlabMergeRequestDecorator.PULLREQUEST_GITLAB_PROJECT_URL)).thenReturn("https://gitlab/project");
+        when(system2.property(GitlabMergeRequestDecorator.PULLREQUEST_GITLAB_PIPELINE_ID)).thenReturn("12");
+
+        sensor.execute(context);
+
+        verify(context).addContextProperty(GitlabMergeRequestDecorator.PULLREQUEST_GITLAB_PROJECT_URL, "https://gitlab/project");
+        verify(context).addContextProperty(GitlabMergeRequestDecorator.PULLREQUEST_GITLAB_PIPELINE_ID, "12");
+        verify(context, times(2)).addContextProperty(anyString(), anyString());
+    }
+
+    @Test
+    void testPropertySensorAddsNothingWithoutGitlabValues() {
+        sensor.execute(context);
+
+        verify(context, never()).addContextProperty(anyString(), anyString());
+    }
+
+    @Test
+    void testSensorIsNamedAfterItsClass() {
+        SensorDescriptor descriptor = mock();
+
+        sensor.describe(descriptor);
+
+        verify(descriptor).name(ScannerPullRequestPropertySensor.class.getName());
     }
 }

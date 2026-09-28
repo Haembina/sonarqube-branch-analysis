@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.sonar.api.ce.posttask.QualityGate;
@@ -253,6 +254,50 @@ class ReportGeneratorTest {
         assertThat(underTest.createAnalysisIssueSummary(componentIssue, analysisDetails))
                 .usingRecursiveComparison()
                 .isEqualTo(expected);
+    }
+
+    @Test
+    void shouldSummarisePassedGateWithoutValuesForConditionsSonarQubeCouldNotEvaluate() {
+        QualityGate.Condition newCoverage = condition(CoreMetrics.NEW_COVERAGE_KEY, QualityGate.EvaluationStatus.NO_VALUE, "0", QualityGate.Operator.LESS_THAN, "80");
+        QualityGate.Condition newDuplications = condition(CoreMetrics.NEW_DUPLICATED_LINES_DENSITY_KEY, QualityGate.EvaluationStatus.NO_VALUE, "0", QualityGate.Operator.GREATER_THAN, "3");
+        QualityGate.Condition duplicationPercent = condition(CoreMetrics.DUPLICATED_LINES_DENSITY_KEY, QualityGate.EvaluationStatus.ERROR, "5.5", QualityGate.Operator.GREATER_THAN, "3");
+        QualityGate.Condition reliabilityRating = condition(CoreMetrics.RELIABILITY_RATING_KEY, QualityGate.EvaluationStatus.ERROR, "1", QualityGate.Operator.LESS_THAN, "3");
+
+        AnalysisDetails analysisDetails = mock();
+        when(analysisDetails.getPullRequestId()).thenReturn("5");
+        when(analysisDetails.getAnalysisProjectKey()).thenReturn("projectKey");
+        when(analysisDetails.getQualityGateStatus()).thenReturn(QualityGate.Status.OK);
+        when(analysisDetails.findQualityGateCondition(CoreMetrics.NEW_COVERAGE_KEY)).thenReturn(Optional.of(newCoverage));
+        when(analysisDetails.findQualityGateCondition(CoreMetrics.NEW_DUPLICATED_LINES_DENSITY_KEY)).thenReturn(Optional.of(newDuplications));
+        when(analysisDetails.findFailedQualityGateConditions()).thenReturn(List.of(duplicationPercent, reliabilityRating));
+
+        TreeRootHolder treeRootHolder = mock();
+        when(treeRootHolder.getRoot()).thenReturn(mock());
+        MeasureRepository measureRepository = mock();
+        when(measureRepository.getRawMeasure(any(), any())).thenReturn(Optional.empty());
+        Server server = mock();
+        when(server.getPublicRootUrl()).thenReturn("http://localhost:9000");
+        ReportGenerator underTest = new ReportGenerator(server, mock(), measureRepository, mock(), treeRootHolder);
+
+        AnalysisSummary summary = underTest.createAnalysisSummary(analysisDetails);
+
+        assertThat(summary.getStatusDescription()).isEqualTo("Passed");
+        assertThat(summary.getStatusImageUrl()).isEqualTo("http://localhost:9000/static/haembinabranchanalysis/checks/QualityGateBadge/passed-16px.png");
+        assertThat(summary.getNewCoverage()).isNull();
+        assertThat(summary.getNewDuplications()).isNull();
+        assertThat(summary.getFailedQualityGateConditions()).containsExactly(
+                "5.50% Duplicated Lines (%) (is greater than 3.00%)",
+                "A Reliability Rating (is better than C)");
+    }
+
+    private static QualityGate.Condition condition(String metricKey, QualityGate.EvaluationStatus status, String value, QualityGate.Operator operator, String errorThreshold) {
+        QualityGate.Condition condition = mock();
+        when(condition.getMetricKey()).thenReturn(metricKey);
+        when(condition.getStatus()).thenReturn(status);
+        when(condition.getValue()).thenReturn(value);
+        when(condition.getOperator()).thenReturn(operator);
+        when(condition.getErrorThreshold()).thenReturn(errorThreshold);
+        return condition;
     }
 
 }
