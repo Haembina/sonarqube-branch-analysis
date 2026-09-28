@@ -65,6 +65,20 @@ it('shows a rejected promise nothing handled', () => {
   );
 });
 
+it('shows a rejected object as JSON', () => {
+  reject({ status: 'broken' });
+
+  expect(toast.error).toHaveBeenCalledWith(
+    expect.objectContaining({ description: '{"status":"broken"}' }),
+  );
+});
+
+it('shows a rejection with no reason by its type', () => {
+  reject(undefined);
+
+  expect(toast.error).toHaveBeenCalledWith(expect.objectContaining({ description: 'undefined' }));
+});
+
 it('shows no second toast for an API failure the API layer has already shown', () => {
   reject(new Response(null, { status: 500 }));
 

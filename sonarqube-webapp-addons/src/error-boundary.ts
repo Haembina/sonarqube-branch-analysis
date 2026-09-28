@@ -21,9 +21,20 @@ import { translate } from '~sq-server-commons/helpers/l10n';
 
 let installed = false;
 
-/** The text a user can copy into a report: the error's own message, or what was thrown. */
+/**
+ * The text a user can copy into a report: the error's own message, a thrown string as it is, and
+ * anything else as JSON, or its type where JSON has no form for it (`undefined`, a function).
+ */
 function describe(reason: unknown): string {
-  return reason instanceof Error ? reason.message : String(reason);
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+
+  if (typeof reason === 'string') {
+    return reason;
+  }
+
+  return JSON.stringify(reason) ?? typeof reason;
 }
 
 /** Shows what escaped every handler as SonarQube's global error toast. */
