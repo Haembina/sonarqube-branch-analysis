@@ -31,11 +31,9 @@ import {
   PreviouslyNonCompliantBranchNCD,
   isPreviouslyNonCompliantDaysNCD,
 } from '~sq-server-commons/components/new-code-definition/utils';
-import { sortBranches } from '~sq-server-commons/helpers/branch-like';
 import { translate } from '~sq-server-commons/helpers/l10n';
 import { DEFAULT_NEW_CODE_DEFINITION_TYPE } from '~sq-server-commons/helpers/new-code-definition';
-import { isBranch } from '~shared/helpers/branch-like';
-import { Branch, BranchLike, BranchWithNewCodePeriod } from '~sq-server-commons/types/branch-like';
+import { Branch, BranchWithNewCodePeriod } from '~sq-server-commons/types/branch-like';
 import { NewCodeDefinition } from '~sq-server-commons/types/new-code-definition';
 import { Component } from '~sq-server-commons/types/types';
 import BranchListRow from './BranchListRow';
@@ -80,10 +78,6 @@ export default class BranchList extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.mounted = false;
-  }
-
-  sortAndFilterBranches(branchLikes: BranchLike[] = []) {
-    return sortBranches(branchLikes.filter(isBranch));
   }
 
   fetchBranches() {

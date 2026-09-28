@@ -70,7 +70,7 @@ export function MenuItemList(props: MenuItemListProps) {
   const branches = [branchLikeTree.mainBranchTree, ...branchLikeTree.branchTree].filter(isDefined);
   const total =
     branches.length +
-    branches.reduce((t, branchTree) => t + (branchTree?.pullRequests.length ?? 0), 0) +
+    branches.reduce((t, branchTree) => t + branchTree.pullRequests.length, 0) +
     branchLikeTree.parentlessPullRequests.length +
     branchLikeTree.orphanPullRequests.length;
 

@@ -124,7 +124,7 @@ export default function BranchListRow(props: BranchListRowProps) {
       {
         id: 'baseline.reference_branch.does_not_exist',
       },
-      { branch: branch.newCodePeriod?.value ?? '' },
+      { branch: branch.newCodePeriod?.value },
     );
   }
 
