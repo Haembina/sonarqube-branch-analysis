@@ -155,9 +155,13 @@ class AnalysisDetailsTest {
         when(component4.getReportAttributes()).thenReturn(reportAttributes4);
         PostAnalysisIssueVisitor.ComponentIssue componentIssue4 = new PostAnalysisIssueVisitor.ComponentIssue(component4, lightIssue4);
 
-        
+        PostAnalysisIssueVisitor.LightIssue lightIssue5 = mock();
+        when(lightIssue5.issueStatus()).thenReturn(IssueStatus.OPEN);
+        when(lightIssue5.resolution()).thenReturn("WONTFIX");
+        PostAnalysisIssueVisitor.ComponentIssue componentIssue5 = new PostAnalysisIssueVisitor.ComponentIssue(component1, lightIssue5);
+
         AnalysisDetails underTest = new AnalysisDetails("pullRequest", "commmitId",
-                Arrays.asList(componentIssue1, componentIssue2, componentIssue3, componentIssue4),
+                Arrays.asList(componentIssue1, componentIssue2, componentIssue3, componentIssue4, componentIssue5),
                 mock(), mock());
         
         assertThat(underTest.getScmReportableIssues()).usingRecursiveFieldByFieldElementComparator().containsOnly(componentIssue1);

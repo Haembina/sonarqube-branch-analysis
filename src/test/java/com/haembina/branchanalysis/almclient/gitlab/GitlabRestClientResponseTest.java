@@ -157,6 +157,18 @@ class GitlabRestClientResponseTest {
     }
 
     @Test
+    void shouldLogGitlabsExplanationOfAnErrorResponse() throws IOException {
+        CloseableHttpResponse response = response(403, new StringEntity("{\"message\":\"403 Forbidden\"}", StandardCharsets.UTF_8));
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThatThrownBy(() -> underTest.getProject("group/project"))
+                .isExactlyInstanceOf(IllegalStateException.class)
+                .hasMessage("An unexpected response code was returned from the Gitlab API - Expected: 200, Got: 403");
+        assertThat(logged.list).extracting(ILoggingEvent::getFormattedMessage)
+                .anySatisfy(message -> assertThat(message).endsWith("{\"message\":\"403 Forbidden\"}"));
+    }
+
+    @Test
     void shouldRefuseErrorResponseWhoseBodyCannotBeRead() throws IOException {
         InputStream failing = mock();
         when(failing.read(any(), anyInt(), anyInt())).thenThrow(new IOException("reset"));
