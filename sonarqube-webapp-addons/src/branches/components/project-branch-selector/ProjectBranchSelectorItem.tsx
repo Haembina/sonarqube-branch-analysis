@@ -58,7 +58,7 @@ export function ProjectBranchSelectorItem(props: Readonly<Props>) {
                         color={isChecked ? 'echoes-color-icon-default' : 'echoes-color-icon-subtle'}
                     />
 
-                    <Text className="sw-truncate" isHighlighted={isChecked}>
+                    <Text className="sw-break-words sw-min-w-0" isHighlighted={isChecked}>
                         {getBranchLikeDisplayName(branchLike)}
                     </Text>
                 </div>

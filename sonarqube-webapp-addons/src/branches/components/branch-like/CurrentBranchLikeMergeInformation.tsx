@@ -29,8 +29,9 @@ export interface CurrentBranchLikeMergeInformationProps {
 }
 
 /**
- * One truncated line naming the target and source branches of a pull request ("for merge into
- * X from Y"), with the full text as its hover title.
+ * A line naming the target and source branches of a pull request ("for merge into X from Y"),
+ * wrapping inside 400px rather than cutting a long branch name off, with the full text as its
+ * hover title.
  */
 export function CurrentBranchLikeMergeInformation({
   pullRequest,
@@ -39,7 +40,7 @@ export function CurrentBranchLikeMergeInformation({
 
   return (
     <span
-      className="sw-max-w-[400px] sw-truncate"
+      className="sw-inline-block sw-max-w-[400px] sw-break-words"
       title={intl.formatMessage(
         { id: 'branch_like_navigation.for_merge_into_x_from_y.title' },
         {
