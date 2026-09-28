@@ -263,6 +263,13 @@ class AzureDevOpsPullRequestDecoratorThreadTest {
     }
 
     @Test
+    void shouldFindNoIssueInNoteWithoutContent() {
+        Comment note = mock();
+
+        assertThat(underTest.parseIssueDetails(client, note)).isEmpty();
+    }
+
+    @Test
     void shouldPreferViewInSonarQubeLinkOverLegacyLink() {
         Comment note = mock();
         when(note.getContent()).thenReturn("[View in SonarQube](http://host/project/issues?id=projectKey&issues=current)"
