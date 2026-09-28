@@ -19,11 +19,15 @@
 import { expect, test } from '@playwright/test';
 import { BRANCH, openBranchesPage, rowOf, tabTo } from './sonarqube.helper';
 import {
-  ADDON_SURFACES,
+  type AddonSurface,
+  BRANCH_LIST,
+  BRANCH_NEW_CODE,
+  BRANCH_SWITCHER,
   clippedText,
   NON_TEXT_CONTRAST,
   nonTextContrast,
   overflowPast,
+  PULL_REQUEST_OVERVIEW,
   TEXT_SPACING_CSS,
 } from './wcag.helper';
 
@@ -44,7 +48,8 @@ const ICON_PX = 32;
 /** The shortest cycle an animation may repeat on: three flashes a second at most (2.3.1). */
 const FLASH_CYCLE_MS = 1000 / 3;
 
-for (const surface of ADDON_SURFACES) {
+/** Declares the layout cases for one surface, under the capability describe that calls it. */
+function layoutCases(surface: AddonSurface) {
   test.describe(`WCAG layout of the ${surface.name}`, () => {
     test('1.3.4: shows the same content upright and turned, and no style locks either', async ({
       page,
@@ -135,8 +140,25 @@ for (const surface of ADDON_SURFACES) {
   });
 }
 
-test.describe('WCAG 1.4.11 non-text contrast of the branch list', () => {
-  test('draws each control and its states at 3:1 against the page', async ({ page }) => {
+test.describe('capability set-branch-new-code: give a branch its own new code definition', () => {
+  layoutCases(BRANCH_NEW_CODE);
+});
+
+test.describe('capability pull-request-overview: read the quality gate and new-code measures of a pull request', () => {
+  layoutCases(PULL_REQUEST_OVERVIEW);
+});
+
+test.describe('capability switch-branch: open another branch or pull request of a project', () => {
+  layoutCases(BRANCH_SWITCHER);
+});
+
+test.describe('capability list-branches: see every branch and pull request of a project', () => {
+  layoutCases(BRANCH_LIST);
+});
+
+// WCAG 1.4.11 reads the branch list's controls and the rename dialog opened from it.
+test.describe('capability list-branches: see every branch and pull request of a project', () => {
+  test('1.4.11: draws each control and its states at 3:1 against the page', async ({ page }) => {
     await openBranchesPage(page);
     const row = rowOf(page, BRANCH);
     const keep = row.getByRole('switch');
@@ -153,7 +175,7 @@ test.describe('WCAG 1.4.11 non-text contrast of the branch list', () => {
     expect(await nonTextContrast(actions)).toBeGreaterThanOrEqual(NON_TEXT_CONTRAST);
   });
 
-  test('draws the focus indicator at 3:1 against the page', async ({ page }) => {
+  test('1.4.11: draws the focus indicator at 3:1 against the page', async ({ page }) => {
     await openBranchesPage(page);
     const actions = rowOf(page, BRANCH).getByRole('button', { name: `Update ${BRANCH}` });
     await tabTo(page, actions);
@@ -175,7 +197,7 @@ test.describe('WCAG 1.4.11 non-text contrast of the branch list', () => {
     );
   });
 
-  test('draws the rename field boundary at 3:1 against the dialog', async ({ page }) => {
+  test('1.4.11: draws the rename field boundary at 3:1 against the dialog', async ({ page }) => {
     await openBranchesPage(page);
     await rowOf(page, 'main').getByRole('button', { name: 'Update main' }).click();
     await page.getByRole('menuitem', { name: 'Rename branch' }).click();

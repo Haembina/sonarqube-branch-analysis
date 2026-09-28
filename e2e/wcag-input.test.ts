@@ -43,8 +43,8 @@ async function openDaysSetting(page: Page) {
   return dialog;
 }
 
-test.describe('WCAG 3.3.1 error identification and 3.3.3 error suggestion', () => {
-  test('marks a number of days out of range, says the range, and refuses to save', async ({
+test.describe('capability set-branch-new-code: give a branch its own new code definition', () => {
+  test('3.3.1, 3.3.3: marks days out of range, says the range, and refuses to save', async ({
     page,
   }) => {
     const dialog = await openDaysSetting(page);
@@ -60,10 +60,10 @@ test.describe('WCAG 3.3.1 error identification and 3.3.3 error suggestion', () =
     await page.keyboard.press('Escape');
     await expect(branchRow(page)).toContainText('Project setting');
   });
-});
 
-test.describe('WCAG 4.1.3 status messages', () => {
-  test('announces an out-of-range number of days without moving focus', async ({ page }) => {
+  test('4.1.3: announces an out-of-range number of days without moving focus', async ({
+    page,
+  }) => {
     const dialog = await openDaysSetting(page);
     const days = dialog.getByRole('spinbutton');
     await days.fill(TOO_FEW_DAYS);
@@ -73,7 +73,7 @@ test.describe('WCAG 4.1.3 status messages', () => {
     await page.keyboard.press('Escape');
   });
 
-  test('announces a saved new code definition, then resets it', async ({ page }) => {
+  test('4.1.3: announces a saved new code definition, then resets it', async ({ page }) => {
     const dialog = await openDaysSetting(page);
     await dialog.getByRole('spinbutton').fill(VALID_DAYS);
     await dialog.getByRole('button', { name: 'Save' }).click();
@@ -89,8 +89,10 @@ test.describe('WCAG 4.1.3 status messages', () => {
   });
 });
 
-test.describe('WCAG 3.3.7 redundant entry', () => {
-  test('opens the rename dialog holding the name the branch already has', async ({ page }) => {
+test.describe('capability rename-main-branch: rename the main branch of a project', () => {
+  test('3.3.7: opens the rename dialog holding the name the branch already has', async ({
+    page,
+  }) => {
     await openBranchesPage(page);
     await rowOf(page, 'main').getByRole('button', { name: 'Update main' }).click();
     await page.getByRole('menuitem', { name: 'Rename branch' }).click();
@@ -102,8 +104,10 @@ test.describe('WCAG 3.3.7 redundant entry', () => {
   });
 });
 
-test.describe('WCAG 1.4.13 content on hover or focus', () => {
-  test('keeps a tooltip open under the pointer, and closes it on Escape', async ({ page }) => {
+test.describe('capability list-branches: see every branch and pull request of a project', () => {
+  test('1.4.13: keeps a tooltip open under the pointer, and closes it on Escape', async ({
+    page,
+  }) => {
     await openBranchesPage(page);
     await rowOf(page, 'main').getByLabel('Help').hover();
     const tooltip = page.getByRole('tooltip');

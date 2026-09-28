@@ -28,49 +28,55 @@ export interface AddonSurface {
 /** The label of the branch switcher's popover, on every project page that draws it. */
 export const SWITCHER = 'Branches and pull requests';
 
-/**
- * The four surfaces the addons draw: the branch list, the branch new code table, the pull
- * request overview, and the branch switcher's popover. Each `open` navigates and returns the
- * node the addons' markup sits in, so a measurement never reaches SonarSource's own chrome.
+/*
+ * The four surfaces the addons draw, one per capability the specs title them under. Each
+ * `open` navigates and returns the node the addons' markup sits in, so a measurement never
+ * reaches SonarSource's own chrome.
  */
-export const ADDON_SURFACES: AddonSurface[] = [
-  {
-    name: 'branch list',
-    open: async (page) => {
-      await openBranchesPage(page);
-      return page.locator('#project-branch-like');
-    },
+
+/** The branch list, where the list-branches capability is used. */
+export const BRANCH_LIST: AddonSurface = {
+  name: 'branch list',
+  open: async (page) => {
+    await openBranchesPage(page);
+    return page.locator('#project-branch-like');
   },
-  {
-    name: 'branch new code',
-    open: async (page) => {
-      await page.goto(`/project/baseline?id=${PROJECT}`);
-      const table = page
-        .getByRole('table')
-        .filter({ has: page.getByRole('row').filter({ hasText: BRANCH }) });
-      await expect(table).toBeVisible();
-      return table;
-    },
+};
+
+/** The branch new code table, where the set-branch-new-code capability is used. */
+export const BRANCH_NEW_CODE: AddonSurface = {
+  name: 'branch new code',
+  open: async (page) => {
+    await page.goto(`/project/baseline?id=${PROJECT}`);
+    const table = page
+      .getByRole('table')
+      .filter({ has: page.getByRole('row').filter({ hasText: BRANCH }) });
+    await expect(table).toBeVisible();
+    return table;
   },
-  {
-    name: 'pull request overview',
-    open: async (page) => {
-      await page.goto(`/dashboard?id=${PROJECT}&pullRequest=1`);
-      await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
-      return page.getByRole('main');
-    },
+};
+
+/** The pull request overview, where the pull-request-overview capability is used. */
+export const PULL_REQUEST_OVERVIEW: AddonSurface = {
+  name: 'pull request overview',
+  open: async (page) => {
+    await page.goto(`/dashboard?id=${PROJECT}&pullRequest=1`);
+    await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
+    return page.getByRole('main');
   },
-  {
-    name: 'branch switcher',
-    open: async (page) => {
-      await page.goto(`/dashboard?id=${PROJECT}`);
-      await page.getByRole('button', { name: 'main', exact: true }).click();
-      const popover = page.getByRole('dialog', { name: SWITCHER });
-      await expect(popover).toBeVisible();
-      return popover;
-    },
+};
+
+/** The branch switcher's popover, where the switch-branch capability is used. */
+export const BRANCH_SWITCHER: AddonSurface = {
+  name: 'branch switcher',
+  open: async (page) => {
+    await page.goto(`/dashboard?id=${PROJECT}`);
+    await page.getByRole('button', { name: 'main', exact: true }).click();
+    const popover = page.getByRole('dialog', { name: SWITCHER });
+    await expect(popover).toBeVisible();
+    return popover;
   },
-];
+};
 
 /** A box one pixel or less across: the screen-reader-only text every design system hides. */
 const HIDDEN_BOX_PX = 1;

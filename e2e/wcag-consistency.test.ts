@@ -56,8 +56,8 @@ async function namesOnEveryPage(page: Page, anchor: (page: Page) => Locator, con
   return lists;
 }
 
-test.describe('WCAG 2.4.5 multiple ways', () => {
-  test('reaches the branch list from the project sidebar', async ({ page }) => {
+test.describe('capability list-branches: see every branch and pull request of a project', () => {
+  test('2.4.5: reaches the branch list from the project sidebar', async ({ page }) => {
     await PAGES.overview(page);
     // The sidebar is folded to no width until the header's button opens it.
     await page.getByRole('button', { name: 'Open sidebar' }).click();
@@ -71,7 +71,7 @@ test.describe('WCAG 2.4.5 multiple ways', () => {
     await expect(page.getByRole('heading', { name: 'Branches & Pull Requests' })).toBeVisible();
   });
 
-  test('reaches the branch list from the branch switcher', async ({ page }) => {
+  test('2.4.5: reaches the branch list from the branch switcher', async ({ page }) => {
     await PAGES.overview(page);
     await page.getByRole('button', { name: 'main', exact: true }).click();
     await page.getByRole('dialog', { name: SWITCHER }).getByRole('link', { name: 'View all' }).click();
@@ -107,8 +107,8 @@ test.describe('WCAG 3.2.6 consistent help', () => {
   });
 });
 
-test.describe('WCAG 3.2.4 consistent identification', () => {
-  test('names each row’s actions the same way on both tabs of the branch list', async ({
+test.describe('capability list-branches: see every branch and pull request of a project', () => {
+  test('3.2.4: names each row’s actions the same way on both tabs of the branch list', async ({
     page,
   }) => {
     await openBranchesPage(page);
@@ -121,7 +121,7 @@ test.describe('WCAG 3.2.4 consistent identification', () => {
     ).toBeVisible();
   });
 
-  test('words a pull request’s gate the same in the list and on its overview', async ({
+  test('3.2.4: words a pull request’s gate the same in the list and on its overview', async ({
     page,
   }) => {
     await openBranchesPage(page);
@@ -131,8 +131,10 @@ test.describe('WCAG 3.2.4 consistent identification', () => {
     await PAGES['pull request overview'](page);
     await expect(page.getByText('Passed', { exact: true }).first()).toBeVisible();
   });
+});
 
-  test('labels the branch switcher the same on the branch and pull request overviews', async ({
+test.describe('capability switch-branch: open another branch or pull request of a project', () => {
+  test('3.2.4: labels the switcher the same on the branch and pull request overviews', async ({
     page,
   }) => {
     await PAGES.overview(page);
