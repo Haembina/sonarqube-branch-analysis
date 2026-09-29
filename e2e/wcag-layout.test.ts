@@ -54,12 +54,15 @@ function layoutCases(surface: AddonSurface) {
     test('1.3.4: shows the same content upright and turned, and no style locks either', async ({
       page,
     }) => {
+      // Digits are dropped so an age such as "2 minutes ago" ticking over between reads is no
+      // difference in content.
+      const content = async () => (await region.innerText()).trim().replace(/\d+/g, '#');
       await page.setViewportSize(PORTRAIT);
       const region = await surface.open(page);
-      const upright = (await region.innerText()).trim();
+      const upright = await content();
       await page.setViewportSize(LANDSCAPE);
       await expect(region).toBeVisible();
-      expect((await region.innerText()).trim()).toBe(upright);
+      expect(await content()).toBe(upright);
 
       const orientationRules = await page.evaluate(() =>
         Array.from(document.styleSheets).flatMap((sheet) => {

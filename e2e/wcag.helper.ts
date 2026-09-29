@@ -62,6 +62,8 @@ export const PULL_REQUEST_OVERVIEW: AddonSurface = {
   open: async (page) => {
     await page.goto(`/dashboard?id=${PROJECT}&pullRequest=1`);
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
+    // The heading draws before the measures load; a read in between sees only "Loading".
+    await expect(page.getByTestId('overview__measures-new_violations')).toBeVisible();
     return page.getByRole('main');
   },
 };
