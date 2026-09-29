@@ -16,13 +16,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { last } from 'lodash';
 import MessagesServiceMock from '~sq-server-commons/api/mocks/MessagesServiceMock';
 import NewCodeDefinitionServiceMock from '~sq-server-commons/api/mocks/NewCodeDefinitionServiceMock';
 import {
   listBranchesNewCodeDefinition,
+  resetNewCodeDefinition,
   setNewCodeDefinition,
 } from '~sq-server-commons/api/newCodeDefinition';
 import { mockBranch, mockMainBranch } from '~sq-server-commons/helpers/mocks/branch-like';
@@ -69,6 +70,11 @@ function renderSection(
       projectNewCodeDefinition={projectNewCodeDefinition}
     />,
   );
+}
+
+interface Settle {
+  reject: (reason: Error) => void;
+  resolve: () => void;
 }
 
 const rowOf = async (name: string) =>
@@ -325,6 +331,100 @@ describe('capability set-branch-new-code: give a branch its own new code definit
     expect(
       within(await rowOf('release')).getByText('new_code_definition.previous_version'),
     ).toBeInTheDocument();
+  });
+
+  it('offers no reference branch when the project has only the one branch', async () => {
+    const user = userEvent.setup();
+    renderSection(mockNewCodePeriod(), [mockMainBranch({ name: 'main' })]);
+
+    await user.click(await screen.findByRole('button', { name: 'branch_list.edit_for_x.main' }));
+    const dialog = screen.getByRole('dialog');
+    await user.click(
+      last(
+        within(dialog).getAllByRole('radio', {
+          name: /new_code_definition.specific_setting.reference_branch.label/,
+        }),
+      ) as HTMLElement,
+    );
+
+    expect(within(dialog).getByRole('button', { name: 'save' })).toBeDisabled();
+  });
+
+  it('saves nothing when the form is submitted before a setting is chosen', async () => {
+    const user = userEvent.setup();
+    renderSection();
+
+    await user.click(await screen.findByRole('button', { name: 'branch_list.edit_for_x.release' }));
+    const dialog = screen.getByRole('dialog');
+    jest.mocked(setNewCodeDefinition).mockClear();
+    fireEvent.submit(dialog.querySelector('form') as HTMLFormElement);
+
+    expect(setNewCodeDefinition).not.toHaveBeenCalled();
+    expect(within(dialog).getByRole('button', { name: 'save' })).toBeDisabled();
+    expect(dialog).toBeInTheDocument();
+  });
+
+  it.each([
+    ['saved', (settle: Settle) => settle.resolve()],
+    ['refused', (settle: Settle) => settle.reject(new Error('refused'))],
+  ])('shows no outcome for a save %s after the list is gone', async (_, finish) => {
+    const user = userEvent.setup();
+    const settle = {} as Settle;
+    jest.mocked(setNewCodeDefinition).mockReturnValueOnce(
+      new Promise<void>((resolve, reject) => {
+        settle.resolve = resolve;
+        settle.reject = reject;
+      }),
+    );
+    const { unmount } = renderSection();
+
+    await user.click(await screen.findByRole('button', { name: 'branch_list.edit_for_x.release' }));
+    const dialog = screen.getByRole('dialog');
+    await user.click(
+      within(dialog).getByRole('radio', {
+        name: /new_code_definition.specific_setting.previous_version.label/,
+      }),
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'save' }));
+    unmount();
+    finish(settle);
+
+    await waitFor(() => {
+      expect(setNewCodeDefinition).toHaveBeenCalled();
+    });
+    expect(screen.queryByText('project_baseline.update_success')).not.toBeInTheDocument();
+  });
+
+  it('keeps the list as it is when a reset lands after its branch left the list', async () => {
+    const user = userEvent.setup();
+    let finishReset: (() => void) | undefined;
+    jest.mocked(resetNewCodeDefinition).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishReset = resolve;
+      }),
+    );
+    const { rerender } = renderSection();
+
+    await user.click(
+      await screen.findByRole('button', { name: 'branch_list.show_actions_for_x.feature' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'reset_to_default' }));
+    rerender(
+      <BranchListSection
+        branchList={[mockMainBranch({ name: 'main' }), mockBranch({ name: 'release' })]}
+        component={mockComponent()}
+        globalNewCodeDefinition={mockNewCodePeriod({ type: NewCodeDefinitionType.NumberOfDays })}
+        projectNewCodeDefinition={mockNewCodePeriod()}
+      />,
+    );
+    await rowOf('release');
+    finishReset?.();
+
+    await waitFor(() => {
+      expect(resetNewCodeDefinition).toHaveBeenCalledWith({ project: 'my-project', branch: 'feature' });
+    });
+    expect(screen.queryByRole('cell', { name: /^feature/ })).not.toBeInTheDocument();
+    expect(await rowOf('release')).toBeInTheDocument();
   });
 
   it('announces branches whose number of days was brought into compliance', async () => {

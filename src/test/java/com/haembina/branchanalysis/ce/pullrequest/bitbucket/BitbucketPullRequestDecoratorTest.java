@@ -20,10 +20,15 @@
 package com.haembina.branchanalysis.ce.pullrequest.bitbucket;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,8 +56,10 @@ import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import com.haembina.branchanalysis.almclient.bitbucket.BitbucketClient;
 import com.haembina.branchanalysis.almclient.bitbucket.BitbucketClientFactory;
+import com.haembina.branchanalysis.almclient.bitbucket.BitbucketException;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
+import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
@@ -181,6 +188,144 @@ class BitbucketPullRequestDecoratorTest {
 
         // then
         assertFalse(result);
+    }
+
+    @Test
+    void shouldSkipDecorationWhenCodeInsightsAreUnsupported() throws IOException {
+        when(client.supportsCodeInsights()).thenReturn(false);
+
+        underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(client, never()).uploadReport(any(), any(), any());
+        verify(reportGenerator, never()).createAnalysisSummary(any());
+    }
+
+    @Test
+    void shouldReportFailedGateWithConditionsAndMonorepoKeyAndFailedBuildStatus() throws IOException {
+        mockDecoratableAnalysis(List.of(componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH))));
+        when(analysisDetails.getQualityGateStatus()).thenReturn(QualityGate.Status.ERROR);
+        when(analysisDetails.getAnalysisProjectKey()).thenReturn("monorepo-project");
+        when(projectAlmSettingDto.getMonorepo()).thenReturn(true);
+        when(almSettingDto.getAlm()).thenReturn(ALM.BITBUCKET_CLOUD);
+        when(analysisSummary.getFailedQualityGateConditions()).thenReturn(List.of("Coverage below 80%", "2 new bugs"));
+
+        underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(client).normaliseReportKey("monorepo-project");
+        verify(client).createCodeInsightsReport(any(),
+                eq("Quality Gate failed" + System.lineSeparator() + "- Coverage below 80%" + System.lineSeparator() + "- 2 new bugs"),
+                any(), eq(DASHBOARD_URL), eq(IMAGE_URL), eq(ReportStatus.FAILED));
+        ArgumentCaptor<BuildStatus> buildStatus = ArgumentCaptor.captor();
+        verify(client).submitBuildStatus(eq(COMMIT), buildStatus.capture());
+        assertThat(buildStatus.getValue()).usingRecursiveComparison().isEqualTo(new BuildStatus(BuildStatus.State.FAILED, "reportKey", "SonarQube", DASHBOARD_URL));
+    }
+
+    @Test
+    void shouldLogAndReturnWhenReportUploadFails() throws IOException {
+        mockDecoratableAnalysis(List.of());
+        doThrow(new IOException("down")).when(client).uploadReport(any(), any(), any());
+
+        assertThat(underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto)).isNotNull();
+
+        verify(client, never()).deleteAnnotations(any(), any());
+    }
+
+    @Test
+    void shouldServeBothBitbucketAlms() {
+        assertThat(underTest.alm()).containsExactly(ALM.BITBUCKET, ALM.BITBUCKET_CLOUD);
+    }
+
+    @ParameterizedTest(name = "{0} {1} -> {2} {3}")
+    @CsvSource({"SECURITY, BLOCKER, HIGH, VULNERABILITY",
+            "MAINTAINABILITY, MEDIUM, MEDIUM, CODE_SMELL",
+            "RELIABILITY, LOW, LOW, BUG",
+            "RELIABILITY, INFO, LOW, BUG"})
+    void shouldMapHighestImpactToBitbucketSeverityAndType(SoftwareQuality quality, Severity severity, String bitbucketSeverity, String bitbucketType) throws IOException {
+        mockDecoratableAnalysis(List.of(componentIssue(Map.of(quality, severity))));
+
+        underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(client).createCodeInsightsAnnotation(ISSUE_KEY, ISSUE_LINE, ISSUE_LINK, ISSUE_MESSAGE, ISSUE_PATH, bitbucketSeverity, bitbucketType);
+    }
+
+    @Test
+    void shouldRefuseIssueWithoutImpacts() throws IOException {
+        mockDecoratableAnalysis(List.of(componentIssue(Map.of())));
+
+        assertThatThrownBy(() -> underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto))
+                .isExactlyInstanceOf(IllegalStateException.class)
+                .hasMessage("No severity found in impacts");
+    }
+
+    @Test
+    void shouldStopUploadingOnceTotalAnnotationLimitIsReached() throws IOException {
+        mockDecoratableAnalysis(List.of(componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH)),
+                componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.LOW))));
+        when(client.getAnnotationUploadLimit()).thenReturn(new AnnotationUploadLimit(1, 1));
+        CodeInsightsAnnotation high = mock();
+        CodeInsightsAnnotation low = mock();
+        when(client.createCodeInsightsAnnotation(any(), anyInt(), any(), any(), any(), eq("HIGH"), any())).thenReturn(high);
+        when(client.createCodeInsightsAnnotation(any(), anyInt(), any(), any(), any(), eq("LOW"), any())).thenReturn(low);
+
+        underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(client, times(1)).uploadAnnotations(eq(COMMIT), any(), eq("reportKey"));
+    }
+
+    @Test
+    void shouldTruncateAnnotationsWhenBitbucketRejectsPayloadAsTooLarge() throws IOException {
+        mockDecoratableAnalysis(List.of(componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH))));
+        BitbucketException tooLarge = mock();
+        when(tooLarge.isError(BitbucketException.PAYLOAD_TOO_LARGE)).thenReturn(true);
+        doThrow(tooLarge).when(client).uploadAnnotations(any(), any(), any());
+
+        underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(client).uploadAnnotations(eq(COMMIT), any(), eq("reportKey"));
+    }
+
+    @Test
+    void shouldRethrowAnyOtherBitbucketRejection() throws IOException {
+        mockDecoratableAnalysis(List.of(componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH))));
+        BitbucketException forbidden = mock();
+        doThrow(forbidden).when(client).uploadAnnotations(any(), any(), any());
+
+        assertThatThrownBy(() -> underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto))
+                .isSameAs(forbidden);
+    }
+
+    private void mockDecoratableAnalysis(List<PostAnalysisIssueVisitor.ComponentIssue> issues) throws IOException {
+        when(client.supportsCodeInsights()).thenReturn(true);
+        when(client.getAnnotationUploadLimit()).thenReturn(new AnnotationUploadLimit(1000, 1000));
+        when(client.normaliseReportKey(any())).thenReturn("reportKey");
+        when(analysisDetails.getCommitSha()).thenReturn(COMMIT);
+        when(analysisDetails.getQualityGateStatus()).thenReturn(QualityGate.Status.OK);
+        when(analysisDetails.getScmReportableIssues()).thenReturn(issues);
+        when(analysisSummary.getNewIssues()).thenReturn(new AnalysisSummary.UrlIconMetric<>("newIssuesUrl", "newIssuesImageUrl", 1L));
+        when(analysisSummary.getAcceptedIssues()).thenReturn(new AnalysisSummary.UrlIconMetric<>("acceptedIssuesUrl", "acceptedIssuesImageUrl", 0));
+        when(analysisSummary.getFixedIssues()).thenReturn(new AnalysisSummary.UrlIconMetric<>("fixedIssuesUrl", "fixedIssuesImageUrl", 0));
+        when(analysisSummary.getDashboardUrl()).thenReturn(DASHBOARD_URL);
+        when(analysisSummary.getSummaryImageUrl()).thenReturn(IMAGE_URL);
+        when(reportGenerator.createAnalysisSummary(any())).thenReturn(analysisSummary);
+        AnalysisIssueSummary analysisIssueSummary = mock();
+        when(analysisIssueSummary.getIssueUrl()).thenReturn(ISSUE_LINK);
+        when(reportGenerator.createAnalysisIssueSummary(any(), any())).thenReturn(analysisIssueSummary);
+    }
+
+    private static PostAnalysisIssueVisitor.ComponentIssue componentIssue(Map<SoftwareQuality, Severity> impacts) {
+        ReportAttributes reportAttributes = mock();
+        when(reportAttributes.getScmPath()).thenReturn(Optional.of(ISSUE_PATH));
+        Component component = mock();
+        when(component.getReportAttributes()).thenReturn(reportAttributes);
+        PostAnalysisIssueVisitor.LightIssue issue = mock();
+        when(issue.impacts()).thenReturn(impacts);
+        when(issue.getLine()).thenReturn(ISSUE_LINE);
+        when(issue.key()).thenReturn(ISSUE_KEY);
+        when(issue.getMessage()).thenReturn(ISSUE_MESSAGE);
+        PostAnalysisIssueVisitor.ComponentIssue componentIssue = mock();
+        when(componentIssue.getIssue()).thenReturn(issue);
+        when(componentIssue.getComponent()).thenReturn(component);
+        return componentIssue;
     }
 
     private void mockValidAnalysis() {

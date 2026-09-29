@@ -27,9 +27,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.sonar.db.permission.ProjectPermission;
+import org.sonarqube.ws.MediaTypes;
 import org.mockito.ArgumentCaptor;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.server.ws.Request;
@@ -202,6 +208,57 @@ class ListActionTest {
         assertThatThrownBy(() -> underTest.handle(request, response)).isInstanceOf(ForbiddenException.class);
 
         verifyNoMoreInteractions(protoBufWriter);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = ProjectPermission.class, names = {"USER", "SCAN"})
+    void shouldListOnlyPullRequestsForUserWithProjectPermission(ProjectPermission permission) {
+        Request request = mock();
+        when(request.mandatoryParam("project")).thenReturn("project");
+        ProjectDto project = new ProjectDto().setKey("projectKey").setUuid("uuid0");
+        when(componentFinder.getProjectByKey(any(), any())).thenReturn(project);
+        when(userSession.hasEntityPermission(permission, project)).thenReturn(true);
+        BranchDao branchDao = mock();
+        when(dbClient.branchDao()).thenReturn(branchDao);
+        when(branchDao.selectByProject(any(), any())).thenReturn(List.of(
+                new BranchDto().setBranchType(BranchType.BRANCH).setKey("main").setUuid("uuid1"),
+                new BranchDto().setBranchType(BranchType.PULL_REQUEST).setKey("prKey").setUuid("uuid2")));
+        MeasureDao measureDao = mock();
+        when(dbClient.measureDao()).thenReturn(measureDao);
+        SnapshotDao snapshotDao = mock();
+        when(dbClient.snapshotDao()).thenReturn(snapshotDao);
+        Response response = mock();
+
+        underTest.handle(request, response);
+
+        ArgumentCaptor<ProjectPullRequests.ListWsResponse> message = ArgumentCaptor.captor();
+        verify(protoBufWriter).write(message.capture(), eq(request), eq(response));
+        assertThat(message.getValue().getPullRequestsList()).extracting(ProjectPullRequests.PullRequest::getKey).containsExactly("prKey");
+    }
+
+    @Test
+    void shouldWriteProtobufResponseThroughWebServiceStream() throws IOException {
+        Request request = mock();
+        when(request.mandatoryParam("project")).thenReturn("project");
+        when(request.getMediaType()).thenReturn(MediaTypes.PROTOBUF);
+        when(componentFinder.getProjectByKey(any(), any())).thenReturn(new ProjectDto().setKey("projectKey").setUuid("uuid0"));
+        when(userSession.hasPermission(any())).thenReturn(true);
+        BranchDao branchDao = mock();
+        when(dbClient.branchDao()).thenReturn(branchDao);
+        MeasureDao measureDao = mock();
+        when(dbClient.measureDao()).thenReturn(measureDao);
+        SnapshotDao snapshotDao = mock();
+        when(dbClient.snapshotDao()).thenReturn(snapshotDao);
+        ByteArrayOutputStream written = new ByteArrayOutputStream();
+        Response.Stream stream = mock();
+        when(stream.output()).thenReturn(written);
+        Response response = mock();
+        when(response.stream()).thenReturn(stream);
+
+        new ListAction(dbClient, componentFinder, userSession).handle(request, response);
+
+        assertThat(ProjectPullRequests.ListWsResponse.parseFrom(written.toByteArray()).getPullRequestsList()).isEmpty();
+        verify(stream).setMediaType(MediaTypes.PROTOBUF);
     }
 
 }

@@ -31,6 +31,9 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.sonar.api.server.ws.Request;
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.WebService;
@@ -42,6 +45,7 @@ import org.sonar.db.entity.EntityDto;
 import org.sonar.db.project.ProjectDto;
 import org.sonar.server.component.ComponentCleanerService;
 import org.sonar.server.component.ComponentFinder;
+import org.sonar.server.exceptions.NotFoundException;
 import org.sonar.server.exceptions.UnauthorizedException;
 import org.sonar.server.user.UserSession;
 
@@ -139,6 +143,28 @@ class DeleteActionTest {
 
         verify(componentCleanerService, never()).deleteBranch(any(), any());
         verify(response, never()).noContent();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = BranchType.class, names = "BRANCH")
+    @NullSource
+    void shouldRefuseKeyThatNamesNoPullRequest(BranchType foundType) {
+        Request request = mock();
+        when(request.mandatoryParam("project")).thenReturn("project");
+        when(request.mandatoryParam("pullRequest")).thenReturn("42");
+        when(componentFinder.getProjectByKey(any(), any())).thenReturn(new ProjectDto().setKey("projectKey").setUuid("uuid0"));
+        when(userSession.checkLoggedIn()).thenReturn(userSession);
+        BranchDao branchDao = mock();
+        when(dbClient.branchDao()).thenReturn(branchDao);
+        when(branchDao.selectByPullRequestKey(any(), any(), any()))
+                .thenReturn(Optional.ofNullable(foundType).map(type -> new BranchDto().setBranchType(type)));
+        Response response = mock();
+
+        assertThatThrownBy(() -> underTest.handle(request, response))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Pull request '42' is not found for project 'projectKey'");
+
+        verify(componentCleanerService, never()).deleteBranch(any(), any());
     }
 
 }

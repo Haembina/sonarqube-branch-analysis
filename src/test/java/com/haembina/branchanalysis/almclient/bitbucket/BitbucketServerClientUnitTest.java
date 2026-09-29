@@ -380,6 +380,13 @@ class BitbucketServerClientUnitTest {
     }
 
     @Test
+    void testCreateServerReportForPassedGate() {
+        CodeInsightsReport result = underTest.createCodeInsightsReport(new ArrayList<>(), "reportDescription", Instant.now(), "dashboardUrl", "logoUrl", ReportStatus.PASSED);
+
+        assertEquals("PASS", result.getResult());
+    }
+
+    @Test
     void shouldSubmitBuildStatusToServer() throws IOException {
         // given
         Call call = mock();

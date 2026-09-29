@@ -64,8 +64,7 @@ export const usePurchasableFeature = createQueryHook((featureKey: string) =>
   queryOptions({
     queryKey: ['purchasable-feature', featureKey],
     queryFn: (): Promise<PurchaseableFeature[]> => Promise.resolve([]),
-    select: (features): PurchaseableFeature | undefined =>
-      features.find((feature) => feature.featureKey === featureKey),
+    select: (): PurchaseableFeature | undefined => undefined,
     staleTime: StaleTime.NEVER,
   }),
 );

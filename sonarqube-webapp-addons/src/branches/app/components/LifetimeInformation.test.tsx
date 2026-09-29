@@ -69,3 +69,21 @@ it('ignores an answer that arrives after the page is gone', async () => {
   });
   expect(document.body).not.toHaveTextContent('project_branch_pull_request.lifetime_information');
 });
+
+it('ignores a failure that arrives after the page is gone', async () => {
+  let fail: ((reason: Error) => void) | undefined;
+  jest.mocked(getValue).mockReturnValueOnce(
+    new Promise((_, reject) => {
+      fail = reject;
+    }),
+  );
+  const { unmount } = renderComponent(<LifetimeInformation />);
+
+  unmount();
+  fail?.(new Error('forbidden'));
+
+  await waitFor(() => {
+    expect(getValue).toHaveBeenCalled();
+  });
+  expect(document.body.textContent).toBe('');
+});
