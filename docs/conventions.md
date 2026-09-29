@@ -44,3 +44,5 @@ Every Java and TSX file opens with its LGPL-3.0 licence header. Keep it when cha
   it as a constant.
 - A suite dropping under the JaCoCo floor fails `./gradlew build`, which `build.yml` runs. The report is
   `build/reports/jacoco/test/html/index.html`.
+- A mock created inside a stub, `thenReturn(mock())`, is a new `java:S9016` issue, and the pull request's quality gate
+  fails on any new issue. Assign the mock to a local and return that.
