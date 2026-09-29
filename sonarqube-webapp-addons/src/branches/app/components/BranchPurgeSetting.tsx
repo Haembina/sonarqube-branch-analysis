@@ -19,7 +19,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { Spinner } from '@sonarsource/echoes-react';
+import styled from '@emotion/styled';
+import { cssVar, Spinner } from '@sonarsource/echoes-react';
 import { HelperHintIcon } from '~design-system';
 import { Switch } from '~adapters/components/common/Switch';
 import Tooltip from '~sq-server-commons/components/controls/Tooltip';
@@ -56,13 +57,15 @@ export default function BranchPurgeSetting(props: Props) {
 
   return (
     <>
-      <Switch
-        ariaLabel={`${keepWhenInactive}: ${branch.name}`}
-        disabled={disabled}
-        name={branch.name}
-        onChange={handleOnChange}
-        value={branch.excludedFromPurge}
-      />
+      <SwitchBoundary>
+        <Switch
+          ariaLabel={`${keepWhenInactive}: ${branch.name}`}
+          disabled={disabled}
+          name={branch.name}
+          onChange={handleOnChange}
+          value={branch.excludedFromPurge}
+        />
+      </SwitchBoundary>
       <Spinner isLoading={isPending} className="sw-ml-1" />
       {isTheMainBranch && (
         <span className="sw-ml-1">
@@ -78,3 +81,13 @@ export default function BranchPurgeSetting(props: Props) {
     </>
   );
 }
+
+// The switch draws its off track in the weak border color, 1.55:1 on the page; an inset edge in
+// the bolder border color lets the off state meet WCAG 1.4.11's 3:1. A disabled switch is exempt.
+const SwitchBoundary = styled.span`
+  display: inline-flex;
+
+  & [role='switch'][aria-checked='false']:not(:disabled) {
+    box-shadow: inset 0 0 0 1px ${cssVar('color-border-bolder')};
+  }
+`;

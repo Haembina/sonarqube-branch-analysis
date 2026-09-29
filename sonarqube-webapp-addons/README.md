@@ -63,5 +63,7 @@ The report is `coverage/addons/lcov.info`. `build.yml`'s `build-ui` job runs the
   `Cannot find module .../sonarqube-webapp/node_modules/jest/bin/jest.js`.
 - Without `setup.sh`, `yarn nx run sq-server:build` builds the stock webapp: the branch pages are missing and nothing
   fails. Check the link exists with `ls -l sonarqube-webapp/libs/sq-server-addons`.
+- Nx hashes none of the linked addons, so after a change to them `yarn nx run sq-server:build` can replay the previous
+  build from its cache and ship the old pages. Build with `--skip-nx-cache` after changing the addons.
 - The submodule pins one SonarQube Community Build tag (`git submodule status`). A webapp from another tag loads against
   a server that does not match it, and the branch pages fail at runtime.
