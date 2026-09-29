@@ -38,6 +38,7 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.SonarRuntime;
 import org.sonar.core.documentation.DocumentationLinkGenerator;
 import org.sonar.core.platform.EditionProvider;
@@ -50,6 +51,14 @@ import org.sonar.server.feature.SonarQubeFeature;
 import org.sonar.server.newcodeperiod.ws.SetAction;
 import org.sonar.server.newcodeperiod.ws.UnsetAction;
 import org.sonar.server.user.UserSession;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import javassist.ByteArrayClassPath;
+import javassist.ClassPath;
+import javassist.ClassPool;
+import javassist.CtClass;
 
 class CommunityBranchAgentTest {
 
@@ -205,6 +214,39 @@ class CommunityBranchAgentTest {
         byte[] result = classFileTransformerArgumentCaptor.getValue().transform(getClass().getClassLoader(), "com/github/com/haembina/Dummy", getClass(), getClass().getProtectionDomain(), input);
 
         assertThat(result).isEqualTo(input);
+    }
+
+    @Test
+    void shouldKeepDefaultClassWhenSonarQubeClassLacksWhatTheAgentRewrites() throws Exception {
+        String target = MultipleAlmFeature.class.getName();
+        ClassPool pool = ClassPool.getDefault();
+        CtClass cached = pool.getOrNull(target);
+        if (cached != null) {
+            cached.detach();
+        }
+        ClassPath withoutIsAvailable = new ByteArrayClassPath(target, new ClassPool(true).makeClass(target).toBytecode());
+        pool.insertClassPath(withoutIsAvailable);
+        Logger agentLogger = (Logger) LoggerFactory.getLogger(CommunityBranchAgent.class);
+        ListAppender<ILoggingEvent> logged = new ListAppender<>();
+        logged.start();
+        agentLogger.addAppender(logged);
+        try {
+            Instrumentation instrumentation = mock();
+            CommunityBranchAgent.premain("ce", instrumentation);
+            ArgumentCaptor<ClassFileTransformer> transformers = ArgumentCaptor.captor();
+            verify(instrumentation, times(3)).addTransformer(transformers.capture());
+
+            byte[] input = new byte[]{1, 2, 3};
+            byte[] result = transformers.getAllValues().get(2).transform(getClass().getClassLoader(), target.replace('.', '/'), getClass(), getClass().getProtectionDomain(), input);
+
+            assertThat(result).isSameAs(input);
+            assertThat(logged.list).extracting(ILoggingEvent::getFormattedMessage)
+                    .anySatisfy(message -> assertThat(message).startsWith("Could not transform class " + target));
+        } finally {
+            agentLogger.detachAppender(logged);
+            pool.removeClassPath(withoutIsAvailable);
+            Optional.ofNullable(pool.getOrNull(target)).ifPresent(CtClass::detach);
+        }
     }
 
     @Test

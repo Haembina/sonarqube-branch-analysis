@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.sonar.api.issue.IssueStatus;
 import org.sonar.api.issue.impact.Severity;
 import org.sonar.api.issue.impact.SoftwareQuality;
@@ -164,7 +166,24 @@ class PostAnalysisIssueVisitorTest {
         // also assert difference with unrelated objects, and null
             .isNotEqualTo(new Object())
             .isNotEqualTo(null);
-        
+
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"key", "line", "message", "resolution", "status", "impacts"})
+    void shouldNotReturnEqualsWhenOneFieldDiffers(String field) {
+        PostAnalysisIssueVisitor.LightIssue original = new PostAnalysisIssueVisitor.LightIssue(exampleDefaultIssue());
+        DefaultIssue changed = exampleDefaultIssue();
+        switch (field) {
+            case "key" -> when(changed.key()).thenReturn("other-key");
+            case "line" -> when(changed.getLine()).thenReturn(EXAMPLE_ISSUE_LINE + 1);
+            case "message" -> when(changed.getMessage()).thenReturn("other message");
+            case "resolution" -> when(changed.resolution()).thenReturn("FIXED");
+            case "status" -> when(changed.issueStatus()).thenReturn(IssueStatus.ACCEPTED);
+            default -> when(changed.impacts()).thenReturn(Map.of(SoftwareQuality.SECURITY, Severity.LOW));
+        }
+
+        assertThat(original).isNotEqualTo(new PostAnalysisIssueVisitor.LightIssue(changed));
     }
 
     @Test

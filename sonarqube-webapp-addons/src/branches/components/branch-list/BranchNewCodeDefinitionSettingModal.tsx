@@ -29,7 +29,6 @@ import {
   NewCodeDefinitionLevels,
   validateSetting,
 } from '~sq-server-commons/components/new-code-definition/utils';
-import { toISO8601WithOffsetString } from '~sq-server-commons/helpers/dates';
 import { translate, translateWithParameters } from '~sq-server-commons/helpers/l10n';
 import { getNumberOfDaysDefaultValue } from '~sq-server-commons/helpers/new-code-definition';
 import { Branch, BranchWithNewCodePeriod } from '~sq-server-commons/types/branch-like';
@@ -49,7 +48,6 @@ interface Props {
 
 interface State {
   analysis: string;
-  analysisDate?: Date;
   days: string;
   isChanged: boolean;
   referenceBranch: string;
@@ -101,20 +99,12 @@ export default class BranchNewCodeDefinitionSettingModal extends React.PureCompo
       : null;
   }
 
-  branchToOption = (b: Branch) => ({
-    label: b.name,
-    value: b.name,
-    isMain: b.isMain,
-    isDisabled: b.name === this.props.branch.name, // cannot itself be used as a reference branch
-  });
-
   handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const { branch, component } = this.props;
     const {
       analysis,
-      analysisDate,
       days,
       referenceBranch,
       selectedNewCodeDefinitionType: type,
@@ -139,11 +129,7 @@ export default class BranchNewCodeDefinitionSettingModal extends React.PureCompo
             toast.success({
               description: <FormattedMessage id="project_baseline.update_success" />,
             });
-            this.props.onClose(branch.name, {
-              type,
-              value,
-              effectiveValue: analysisDate && toISO8601WithOffsetString(analysisDate),
-            });
+            this.props.onClose(branch.name, { type, value });
           }
         },
         () => {

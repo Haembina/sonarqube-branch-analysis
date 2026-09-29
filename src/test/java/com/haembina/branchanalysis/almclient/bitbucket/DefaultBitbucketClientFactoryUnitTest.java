@@ -19,12 +19,16 @@
  */
 package com.haembina.branchanalysis.almclient.bitbucket;
 
+import com.haembina.branchanalysis.InvalidConfigurationException;
+
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.sonar.api.config.internal.Encryption;
@@ -36,6 +40,7 @@ import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -115,5 +120,33 @@ class DefaultBitbucketClientFactoryUnitTest {
         assertThat(client).isInstanceOf(BitbucketServerClient.class);
     }
 
+    @ParameterizedTest(name = "{0}")
+    @CsvSource(delimiter = '|', value = {
+            "ALM Repo must be set in configuration|PROJECT|BITBUCKET|| slug|url|token|app|client|secret",
+            "App ID must be set in configuration|GLOBAL|BITBUCKET_CLOUD|repo|slug|url|token| |client|secret",
+            "Client ID must be set in configuration|GLOBAL|BITBUCKET_CLOUD|repo|slug|url|token|app||secret",
+            "Client Secret must be set in configuration|GLOBAL|BITBUCKET_CLOUD|repo|slug|url|token|app|client|",
+            "ALM slug must be set in configuration|PROJECT|BITBUCKET|repo||url|token|app|client|secret",
+            "URL must be set in configuration|GLOBAL|BITBUCKET|repo|slug| |token|app|client|secret",
+            "Personal access token must be set in configuration|PROJECT|BITBUCKET|repo|slug|url||app|client|secret"})
+    void shouldRefuseIncompleteConfiguration(String message, InvalidConfigurationException.Scope scope, ALM alm, String repo, String slug,
+                                             String url, String token, String appId, String clientId, String clientSecret) {
+        AlmSettingDto almSettingDto = mock();
+        when(almSettingDto.getAlm()).thenReturn(alm);
+        when(almSettingDto.getUrl()).thenReturn(url);
+        when(almSettingDto.getDecryptedPersonalAccessToken(any())).thenReturn(token);
+        when(almSettingDto.getAppId()).thenReturn(appId);
+        when(almSettingDto.getClientId()).thenReturn(clientId);
+        when(almSettingDto.getDecryptedClientSecret(any())).thenReturn(clientSecret);
+        ProjectAlmSettingDto projectAlmSettingDto = new ProjectAlmSettingDto().setAlmRepo(repo).setAlmSlug(slug);
+        HttpClientBuilderFactory httpClientBuilderFactory = mock();
+        when(httpClientBuilderFactory.createClientBuilder()).then(i -> mock(OkHttpClient.Builder.class, Mockito.RETURNS_DEEP_STUBS));
+        DefaultBitbucketClientFactory underTest = new DefaultBitbucketClientFactory(mock(Settings.class), httpClientBuilderFactory);
+
+        assertThatThrownBy(() -> underTest.createClient(projectAlmSettingDto, almSettingDto))
+                .isExactlyInstanceOf(InvalidConfigurationException.class)
+                .hasMessage(message)
+                .extracting("scope").isEqualTo(scope);
+    }
 
 }

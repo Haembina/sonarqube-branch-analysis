@@ -166,17 +166,19 @@ tasks.register('sonarLibraries', Sync) {
     into(layout.buildDirectory.dir('sonar-libraries'))
 }
 
-// The Java floor conventions.json declares; `check` fails under it
+// The Java floor conventions.json declares; `check` fails under it. Every line is covered. The branches left are
+// javac's null check on a try-with-resources resource that a factory, openSession or OkHttp never returns null,
+// and the enum arm after the last of CommunityBranchAgent's two components.
 jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
                 counter = 'LINE'
-                minimum = 0.93
+                minimum = 1.00
             }
             limit {
                 counter = 'BRANCH'
-                minimum = 0.87
+                minimum = 0.99
             }
         }
     }

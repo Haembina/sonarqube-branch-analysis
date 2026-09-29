@@ -39,6 +39,7 @@ import com.haembina.branchanalysis.ce.pullrequest.markup.Image;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Link;
 import com.haembina.branchanalysis.ce.pullrequest.markup.List;
 import com.haembina.branchanalysis.ce.pullrequest.markup.ListItem;
+import com.haembina.branchanalysis.ce.pullrequest.markup.MarkdownFormatterFactory;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Paragraph;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Text;
 
@@ -218,6 +219,29 @@ class AnalysisSummaryTest {
 
         assertThat(documentArgumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDocument);
 
+    }
+
+    @Test
+    void shouldNameASingleIssueOrHotspotInTheSingular() {
+        AnalysisSummary underTest = AnalysisSummary.builder()
+            .withProjectKey("projectKey")
+            .withCoverage(new AnalysisSummary.UrlIconMetric<>("codeCoverageUrl", "codeCoverageImageUrl", null))
+            .withDashboardUrl("dashboardUrl")
+            .withDuplications(new AnalysisSummary.UrlIconMetric<>("duplicationsUrl", "duplicationsImageUrl", null))
+            .withFailedQualityGateConditions(java.util.List.of())
+            .withSecurityHotspots(new AnalysisSummary.UrlIconMetric<>("securityHotspotsUrl", "securityHotspotsImageUrl", 1))
+            .withStatusDescription("Passed")
+            .withStatusImageUrl("statusImageUrl")
+            .withAcceptedIssues(new AnalysisSummary.UrlIconMetric<>("acceptedIssuesUrl", "acceptedIssuesImageUrl", 1))
+            .withFixedIssues(new AnalysisSummary.UrlIconMetric<>("fixedIssuesUrl", "fixedIssuesImageUrl", 1))
+            .withNewIssues(new AnalysisSummary.UrlIconMetric<>("newIssuesUrl", "newIssuesImageUrl", 1L))
+            .build();
+
+        String markdown = underTest.format(new MarkdownFormatterFactory());
+
+        assertThat(markdown)
+            .contains("1 New Issue]", "1 Fixed Issue]", "1 Accepted Issue]", "1 Security Hotspot]")
+            .contains("No data about coverage", "No data about duplications");
     }
 
 }

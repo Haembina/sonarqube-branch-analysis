@@ -32,4 +32,16 @@ class BitbucketExceptionTest {
         BitbucketException testCase = new BitbucketException(401, new ErrorResponse(null));
         assertThat(testCase.getMessage()).isEqualTo("Bitbucket responded with an error status (401)");
     }
+
+    @Test
+    void shouldMatchOnlyItsOwnStatusCode() {
+        BitbucketException server = new BitbucketException(BitbucketException.PAYLOAD_TOO_LARGE, null);
+        BitbucketCloudException cloud = new BitbucketCloudException(BitbucketException.PAYLOAD_TOO_LARGE, "too large");
+
+        assertThat(server.isError(BitbucketException.PAYLOAD_TOO_LARGE)).isTrue();
+        assertThat(server.isError(400)).isFalse();
+        assertThat(cloud.isError(BitbucketException.PAYLOAD_TOO_LARGE)).isTrue();
+        assertThat(cloud.isError(400)).isFalse();
+        assertThat(cloud.getMessage()).isEqualTo("HTTP Status Code: 413; Message:too large");
+    }
 }

@@ -86,7 +86,7 @@ public final class CommunityBranchAgent {
                     byteCode = cc.toBytecode();
                     cc.detach();
                 } catch (NotFoundException | CannotCompileException | IOException e) {
-                    LOGGER.error("Could not transform class {}}, will use default class definition", targetClassName, e);
+                    LOGGER.error("Could not transform class {}, will use default class definition", targetClassName, e);
                 }
 
                 return byteCode;

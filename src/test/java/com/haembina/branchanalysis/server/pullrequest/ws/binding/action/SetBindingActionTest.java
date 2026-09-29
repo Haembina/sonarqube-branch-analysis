@@ -19,10 +19,12 @@
 package com.haembina.branchanalysis.server.pullrequest.ws.binding.action;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +44,7 @@ import org.sonar.db.alm.setting.ProjectAlmSettingDao;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 import org.sonar.db.project.ProjectDto;
 import org.sonar.server.component.ComponentFinder;
+import org.sonar.server.exceptions.NotFoundException;
 import org.sonar.server.user.UserSession;
 
 class SetBindingActionTest {
@@ -127,5 +130,34 @@ class SetBindingActionTest {
         verify(projectAlmSettingDao).insertOrUpdate(eq(dbSession), eq(projectAlmSettingDto), any(), any(), any());
         verify(dbSession).commit();
         verify(response).noContent();
+    }
+
+    @Test
+    void shouldRefuseBindingToUnknownAlmSetting() {
+        DbClient dbClient = mock();
+        DbSession dbSession = mock();
+        when(dbClient.openSession(false)).thenReturn(dbSession);
+        AlmSettingDao almSettingDao = mock();
+        when(almSettingDao.selectByKey(dbSession, "missing")).thenReturn(Optional.empty());
+        when(dbClient.almSettingDao()).thenReturn(almSettingDao);
+        ComponentFinder componentFinder = mock();
+        ProjectDto project = mock();
+        when(componentFinder.getProjectByKey(dbSession, "project")).thenReturn(project);
+        SetBindingAction testCase = new SetBindingAction(dbClient, componentFinder, mock(), "dummy") {
+
+            @Override
+            protected ProjectAlmSettingDto createProjectAlmSettingDto(String projectUuid, String settingsUuid, boolean monoRepo, Request request) {
+                throw new AssertionError("no binding is created for an unknown ALM setting");
+            }
+        };
+        Request request = mock();
+        when(request.mandatoryParam("almSetting")).thenReturn("missing");
+        when(request.mandatoryParam("project")).thenReturn("project");
+        Response response = mock();
+
+        assertThatThrownBy(() -> testCase.handle(request, response))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("ALM setting 'missing' could not be found");
+        verify(dbSession, never()).commit();
     }
 }

@@ -495,6 +495,46 @@ class PullRequestPostAnalysisTaskTest {
     }
 
     @Test
+    void testFinishedNoAlmBoundToProject() {
+        doReturn(Branch.Type.PULL_REQUEST).when(branch).getType();
+        doReturn(Optional.of("branchName")).when(branch).getName();
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
+        ProjectAlmSettingDao projectAlmSettingDao = mock();
+        when(projectAlmSettingDao.selectByProject(dbSession, "uuid")).thenReturn(Optional.empty());
+        when(dbClient.projectAlmSettingDao()).thenReturn(projectAlmSettingDao);
+
+        testCase.finished(context);
+
+        verify(dbClient, never()).almSettingDao();
+        verify(dbSession).close();
+        verify(projectAnalysis, never()).getAnalysis();
+    }
+
+    @Test
+    void testFinishedBoundAlmNoLongerExists() {
+        doReturn(Branch.Type.PULL_REQUEST).when(branch).getType();
+        doReturn(Optional.of("branchName")).when(branch).getName();
+        ProjectAlmSettingDto projectAlmSettingDto = mock();
+        when(projectAlmSettingDto.getAlmSettingUuid()).thenReturn("deleted-alm");
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
+        ProjectAlmSettingDao projectAlmSettingDao = mock();
+        when(projectAlmSettingDao.selectByProject(dbSession, "uuid")).thenReturn(Optional.of(projectAlmSettingDto));
+        when(dbClient.projectAlmSettingDao()).thenReturn(projectAlmSettingDao);
+        AlmSettingDao almSettingDao = mock();
+        when(almSettingDao.selectByUuid(dbSession, "deleted-alm")).thenReturn(Optional.empty());
+        when(dbClient.almSettingDao()).thenReturn(almSettingDao);
+        PullRequestBuildStatusDecorator decorator = mock();
+        pullRequestBuildStatusDecorators.add(decorator);
+
+        testCase.finished(context);
+
+        verify(decorator, never()).alm();
+        verify(projectAnalysis, never()).getAnalysis();
+    }
+
+    @Test
     void testCorrectDescriptionReturnedForTask() {
         assertThat(testCase.getDescription()).isEqualTo("Pull Request Decoration");
     }
