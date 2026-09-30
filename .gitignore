@@ -1,0 +1,32 @@
+#Mac
+.DS_Store
+
+#Gradle
+/.gradle/
+/build/
+.gradletasknamecache
+
+#Intellij
+/out/
+/.idea/
+*.iml
+
+# Eclipse
+/.classpath
+/.project
+/.settings/
+/bin/
+
+#Project libs
+/sonarqube-lib/
+
+#VSCode
+.project
+.history
+
+#Node
+/node_modules/
+/coverage/
+
+#SonarQube scanner
+/.scannerwork/

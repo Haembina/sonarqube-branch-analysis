@@ -1,0 +1,251 @@
+/*
+ * Copyright (C) 2020-2026 Marvin Wichmann, Michael Clarke
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package com.haembina.branchanalysis.almclient.bitbucket;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
+import com.haembina.branchanalysis.almclient.bitbucket.model.BitbucketConfiguration;
+import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
+import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
+import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsReport;
+import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
+import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
+import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
+import com.haembina.branchanalysis.almclient.bitbucket.model.Repository;
+import com.haembina.branchanalysis.almclient.bitbucket.model.cloud.CloudAnnotation;
+import com.haembina.branchanalysis.almclient.bitbucket.model.cloud.CloudCreateReportRequest;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+
+class BitbucketCloudClient implements BitbucketClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BitbucketCloudClient.class);
+    private static final MediaType APPLICATION_JSON_MEDIA_TYPE = MediaType.get("application/json");
+    private static final String TITLE = "SonarQube";
+    private static final String REPORTER = "SonarQube";
+    private static final String LINK_TEXT = "Go to SonarQube";
+
+    private final ObjectMapper objectMapper;
+    private final OkHttpClient okHttpClient;
+    private final BitbucketConfiguration bitbucketConfiguration;
+
+
+    BitbucketCloudClient(ObjectMapper objectMapper, OkHttpClient okHttpClient, BitbucketConfiguration bitbucketConfiguration) {
+        this.objectMapper = objectMapper;
+        this.okHttpClient = okHttpClient;
+        this.bitbucketConfiguration = bitbucketConfiguration;
+    }
+
+    static String negotiateBearerToken(String clientId, String clientSecret, ObjectMapper objectMapper, OkHttpClient okHttpClient) {
+        Request request = new Request.Builder()
+                .header("Authorization", "Basic " + Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes(StandardCharsets.UTF_8)))
+                .url("https://bitbucket.org/site/oauth2/access_token")
+                .post(RequestBody.create("grant_type=client_credentials", MediaType.parse("application/x-www-form-urlencoded")))
+                .build();
+
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            BitbucketCloudClient.AuthToken authToken = objectMapper.readValue(response.body().string(), BitbucketCloudClient.AuthToken.class);
+            return authToken.getAccessToken();
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not retrieve bearer token", ex);
+        }
+    }
+
+    @Override
+    public CodeInsightsAnnotation createCodeInsightsAnnotation(String issueKey, int line, String issueUrl, String message,
+                                                               String path, String severity, String type) {
+        return new CloudAnnotation(issueKey,
+                line,
+                issueUrl,
+                message,
+                path,
+                severity,
+                type);
+    }
+
+    @Override
+    public CodeInsightsReport createCodeInsightsReport(List<ReportData> reportData, String reportDescription,
+                                                       Instant creationDate, String dashboardUrl, String logoUrl,
+                                                       ReportStatus status) {
+        return new CloudCreateReportRequest(
+                reportData,
+                reportDescription,
+                TITLE,
+                REPORTER,
+                creationDate,
+                dashboardUrl, // you need to change this to a real https URL for local debugging since localhost will get declined by the API
+                logoUrl,
+                "COVERAGE",
+                ReportStatus.FAILED == status ? "FAILED" : "PASSED"
+        );
+    }
+
+    @Override
+    public void deleteAnnotations(String commitSha, String reportKey) {
+        // not needed here.
+    }
+
+    @Override
+    public void uploadAnnotations(String commit, Set<CodeInsightsAnnotation> baseAnnotations, String reportKey) throws IOException {
+        Set<CloudAnnotation> annotations = baseAnnotations.stream().map(CloudAnnotation.class::cast).collect(Collectors.toSet());
+
+        if (annotations.isEmpty()) {
+            return;
+        }
+
+        Request req = new Request.Builder()
+                .post(RequestBody.create(objectMapper.writeValueAsString(annotations), APPLICATION_JSON_MEDIA_TYPE))
+                .url(format("https://api.bitbucket.org/2.0/repositories/%s/%s/commit/%s/reports/%s/annotations", bitbucketConfiguration.getProject(), bitbucketConfiguration.getRepository(), commit, reportKey))
+                .build();
+
+        LOGGER.info("Creating annotations on bitbucket cloud");
+        LOGGER.atDebug().setMessage("Create annotations: {}").addArgument(() -> {
+            try {
+                return objectMapper.writeValueAsString(annotations);
+            } catch (JsonProcessingException e) {
+                return "An error occurred whilst converting annotations to JSON: " + e.getClass().getName() + ": " + e.getMessage();
+            }
+        }).log();
+
+
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            validate(response);
+        }
+    }
+
+    @Override
+    public DataValue createLinkDataValue(String dashboardUrl) {
+        return new DataValue.CloudLink(LINK_TEXT, dashboardUrl);
+    }
+
+    @Override
+    public void uploadReport(String commit, CodeInsightsReport codeInsightReport, String reportKey) throws IOException {
+        deleteExistingReport(commit, reportKey);
+
+        String targetUrl = format("https://api.bitbucket.org/2.0/repositories/%s/%s/commit/%s/reports/%s", bitbucketConfiguration.getProject(), bitbucketConfiguration.getRepository(), commit, reportKey);
+        String body = objectMapper.writeValueAsString(codeInsightReport);
+        Request req = new Request.Builder()
+                .put(RequestBody.create(body, APPLICATION_JSON_MEDIA_TYPE))
+                .url(targetUrl)
+                .build();
+
+        LOGGER.info("Create report on bitbucket cloud: {}", targetUrl);
+        LOGGER.debug("Create report: {}", body);
+
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            validate(response);
+        }
+    }
+
+    @Override
+    public boolean supportsCodeInsights() {
+        return true;
+    }
+
+    @Override
+    public AnnotationUploadLimit getAnnotationUploadLimit() {
+        return new AnnotationUploadLimit(100, 1000);
+    }
+
+    @Override
+    public Repository retrieveRepository() throws IOException {
+        Request req = new Request.Builder()
+                .get()
+                .url(format("https://api.bitbucket.org/2.0/repositories/%s/%s", bitbucketConfiguration.getProject(), bitbucketConfiguration.getRepository()))
+                .build();
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            validate(response);
+
+            return objectMapper.reader().forType(Repository.class)
+                    .readValue(response.body().string());
+        }
+    }
+
+    @Override
+    public void submitBuildStatus(String commitSha, BuildStatus buildStatus) throws IOException {
+        Request req = new Request.Builder()
+                .post(RequestBody.create(objectMapper.writeValueAsString(buildStatus), APPLICATION_JSON_MEDIA_TYPE))
+                .url(format("https://api.bitbucket.org/2.0/repositories/%s/%s/commit/%s/statuses/build", bitbucketConfiguration.getProject(), bitbucketConfiguration.getRepository(), commitSha))
+                .build();
+
+        LOGGER.info("Submitting build status to bitbucket cloud");
+
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            validate(response);
+        }
+    }
+
+    @Override
+    public String normaliseReportKey(String reportKey) {
+        return reportKey;
+    }
+
+    void deleteExistingReport(String commit, String reportKey) throws IOException {
+        Request req = new Request.Builder()
+                .delete()
+                .url(format("https://api.bitbucket.org/2.0/repositories/%s/%s/commit/%s/reports/%s", bitbucketConfiguration.getProject(), bitbucketConfiguration.getRepository(), commit, reportKey))
+                .build();
+
+        LOGGER.info("Deleting existing reports on bitbucket cloud");
+
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            LOGGER.debug("Got status code {} when deleting existing report with key {}", response.code(), reportKey);
+            // we don't need to validate the output here since most of the time this call will just return a 404
+        }
+    }
+
+    void validate(Response response) throws IOException {
+        if (!response.isSuccessful()) {
+            throw new BitbucketCloudException(response.code(), response.body().string());
+        }
+    }
+
+    private static class AuthToken {
+
+        private final String accessToken;
+
+        @JsonCreator
+        AuthToken(@JsonProperty("access_token") String accessToken) {
+            this.accessToken = accessToken;
+        }
+
+        String getAccessToken() {
+            return accessToken;
+        }
+    }
+}

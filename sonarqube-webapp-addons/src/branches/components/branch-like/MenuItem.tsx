@@ -1,0 +1,82 @@
+/*
+ * SonarQube
+ * Copyright (C) 2009-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+import classNames from 'classnames';
+import * as React from 'react';
+import { Text } from '@sonarsource/echoes-react';
+import { Badge, ItemButton } from '~design-system';
+import BranchLikeIcon from '~sq-server-commons/components/icon-mappers/BranchLikeIcon';
+import QualityGateStatus from '~sq-server-commons/components/nav/QualityGateStatus';
+import { getBranchLikeDisplayName } from '~sq-server-commons/helpers/branch-like';
+import { translate } from '~sq-server-commons/helpers/l10n';
+import { isMainBranch } from '~shared/helpers/branch-like';
+import { BranchLike } from '~sq-server-commons/types/branch-like';
+
+/**
+ * Props for {@link MenuItem}. `indent` nests a pull request under its branch;
+ * `setSelectedNode` receives the element only while the item is selected.
+ */
+export interface MenuItemProps {
+  branchLike: BranchLike;
+  indent: boolean;
+  onSelect: (branchLike: BranchLike) => void;
+  selected: boolean;
+  setSelectedNode?: (node: HTMLLIElement) => void;
+}
+
+/** One entry of the branch switcher: icon, name, a main-branch badge and quality gate status. */
+export function MenuItem(props: MenuItemProps) {
+  const { branchLike, setSelectedNode, onSelect, selected, indent } = props;
+  const displayName = getBranchLikeDisplayName(branchLike);
+
+  return (
+    <ItemButton
+      className={classNames({ 'branch-like-active': selected, 'sw-pl-6': indent })}
+      innerRef={selected ? setSelectedNode : undefined}
+      onClick={() => {
+        onSelect(branchLike);
+      }}
+    >
+      <div className="sw-flex sw-items-center sw-justify-between sw-truncate sw-flex-1">
+        <div className="sw-flex sw-items-center">
+          <BranchLikeIcon branchLike={branchLike} />
+
+          {isMainBranch(branchLike) && (
+            <>
+              <Text className="sw-truncate sw-ml-4 sw-mr-2" isHighlighted>{displayName}</Text>
+              <Badge variant="default">{translate('branches.main_branch')}</Badge>
+            </>
+          )}
+          {!isMainBranch(branchLike) && (
+            <Text className="sw-ml-3 sw-mr-2" isSubtle>{displayName}</Text>
+          )}
+        </div>
+        <QualityGateStatus
+          branchLike={branchLike}
+          className="sw-flex sw-items-center sw-w-[96px]"
+          showStatusText
+        />
+      </div>
+    </ItemButton>
+  );
+}
+
+export default React.memo(MenuItem);

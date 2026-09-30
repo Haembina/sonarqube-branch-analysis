@@ -1,0 +1,62 @@
+/*
+ * Copyright (C) 2020-2025 Michael Clarke
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package com.haembina.branchanalysis.server.pullrequest.ws.binding.action;
+
+import java.util.Objects;
+
+import org.sonar.api.server.ws.Request;
+import org.sonar.api.server.ws.WebService;
+import org.sonar.db.DbClient;
+import org.sonar.db.alm.setting.ProjectAlmSettingDto;
+import org.sonar.server.component.ComponentFinder;
+import org.sonar.server.user.UserSession;
+
+public class SetAzureBindingAction extends SetBindingAction {
+
+    private static final String PROJECT_NAME_PARAMETER = "projectName";
+    private static final String REPOSITORY_NAME_PARAMETER = "repositoryName";
+    private static final String INLINE_ANNOTATIONS_ENABLED_PARAMETER = "inlineAnnotationsEnabled";
+
+    public SetAzureBindingAction(DbClient dbClient, ComponentFinder componentFinder, UserSession userSession) {
+        super(dbClient, componentFinder, userSession, "set_azure_binding");
+    }
+
+
+    @Override
+    protected void configureAction(WebService.NewAction action) {
+        super.configureAction(action);
+        action.createParam(REPOSITORY_NAME_PARAMETER).setRequired(true).setMaximumLength(256);
+        action.createParam(PROJECT_NAME_PARAMETER).setRequired(true).setMaximumLength(256);
+        action.createParam(INLINE_ANNOTATIONS_ENABLED_PARAMETER).setBooleanPossibleValues().setDefaultValue(true);
+    }
+
+    @Override
+    protected ProjectAlmSettingDto createProjectAlmSettingDto(String projectUuid, String settingsUuid,
+                                                              boolean monoRepo, Request request) {
+        return new ProjectAlmSettingDto()
+                .setProjectUuid(projectUuid)
+                .setAlmSettingUuid(settingsUuid)
+                .setAlmRepo(request.mandatoryParam(REPOSITORY_NAME_PARAMETER))
+                .setAlmSlug(request.mandatoryParam(PROJECT_NAME_PARAMETER))
+                .setMonorepo(monoRepo)
+                .setInlineAnnotationsEnabled(Objects.requireNonNullElse(request.paramAsBoolean(INLINE_ANNOTATIONS_ENABLED_PARAMETER), true));
+    }
+
+}

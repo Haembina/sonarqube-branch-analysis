@@ -1,0 +1,61 @@
+/*
+ * Copyright (C) 2019-2024 Michael Clarke
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package com.haembina.branchanalysis.ce;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
+import com.haembina.branchanalysis.almclient.azuredevops.DefaultAzureDevopsClientFactory;
+import com.haembina.branchanalysis.almclient.bitbucket.DefaultBitbucketClientFactory;
+import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
+import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
+import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
+import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
+import com.haembina.branchanalysis.ce.pullrequest.PullRequestFixedIssuesIssueVisitor;
+import com.haembina.branchanalysis.ce.pullrequest.PullRequestPostAnalysisTask;
+import com.haembina.branchanalysis.ce.pullrequest.azuredevops.AzureDevOpsPullRequestDecorator;
+import com.haembina.branchanalysis.ce.pullrequest.bitbucket.BitbucketPullRequestDecorator;
+import com.haembina.branchanalysis.ce.pullrequest.github.GithubPullRequestDecorator;
+import com.haembina.branchanalysis.ce.pullrequest.gitlab.GitlabMergeRequestDecorator;
+import com.haembina.branchanalysis.ce.pullrequest.markup.MarkdownFormatterFactory;
+import com.haembina.branchanalysis.ce.pullrequest.report.ReportGenerator;
+
+/**
+ * @author Michael Clarke
+ */
+class CommunityReportAnalysisComponentProviderTest {
+
+    @Test
+    void shouldReturnAllRegisteredReportComponents() {
+        List<Object> result = new CommunityReportAnalysisComponentProvider().getComponents();
+        assertThat(result).containsExactly(CommunityBranchLoaderDelegate.class, PullRequestPostAnalysisTask.class,
+            PostAnalysisIssueVisitor.class, DefaultLinkHeaderReader.class, ReportGenerator.class,
+            MarkdownFormatterFactory.class,
+            GithubClientFactory.class, GithubPullRequestDecorator.class,
+            HttpClientBuilderFactory.class, DefaultBitbucketClientFactory.class, BitbucketPullRequestDecorator.class,
+            DefaultGitlabClientFactory.class, GitlabMergeRequestDecorator.class,
+            DefaultAzureDevopsClientFactory.class, AzureDevOpsPullRequestDecorator.class,
+            PullRequestFixedIssuesIssueVisitor.class);
+    }
+}

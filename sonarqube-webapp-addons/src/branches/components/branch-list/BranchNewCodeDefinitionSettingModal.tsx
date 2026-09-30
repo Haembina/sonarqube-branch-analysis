@@ -1,0 +1,227 @@
+/*
+ * SonarQube
+ * Copyright (C) 2009-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+import { Button, ButtonVariety, Label, Modal, Spinner, toast } from '@sonarsource/echoes-react';
+import * as React from 'react';
+import { FormattedMessage } from 'react-intl';
+import { setNewCodeDefinition } from '~sq-server-commons/api/newCodeDefinition';
+import NewCodeDefinitionSpecificGroup from '~sq-server-commons/components/new-code-definition/NewCodeDefinitionSpecificGroup';
+import {
+  getSettingValue,
+  NewCodeDefinitionLevels,
+  validateSetting,
+} from '~sq-server-commons/components/new-code-definition/utils';
+import { translate, translateWithParameters } from '~sq-server-commons/helpers/l10n';
+import { getNumberOfDaysDefaultValue } from '~sq-server-commons/helpers/new-code-definition';
+import { Branch, BranchWithNewCodePeriod } from '~sq-server-commons/types/branch-like';
+import {
+  NewCodeDefinition,
+  NewCodeDefinitionType,
+} from '~sq-server-commons/types/new-code-definition';
+
+interface Props {
+  branch: BranchWithNewCodePeriod;
+  branchList: Branch[];
+  component: string;
+  globalNewCodeDefinition: NewCodeDefinition;
+  inheritedSetting: NewCodeDefinition;
+  onClose: (branch?: string, newSetting?: NewCodeDefinition) => void;
+}
+
+interface State {
+  analysis: string;
+  days: string;
+  isChanged: boolean;
+  referenceBranch: string;
+  saving: boolean;
+  selectedNewCodeDefinitionType?: NewCodeDefinitionType;
+}
+
+const FORM_ID = 'branch-new-code-definition-setting-form';
+
+/**
+ * Dialog that sets one branch's new code definition via `setNewCodeDefinition`, where the
+ * branch cannot be its own reference. On success it toasts and calls `onClose` with the branch
+ * name and new setting; on failure it stays open. Cancel calls `onClose` with no arguments.
+ */
+export default class BranchNewCodeDefinitionSettingModal extends React.PureComponent<Props, State> {
+  mounted = false;
+
+  constructor(props: Props) {
+    super(props);
+
+    const { branch, branchList, inheritedSetting, globalNewCodeDefinition } = props;
+    const otherBranches = branchList.filter((b) => b.name !== branch.name);
+    const defaultBranch = otherBranches.length > 0 ? otherBranches[0].name : '';
+
+    this.state = {
+      analysis: this.getValueFromProps(NewCodeDefinitionType.SpecificAnalysis) || '',
+      days:
+        this.getValueFromProps(NewCodeDefinitionType.NumberOfDays) ||
+        getNumberOfDaysDefaultValue(globalNewCodeDefinition, inheritedSetting),
+      isChanged: false,
+      referenceBranch:
+        this.getValueFromProps(NewCodeDefinitionType.ReferenceBranch) || defaultBranch,
+      saving: false,
+      selectedNewCodeDefinitionType: branch.newCodePeriod?.type,
+    };
+  }
+
+  componentDidMount() {
+    this.mounted = true;
+  }
+
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
+  getValueFromProps(type: NewCodeDefinitionType) {
+    return this.props.branch.newCodePeriod && this.props.branch.newCodePeriod.type === type
+      ? this.props.branch.newCodePeriod.value
+      : null;
+  }
+
+  handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const { branch, component } = this.props;
+    const {
+      analysis,
+      days,
+      referenceBranch,
+      selectedNewCodeDefinitionType: type,
+    } = this.state;
+
+    const value = getSettingValue({ type, analysis, numberOfDays: days, referenceBranch });
+
+    if (type) {
+      this.setState({ saving: true });
+      setNewCodeDefinition({
+        project: component,
+        type,
+        value,
+        branch: branch.name,
+      }).then(
+        () => {
+          if (this.mounted) {
+            this.setState({
+              saving: false,
+              isChanged: false,
+            });
+            toast.success({
+              description: <FormattedMessage id="project_baseline.update_success" />,
+            });
+            this.props.onClose(branch.name, { type, value });
+          }
+        },
+        () => {
+          if (this.mounted) {
+            this.setState({
+              saving: false,
+            });
+          }
+        },
+      );
+    }
+  };
+
+  requestClose = () => this.props.onClose();
+
+  handleSelectDays = (days: string) => this.setState({ days, isChanged: true });
+
+  handleSelectReferenceBranch = (referenceBranch: string) =>
+    this.setState({ referenceBranch, isChanged: true });
+
+  handleSelectSetting = (selectedNewCodeDefinitionType: NewCodeDefinitionType) => {
+    this.setState((currentState) => ({
+      selectedNewCodeDefinitionType,
+      isChanged: selectedNewCodeDefinitionType !== currentState.selectedNewCodeDefinitionType,
+    }));
+  };
+
+  render() {
+    const { branch, branchList } = this.props;
+    const { analysis, days, isChanged, referenceBranch, saving, selectedNewCodeDefinitionType } =
+      this.state;
+
+    const header = translateWithParameters('baseline.new_code_period_for_branch_x', branch.name);
+
+    const isValid = validateSetting({
+      numberOfDays: days,
+      referenceBranch,
+      selectedNewCodeDefinitionType,
+    });
+
+    const formBody = (
+      <form id={FORM_ID} onSubmit={this.handleSubmit}>
+        <fieldset>
+          <legend className="sw-mb-2">
+            <Label id="new_code_def_label">{translate('baseline.new_code_period_for_branch_x.question')}</Label>
+          </legend>
+          <NewCodeDefinitionSpecificGroup
+            analysis={analysis}
+            ariaLabelledBy="new_code_def_label"
+            branch={branch.name}
+            branchList={branchList}
+            branchesEnabled
+            className="sw-mt-2"
+            isValid={isValid}
+            numberOfDaysInput={days}
+            onNumberOfDaysChange={this.handleSelectDays}
+            onReferenceBranchChange={this.handleSelectReferenceBranch}
+            onTypeChange={this.handleSelectSetting}
+            referenceBranchInput={referenceBranch}
+            settingsLevel={NewCodeDefinitionLevels.Branch}
+            typeValue={selectedNewCodeDefinitionType}
+            projectKey={this.props.component}
+          />
+        </fieldset>
+      </form>
+    );
+
+    return (
+      <Modal
+        title={header}
+        isOpen
+        onOpenChange={this.requestClose}
+        content={formBody}
+        primaryButton={
+          <>
+            <Spinner isLoading={saving} />
+            <Button
+              form={FORM_ID}
+              isDisabled={!isChanged || saving || !isValid}
+              type="submit"
+              variety={ButtonVariety.Primary}
+            >
+              <FormattedMessage id="save" />
+            </Button>
+          </>
+        }
+        secondaryButton={
+          <Button isDisabled={saving} onClick={this.requestClose} variety={ButtonVariety.Default}>
+            <FormattedMessage id="cancel" />
+          </Button>
+        }
+      />
+    );
+  }
+}

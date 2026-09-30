@@ -1,0 +1,31 @@
+{
+  "name": "haembina-branch-analysis",
+  "version": "27.0.1",
+  "private": true,
+  "type": "module",
+  "description": "The npm tooling around the Gradle build of Haembina Branch Analysis: linters and test runners.",
+  "scripts": {
+    "lint": "npm run lint:sh && npm run lint:es && npm run lint:gradle && npm run lint:java",
+    "lint:es": "eslint .",
+    "lint:java": "sh gradlew compileJava compileTestJava",
+    "lint:gradle": "npm-groovy-lint --noserver --failon warning --loglevel warning build.gradle settings.gradle",
+    "lint:sh": "shellcheck scripts/integration-test.sh scripts/test-ci.sh docker/branch-analysis-entrypoint.sh docker/test-branch-analysis-entrypoint.sh sonarqube-webapp-addons/setup.sh",
+    "lint:md": "markdownlint-cli2",
+    "test": "bash scripts/test-ci.sh",
+    "test:e2e": "playwright test",
+    "test:addons": "node sonarqube-webapp/node_modules/jest/bin/jest.js --config jest.config.cjs --ci",
+    "gate": "npm run lint && npm run lint:md"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^2.1.0",
+    "@playwright/test": "^1.63.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "markdownlint-cli2": "^0.23.3",
+    "npm-groovy-lint": "^18.0.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.0"
+  }
+}

@@ -1,0 +1,199 @@
+/*
+ * Copyright (C) 2020-2026 Michael Clarke
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+plugins {
+    id('java')
+    id('jacoco')
+    id('org.sonarqube') version('7.5.0.8588')
+    id('info.solidsoft.pitest') version('1.19.0')
+    id('com.gradleup.shadow') version('9.6.1')
+    id('net.ltgt.errorprone') version('5.1.1')
+}
+
+group = 'com.haembina.branchanalysis'
+
+repositories {
+    mavenCentral()
+    ivy {
+        url = 'https://binaries.sonarsource.com/'
+        patternLayout({a ->
+            artifact '/Distribution/[module]/[module]-[revision].[ext]'
+        })
+        metadataSources(sources -> {
+            sources.artifact()
+        })
+    }
+}
+
+def sonarqubeVersion = '26.9.0.129388'
+def sonarqubeLibDir = "${projectDir}/sonarqube-lib"
+def sonarLibraries = "${sonarqubeLibDir}/sonarqube-${sonarqubeVersion}/lib"
+def sonarServerLibraries = fileTree(dir: sonarLibraries, include: 'sonar-application-*.jar')
+def sonarOtherLibraries = fileTree(dir: sonarLibraries, include: '**/*.jar',
+        excludes: ['extensions/*.jar', 'sonar-application-*.jar'])
+
+java.sourceCompatibility = JavaVersion.VERSION_21
+java.targetCompatibility = JavaVersion.VERSION_21
+configurations {
+    zip
+    customTestRuntime
+}
+
+compileJava {
+    options.compilerArgs += '-proc:none'
+    options.encoding = 'UTF-8'
+}
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+
+dependencies {
+    customTestRuntime('org.wiremock:wiremock:3.13.2')
+    customTestRuntime('org.kohsuke:github-api-unbridged:1.330')
+    // The server jar goes first: the scanner engine bundles an older copy of the plugin API that would otherwise
+    // shadow it
+    compileOnly(sonarServerLibraries)
+    compileOnly(sonarOtherLibraries)
+    testImplementation(sonarServerLibraries)
+    testImplementation(sonarOtherLibraries)
+    testImplementation('org.mockito:mockito-core:5.24.0')
+    testImplementation('org.assertj:assertj-core:3.27.7')
+    testImplementation('org.wiremock:wiremock:3.13.2')
+    zip("sonarqube:sonarqube:${sonarqubeVersion}@zip")
+    runtimeOnly('com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.1')
+    compileOnly('com.google.code.findbugs:jsr305:3.0.2')
+    implementation('org.javassist:javassist:3.33.0-GA')
+    implementation('com.squareup.okhttp3:logging-interceptor:5.5.0')
+    testImplementation(platform('org.junit:junit-bom:6.1.3'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    errorprone('com.google.errorprone:error_prone_core:2.50.0')
+}
+
+sourceSets.test.runtimeClasspath = configurations.customTestRuntime + sourceSets.test.runtimeClasspath
+
+project.afterEvaluate {
+    if (file("${sonarLibraries}").exists()) {
+        return
+    }
+    project.getLogger().lifecycle('Extracting SonarQube libraries (this may take a while)...')
+    configurations.zip.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        copy {
+            from zipTree(artifact.getFile())
+            into sonarqubeLibDir
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Plugin-Description': 'Branch analysis and pull request decoration for SonarQube Community Build',
+          'SonarLint-Supported': false,
+          'Plugin-Homepage': 'https://github.com/Haembina/sonarqube-branch-analysis',
+          'Plugin-License': 'GNU LGPL 3',
+          'Plugin-Version': "${project.version}",
+          'Plugin-Organization': 'Haembina',
+          'Plugin-OrganizationUrl': 'https://haembina.com',
+          'Sonar-Version': "9.14.0.375",
+          'Plugin-IssueTrackerUrl': 'https://github.com/Haembina/sonarqube-branch-analysis/issues',
+          'Plugin-Key': 'haembinabranchanalysis',
+          'Plugin-Class': 'com.haembina.branchanalysis.CommunityBranchPluginBootstrap',
+          'Plugin-Name': 'Haembina Branch Analysis',
+          'Premain-Class': 'com.haembina.branchanalysis.CommunityBranchAgent',
+          'Can-Retransform-Classes': 'true'
+    }
+}
+
+tasks.jar.configure {
+    archiveClassifier = 'nodeps'
+    enabled = false
+}
+
+tasks.shadowJar.configure {
+    archiveClassifier = null
+}
+
+// javac and Error Prone are the Java linters: every lint category and every Error Prone finding fails the
+// build, except javac's classfile, whose only findings are annotations missing from the SonarQube jars on the
+// compile classpath
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:all,-classfile' << '-Werror'
+    options.deprecation = true
+}
+
+assemble.dependsOn('shadowJar')
+
+// Mutation testing, never run by the build: a score is read, not gated
+pitest {
+    pitestVersion = '1.30.0'
+    junit5PluginVersion = '1.2.3'
+    timestampedReports = false
+    avoidCallsTo = ['org.slf4j.Logger']
+    outputFormats = ['HTML', 'XML']
+    threads = Runtime.runtime.availableProcessors()
+    // The agent tests append to the boot class path, which class data sharing cannot cover
+    jvmArgs = ['-Xshare:off']
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
+// The jars the Java analyzer resolves types against beside sonarqube-lib, which a SonarQube scan names:
+// the scanner reads files on disk and cannot ask Gradle for its classpath
+tasks.register('sonarLibraries', Sync) {
+    from(files(configurations.compileClasspath, configurations.testCompileClasspath).filter { jar ->
+        !jar.path.startsWith(file(sonarqubeLibDir).path)
+    })
+    into(layout.buildDirectory.dir('sonar-libraries'))
+}
+
+// The Java floor; `check` fails under it. Every line is covered. The branches left are
+// javac's null check on a try-with-resources resource that a factory, openSession or OkHttp never returns null,
+// and the enum arm after the last of CommunityBranchAgent's two components.
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 1.00
+            }
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.99
+            }
+        }
+    }
+}
+
+plugins.withType(JacocoPlugin) {
+    tasks["test"].finalizedBy 'jacocoTestReport'
+    tasks["check"].dependsOn 'jacocoTestCoverageVerification'
+}
+
+test {
+    useJUnitPlatform()
+    // The agent tests append to the boot class path, which class data sharing cannot cover
+    jvmArgs('-Xshare:off')
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

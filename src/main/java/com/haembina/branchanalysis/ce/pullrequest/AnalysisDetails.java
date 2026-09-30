@@ -1,0 +1,115 @@
+/*
+ * Copyright (C) 2020-2025 Michael Clarke
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package com.haembina.branchanalysis.ce.pullrequest;
+
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+import org.sonar.api.ce.posttask.Analysis;
+import org.sonar.api.ce.posttask.PostProjectAnalysisTask;
+import org.sonar.api.ce.posttask.Project;
+import org.sonar.api.ce.posttask.QualityGate;
+import org.sonar.api.issue.IssueStatus;
+import org.sonar.ce.task.projectanalysis.component.Component;
+
+public class AnalysisDetails {
+
+    private final String pullRequestId;
+    private final String commitId;
+    private final List<PostAnalysisIssueVisitor.ComponentIssue> issues;
+    private final QualityGate qualityGate;
+    private final PostProjectAnalysisTask.ProjectAnalysis projectAnalysis;
+
+    AnalysisDetails(String pullRequestId, String commitId, List<PostAnalysisIssueVisitor.ComponentIssue> issues,
+                    QualityGate qualityGate, PostProjectAnalysisTask.ProjectAnalysis projectAnalysis) {
+        super();
+        this.pullRequestId = pullRequestId;
+        this.commitId = commitId;
+        this.issues = issues;
+        this.qualityGate = qualityGate;
+        this.projectAnalysis = projectAnalysis;
+    }
+
+    public String getPullRequestId() {
+        return pullRequestId;
+    }
+
+    public String getCommitSha() {
+        return commitId;
+    }
+
+    public QualityGate.Status getQualityGateStatus() {
+        return qualityGate.getStatus();
+    }
+
+    public List<QualityGate.Condition> findFailedQualityGateConditions() {
+        return qualityGate.getConditions().stream()
+                .filter(c -> c.getStatus() == QualityGate.EvaluationStatus.ERROR)
+                .toList();
+    }
+
+    public Optional<String> getScannerProperty(String propertyName) {
+        return Optional.ofNullable(projectAnalysis.getScannerContext().getProperties().get(propertyName));
+    }
+
+    public Instant getAnalysisDate() {
+        return getAnalysis().getDate().toInstant();
+    }
+
+    public String getAnalysisId() {
+        return getAnalysis().getAnalysisUuid();
+    }
+
+    public String getAnalysisProjectKey() {
+        return getProject().getKey();
+    }
+
+    public String getAnalysisProjectName() {
+        return getProject().getName();
+    }
+
+    public List<PostAnalysisIssueVisitor.ComponentIssue> getIssues() {
+        return issues;
+    }
+
+    public List<PostAnalysisIssueVisitor.ComponentIssue> getScmReportableIssues() {
+        return getIssues().stream()
+                .filter(i -> i.getComponent().getReportAttributes().getScmPath().isPresent())
+                .filter(i -> i.getComponent().getType() == Component.Type.FILE)
+                .filter(i -> i.getIssue().resolution() == null)
+                .filter(i -> i.getIssue().issueStatus() == IssueStatus.OPEN)
+                .toList();
+    }
+
+    public Optional<QualityGate.Condition> findQualityGateCondition(String metricKey) {
+        return qualityGate.getConditions().stream().filter(c -> metricKey.equals(c.getMetricKey())).findFirst();
+    }
+
+    private Analysis getAnalysis() {
+        return projectAnalysis.getAnalysis().orElseThrow();
+    }
+
+    private Project getProject() {
+        return projectAnalysis.getProject();
+    }
+
+}

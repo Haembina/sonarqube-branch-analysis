@@ -1,0 +1,211 @@
+/*
+ * SonarQube
+ * Copyright (C) 2009-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+import { Spinner } from '@sonarsource/echoes-react';
+import * as React from 'react';
+import { ActionCell, ContentCell, Table, TableRow } from '~design-system';
+import {
+  listBranchesNewCodeDefinition,
+  resetNewCodeDefinition,
+} from '~sq-server-commons/api/newCodeDefinition';
+import BranchNCDAutoUpdateMessage from '~sq-server-commons/components/new-code-definition/BranchNCDAutoUpdateMessage';
+import {
+  PreviouslyNonCompliantBranchNCD,
+  isPreviouslyNonCompliantDaysNCD,
+} from '~sq-server-commons/components/new-code-definition/utils';
+import { translate } from '~sq-server-commons/helpers/l10n';
+import { DEFAULT_NEW_CODE_DEFINITION_TYPE } from '~sq-server-commons/helpers/new-code-definition';
+import { Branch, BranchWithNewCodePeriod } from '~sq-server-commons/types/branch-like';
+import { NewCodeDefinition } from '~sq-server-commons/types/new-code-definition';
+import { Component } from '~sq-server-commons/types/types';
+import BranchListRow from './BranchListRow';
+import BranchNewCodeDefinitionSettingModal from './BranchNewCodeDefinitionSettingModal';
+
+interface Props {
+  branchList: Branch[];
+  component: Component;
+  globalNewCodeDefinition: NewCodeDefinition;
+  inheritedSetting: NewCodeDefinition;
+}
+
+interface State {
+  branches: BranchWithNewCodePeriod[];
+  editedBranch?: BranchWithNewCodePeriod;
+  loading: boolean;
+  previouslyNonCompliantBranchNCDs?: PreviouslyNonCompliantBranchNCD[];
+}
+
+/**
+ * Table of a project's branches with each one's own new code definition, fetched with
+ * `listBranchesNewCodeDefinition` on mount and whenever `branchList` changes, plus the edit
+ * dialog and reset action. Renders nothing until branches load; a failed fetch leaves it empty.
+ */
+export default class BranchList extends React.PureComponent<Props, State> {
+  mounted = false;
+  state: State = {
+    branches: [],
+    loading: true,
+  };
+
+  componentDidMount() {
+    this.mounted = true;
+    this.fetchBranches();
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.branchList !== this.props.branchList) {
+      this.fetchBranches();
+    }
+  }
+
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
+  fetchBranches() {
+    const project = this.props.component.key;
+    this.setState({ loading: true });
+
+    listBranchesNewCodeDefinition({ project }).then(
+      (branchSettings) => {
+        const newCodePeriods = branchSettings.newCodePeriods
+          ? branchSettings.newCodePeriods.filter((ncp) => !ncp.inherited)
+          : [];
+
+        const branchesWithBaseline = this.props.branchList.map((b) => {
+          const newCodePeriod = newCodePeriods.find((ncp) => ncp.branchKey === b.name);
+          if (!newCodePeriod) {
+            return b;
+          }
+          const { type = DEFAULT_NEW_CODE_DEFINITION_TYPE, value, effectiveValue } = newCodePeriod;
+          return {
+            ...b,
+            newCodePeriod: { type, value, effectiveValue },
+          };
+        });
+
+        const previouslyNonCompliantBranchNCDs = newCodePeriods.filter(
+          isPreviouslyNonCompliantDaysNCD,
+        );
+
+        this.setState({
+          branches: branchesWithBaseline,
+          loading: false,
+          previouslyNonCompliantBranchNCDs,
+        });
+      },
+      () => {
+        this.setState({ loading: false });
+      },
+    );
+  }
+
+  updateBranchNewCodePeriod = (branch: string, newSetting: NewCodeDefinition | undefined) => {
+    const { branches } = this.state;
+
+    const updated = branches.find((b) => b.name === branch);
+    if (updated) {
+      updated.newCodePeriod = newSetting;
+    }
+    return branches.slice(0);
+  };
+
+  openEditModal = (branch: BranchWithNewCodePeriod) => {
+    this.setState({ editedBranch: branch });
+  };
+
+  closeEditModal = (branch?: string, newSetting?: NewCodeDefinition) => {
+    if (branch !== undefined) {
+      this.setState(({ previouslyNonCompliantBranchNCDs }) => ({
+        branches: this.updateBranchNewCodePeriod(branch, newSetting),
+        previouslyNonCompliantBranchNCDs: previouslyNonCompliantBranchNCDs?.filter(
+          ({ branchKey }) => branchKey !== branch,
+        ),
+        editedBranch: undefined,
+      }));
+    } else {
+      this.setState({ editedBranch: undefined });
+    }
+  };
+
+  resetToDefault = (branch: string) => {
+    return resetNewCodeDefinition({
+      project: this.props.component.key,
+      branch,
+    }).then(() => {
+      this.setState({ branches: this.updateBranchNewCodePeriod(branch, undefined) });
+    });
+  };
+
+  render() {
+    const { branchList, component, inheritedSetting, globalNewCodeDefinition } = this.props;
+    const { branches, editedBranch, loading, previouslyNonCompliantBranchNCDs } = this.state;
+
+    if (branches.length < 1) {
+      return null;
+    }
+
+    if (loading) {
+      return <Spinner isLoading />;
+    }
+
+    const header = (
+      <TableRow>
+        <ContentCell>{translate('branch_list.branch')}</ContentCell>
+        <ContentCell>{translate('branch_list.current_setting')}</ContentCell>
+        <ActionCell>{translate('branch_list.actions')}</ActionCell>
+      </TableRow>
+    );
+
+    return (
+      <div>
+        {previouslyNonCompliantBranchNCDs && (
+          <BranchNCDAutoUpdateMessage
+            component={component}
+            previouslyNonCompliantBranchNCDs={previouslyNonCompliantBranchNCDs}
+          />
+        )}
+        <Table columnCount={3} header={header}>
+          {branches.map((branch) => (
+            <BranchListRow
+              branch={branch}
+              existingBranches={branchList.map((b) => b.name)}
+              inheritedSetting={inheritedSetting}
+              key={branch.name}
+              onOpenEditModal={this.openEditModal}
+              onResetToDefault={this.resetToDefault}
+            />
+          ))}
+        </Table>
+        {editedBranch && (
+          <BranchNewCodeDefinitionSettingModal
+            branch={editedBranch}
+            branchList={branchList}
+            component={this.props.component.key}
+            onClose={this.closeEditModal}
+            inheritedSetting={inheritedSetting}
+            globalNewCodeDefinition={globalNewCodeDefinition}
+          />
+        )}
+      </div>
+    );
+  }
+}

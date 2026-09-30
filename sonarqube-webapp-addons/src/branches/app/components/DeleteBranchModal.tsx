@@ -1,0 +1,94 @@
+/*
+ * SonarQube
+ * Copyright (C) 2009-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ * Copyright (C) 2026 Haembina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+import { Button, ButtonVariety } from '@sonarsource/echoes-react';
+import * as React from 'react';
+import { FormattedMessage } from 'react-intl';
+import { Modal } from '~design-system';
+import { getBranchLikeDisplayName } from '~sq-server-commons/helpers/branch-like';
+import { useDeletBranchMutation } from '~sq-server-commons/queries/branch';
+import { isPullRequest } from '~shared/helpers/branch-like';
+import { BranchLike } from '~sq-server-commons/types/branch-like';
+import { Component } from '~sq-server-commons/types/types';
+
+interface Props {
+  branchLike: BranchLike;
+  component: Component;
+  onClose: () => void;
+}
+
+const FORM_ID = 'confirm-branch-delete-form';
+
+/**
+ * Confirmation dialog that deletes a branch or pull request via `useDeletBranchMutation`.
+ * Closes only on success; on failure it stays open with the button re-enabled.
+ */
+export default function DeleteBranchModal(props: Props) {
+  const { branchLike, component, onClose } = props;
+  const { mutate: deleteBranch, isPending } = useDeletBranchMutation();
+
+  const handleSubmit = React.useCallback(
+    (event: React.SyntheticEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      deleteBranch(
+        { component, branchLike },
+        {
+          onSuccess: onClose,
+        },
+      );
+    },
+    [deleteBranch, component, branchLike, onClose],
+  );
+
+  return (
+    <Modal
+      headerTitle={
+        <FormattedMessage
+          id={
+            isPullRequest(branchLike)
+              ? 'project_branch_pull_request.pull_request.delete'
+              : 'project_branch_pull_request.branch.delete'
+          }
+        />
+      }
+      body={
+        <form id={FORM_ID} onSubmit={handleSubmit}>
+          <FormattedMessage
+            id={
+              isPullRequest(branchLike)
+                ? 'project_branch_pull_request.pull_request.delete.are_you_sure'
+                : 'project_branch_pull_request.branch.delete.are_you_sure'
+            }
+            values={{ name: getBranchLikeDisplayName(branchLike) }}
+          />
+        </form>
+      }
+      loading={isPending}
+      primaryButton={
+        <Button type="submit" form={FORM_ID} variety={ButtonVariety.Danger}>
+          <FormattedMessage id="delete" />
+        </Button>
+      }
+      secondaryButtonLabel={<FormattedMessage id="cancel" />}
+      onClose={props.onClose}
+    />
+  );
+}
