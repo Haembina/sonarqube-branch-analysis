@@ -291,6 +291,9 @@ untested.
   support. `grep javaAdditionalOpts conf/sonar.properties` shows whether they are there.
 - With CI detection left on, a CI scan of a pull request lands on that pull request instead of main, and main stops
   moving.
+- `npm-groovy-lint` pins an `axios` that four GitHub advisories name, which npm's own audit does not list yet, so
+  `overrides` in `package.json` holds `axios` at a fixed release. Remove the override once `npm-groovy-lint` takes a
+  fixed `axios`; `npm ls axios` shows which one resolves.
 
 ## License
 
@@ -306,3 +309,4 @@ what.
 - [Webapp addons](sonarqube-webapp-addons/README.md): building the branch pages
 - [Changelog](CHANGELOG.md)
 - [License](LICENSE) and [Notice](NOTICE)
+- [Security policy](SECURITY.md): reporting a vulnerability
