@@ -10,5 +10,4 @@ A confirmed vulnerability is fixed in a release, and its advisory is published w
 
 ## Supported versions
 
-Only the newest release gets fixes. It is built and tested against the SonarQube Community Build named by
-`sonarqubeVersion` in `build.gradle`.
+Only the newest release gets fixes.
