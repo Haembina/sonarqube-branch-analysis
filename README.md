@@ -130,7 +130,9 @@ Pointed at a server by hand, the suite reads `SONARQUBE_URL`, `SONARQUBE_PROJECT
 rename, re-point and delete them. A failure leaves its report in `build/reports/e2e`.
 
 `npm test` checks the `sonarqube-webapp` submodule out for the addons' suite and removes it again afterwards, so a
-dependency audit reads this repository's lockfiles: the submodule's dependencies are SonarSource's to fix.
+dependency audit reads this repository's lockfiles: the submodule's dependencies are SonarSource's to fix. It builds
+with `NX_DAEMON=false`, because Nx's daemon outlives the build and holds the submodule open, and on Windows the
+removal then fails with `Could not remove submodule work tree`.
 
 ## Versioning
 

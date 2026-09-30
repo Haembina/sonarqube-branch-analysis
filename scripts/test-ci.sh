@@ -17,6 +17,10 @@ cd "${root}"
 
 sh gradlew test jacocoTestCoverageVerification sonarLibraries
 
+# Nx's background daemon outlives the build and holds .nx/workspace-data open inside the submodule, so the deinit
+# below cannot remove it on Windows. Without the daemon, nothing is left running.
+export NX_DAEMON=false
+
 git submodule update --init --depth 1 sonarqube-webapp
 ./sonarqube-webapp-addons/setup.sh
 (cd sonarqube-webapp && corepack enable && yarn install --no-immutable && yarn nx run sq-server:build)
