@@ -1,5 +1,9 @@
 # Haembina Branch Analysis
 
+Supports **SonarQube Community Build 26.9.0.129388**, the `sonarqube:26.9.0.129388-community` image. A release is built
+and tested against that one build: install it on that build, and move to a newer build only with the release that
+names it, because the webapp's branch pages are built against the same build's frontend.
+
 Branch analysis and pull request decoration for SonarQube Community Build. It is built with Java 21 and Gradle against
 the SonarQube plugin API, and ships a patched SonarQube webapp whose branch pages are TypeScript and React in
 [`sonarqube-webapp-addons`](sonarqube-webapp-addons/README.md). SonarQube is a trademark of SonarSource; this plugin is
