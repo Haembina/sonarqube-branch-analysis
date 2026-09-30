@@ -1,5 +1,9 @@
 # Haembina Branch Analysis
 
+Supports **SonarQube Community Build 26.9.0.129388**, the `sonarqube:26.9.0.129388-community` image. A release is built
+and tested against that one build: install it on that build, and move to a newer build only with the release that
+names it, because the webapp's branch pages are built against the same build's frontend.
+
 Branch analysis and pull request decoration for SonarQube Community Build. It is built with Java 21 and Gradle against
 the SonarQube plugin API, and ships a patched SonarQube webapp whose branch pages are TypeScript and React in
 [`sonarqube-webapp-addons`](sonarqube-webapp-addons/README.md). SonarQube is a trademark of SonarSource; this plugin is
@@ -291,6 +295,9 @@ untested.
   support. `grep javaAdditionalOpts conf/sonar.properties` shows whether they are there.
 - With CI detection left on, a CI scan of a pull request lands on that pull request instead of main, and main stops
   moving.
+- `npm-groovy-lint` pins an `axios` that four GitHub advisories name, which npm's own audit does not list yet, so
+  `overrides` in `package.json` holds `axios` at a fixed release. Remove the override once `npm-groovy-lint` takes a
+  fixed `axios`; `npm ls axios` shows which one resolves.
 
 ## License
 
@@ -306,3 +313,4 @@ what.
 - [Webapp addons](sonarqube-webapp-addons/README.md): building the branch pages
 - [Changelog](CHANGELOG.md)
 - [License](LICENSE) and [Notice](NOTICE)
+- [Security policy](SECURITY.md): reporting a vulnerability
