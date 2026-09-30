@@ -15,8 +15,8 @@
 # Needs docker, curl and jq. Reads SONARQUBE_VERSION from .env unless it is set.
 #
 # A command after the two paths runs once every check has passed, while the server is still up,
-# with SONARQUBE_URL and SONARQUBE_PROJECT exported; its failure fails the script. build.yml
-# runs the Playwright suite this way, with these analyses as its fixture.
+# with SONARQUBE_URL and SONARQUBE_PROJECT exported; its failure fails the script. The
+# Playwright suite runs this way, with these analyses as its fixture.
 
 set -euo pipefail
 

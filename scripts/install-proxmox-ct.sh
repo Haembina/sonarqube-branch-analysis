@@ -24,7 +24,7 @@ jar="haembina-branch-analysis-${version}.jar"
 download=$(mktemp -d)
 trap 'rm -rf "${download}"' EXIT
 
-gh release download "v${version}" --repo Haembina/haembina-branch-analysis --dir "${download}"
+gh release download "v${version}" --repo github.com/Haembina/sonarqube-branch-analysis --dir "${download}"
 
 scp -q "${download}/${jar}" "${download}/sonarqube-webapp.zip" "${host}:/tmp/"
 ssh "${host}" "pct push ${container} /tmp/${jar} /tmp/${jar} && pct push ${container} /tmp/sonarqube-webapp.zip /tmp/sonarqube-webapp.zip && rm /tmp/${jar} /tmp/sonarqube-webapp.zip"

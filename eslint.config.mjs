@@ -58,10 +58,10 @@ export default [
     rules: { 'no-magic-numbers': ['error', { ignore: [-1, 0, 1] }] },
   },
   {
-    // package.json, conventions.json and the addons' tsconfig.json and
-    // project.json. Every reader downstream refuses a malformed file; none
-    // refuses a well-formed one that names a key twice, which is what this
-    // catches.
+    // Every JSON file, package.json and the addons' tsconfig.json and
+    // project.json among them. Every reader downstream refuses a malformed
+    // file; none refuses a well-formed one that names a key twice, which is
+    // what this catches.
     files: ['**/*.json'],
     language: 'json/json',
     ...json.configs.recommended,
