@@ -232,11 +232,28 @@ async function paintedColors(control: Locator): Promise<{ behind?: string; drawn
 }
 
 /**
+ * Resolves once every finite animation and transition on `control` and inside it has
+ * finished. A switch read mid-transition paints a blend of its two states: the checked
+ * branch switch measured 2.9:1 there and passes at rest.
+ */
+async function settled(control: Locator): Promise<void> {
+  await control.evaluate((element) =>
+    Promise.all(
+      element
+        .getAnimations({ subtree: true })
+        .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+        .map((animation) => animation.finished),
+    ),
+  );
+}
+
+/**
  * The best contrast ratio any part of `control` draws against the color behind it, as
- * `paintedColors` reads them; a translucent color is blended over that background first.
- * Throws on a computed color that is not `rgb()` or `rgba()`.
+ * `paintedColors` reads them once `control` has settled; a translucent color is blended
+ * over that background first. Throws on a computed color that is not `rgb()` or `rgba()`.
  */
 export async function nonTextContrast(control: Locator): Promise<number> {
+  await settled(control);
   const { behind, drawn } = await paintedColors(control);
   const ground = behind === undefined ? WHITE : (parseColor(behind, WHITE) ?? WHITE);
   return Math.max(
