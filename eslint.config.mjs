@@ -1,5 +1,4 @@
-// ESLint flat config, read by `npm run lint:es`, which `npm run lint` runs in
-// verify.yml.
+// ESLint flat config, read by `npm run lint:es`, which `npm run lint` runs.
 //
 // The webapp addons compile only inside SonarSource's `sonarqube-webapp`
 // workspace, where `tsconfig.json` and every `~sq-server-commons` import
@@ -36,7 +35,7 @@ export default [
     ...sonarjs.configs.recommended,
   },
   {
-    // S6: a tunable number lives in a named constant. The TypeScript form
+    // A tunable number lives in a named constant. The TypeScript form
     // replaces the base rule so an enum member or a literal type is not one.
     files: ['sonarqube-webapp-addons/src/**/*.{ts,tsx}'],
     rules: {
@@ -53,15 +52,15 @@ export default [
     },
   },
   {
-    // S6 for the build scripts.
+    // The same for the build scripts.
     files: ['**/*.mjs'],
     rules: { 'no-magic-numbers': ['error', { ignore: [-1, 0, 1] }] },
   },
   {
-    // package.json, conventions.json and the addons' tsconfig.json and
-    // project.json. Every reader downstream refuses a malformed file; none
-    // refuses a well-formed one that names a key twice, which is what this
-    // catches.
+    // Every JSON file, package.json and the addons' tsconfig.json and
+    // project.json among them. Every reader downstream refuses a malformed
+    // file; none refuses a well-formed one that names a key twice, which is
+    // what this catches.
     files: ['**/*.json'],
     language: 'json/json',
     ...json.configs.recommended,

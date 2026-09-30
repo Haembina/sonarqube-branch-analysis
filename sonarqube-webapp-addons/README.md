@@ -54,8 +54,7 @@ mocks. `jest.config.cjs` at the repository root runs them in the workspace's Jes
 npm run test:addons
 ```
 
-The report is `coverage/addons/lcov.info`. `build.yml`'s `build-ui` job runs the suite after the build, and the
-`integration-test` job loads the built webapp against a running SonarQube.
+The report is `coverage/addons/lcov.info`.
 
 ## Where this bites
 

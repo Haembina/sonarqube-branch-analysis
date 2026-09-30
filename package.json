@@ -3,7 +3,7 @@
   "version": "27.0.1",
   "private": true,
   "type": "module",
-  "description": "The version, the release and the conventions gate for Haembina Branch Analysis.",
+  "description": "The npm tooling around the Gradle build of Haembina Branch Analysis: linters and test runners.",
   "scripts": {
     "lint": "npm run lint:sh && npm run lint:es && npm run lint:gradle && npm run lint:java",
     "lint:es": "eslint .",

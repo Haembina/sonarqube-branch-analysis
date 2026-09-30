@@ -38,7 +38,7 @@ export default defineConfig({
   outputDir: 'build/e2e-results',
   use: {
     baseURL: process.env.SONARQUBE_URL ?? 'http://localhost:9000',
-    // Outside outputDir, so the failure artifact build.yml uploads carries no session.
+    // Outside outputDir, so an uploaded failure artifact carries no session.
     storageState: 'build/e2e-auth/storage-state.json',
     trace: 'retain-on-failure',
     ...devices['Desktop Chrome'],

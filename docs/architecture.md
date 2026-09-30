@@ -48,13 +48,9 @@ API layer has already shown it.
 ## Build and release
 
 Gradle builds a shaded jar: the plugin's own dependencies are relocated inside it, and SonarQube's jars are
-`compileOnly`, taken from the distribution Gradle downloads into `sonarqube-lib`. `build.yml` builds the jar and the
-webapp on every pull request and runs the addons' Jest suite, then boots SonarQube with both, runs a main, a branch and
-a pull request analysis, and drives the branch pages in Chromium with the Playwright suite in `e2e`. A `v` tag
-publishes both as a GitHub release once that passes.
+`compileOnly`, taken from the distribution Gradle downloads into `sonarqube-lib`.
 
-`package.json` holds the version and the npm tooling around the Gradle build: `@haembina/release` writes the version
-into `gradle.properties` and `.env`, and `@haembina/conventions` is the gate `ci.yml` runs.
+`package.json` holds the version and the npm tooling around the Gradle build.
 
 ## Where this bites
 
