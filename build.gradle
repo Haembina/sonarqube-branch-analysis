@@ -189,6 +189,24 @@ plugins.withType(JacocoPlugin) {
     tasks["check"].dependsOn 'jacocoTestCoverageVerification'
 }
 
+// sonarqubeVersion is the one source of the supported Community Build: .env's image tag and the README's support
+// line copy it, and check fails the moment either names another build
+tasks.register('verifySonarqubeVersion') {
+    def env = file('.env')
+    def readme = file('README.md')
+    def expected = sonarqubeVersion
+    inputs.files(env, readme)
+    doLast {
+        if (!env.text.contains("SONARQUBE_VERSION=${expected}-community")) {
+            throw new GradleException(".env's SONARQUBE_VERSION is not ${expected}-community, the build.gradle version")
+        }
+        if (!readme.text.contains("**SonarQube Community Build ${expected}**")) {
+            throw new GradleException("README.md does not name **SonarQube Community Build ${expected}** as supported")
+        }
+    }
+}
+tasks.named('check') { dependsOn 'verifySonarqubeVersion' }
+
 test {
     useJUnitPlatform()
     // The agent tests append to the boot class path, which class data sharing cannot cover
