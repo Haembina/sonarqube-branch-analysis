@@ -33,7 +33,7 @@ const webapp = path.join(__dirname, 'sonarqube-webapp');
 const addons = path.join(__dirname, 'sonarqube-webapp-addons', 'src');
 const common = require('./sonarqube-webapp/apps/sq-server/jest.config.common.js');
 
-/** Coverage floor, in percent, the run fails under; the record's `coverage.enforcedBy` names it. */
+/** Coverage floor, in percent, the run fails under. */
 const FLOOR = 100;
 
 /**

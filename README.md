@@ -57,7 +57,7 @@ The webapp builds inside SonarSource's `sonarqube-webapp`, a git submodule. Its 
 | `sonarqube-webapp-addons` | The branch and pull request pages, linked into `sonarqube-webapp` at build time |
 | `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
 | `docker` | The Docker image's entrypoint and its upgrade test |
-| `scripts` | The integration test and the Proxmox container install script |
+| `scripts` | The integration test and the suite `npm test` runs |
 | `e2e` | The Playwright suite over the branch pages, run against the integration test's server |
 | `docs` | How the agent, the extensions and the webapp fit together |
 

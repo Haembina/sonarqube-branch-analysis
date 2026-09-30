@@ -36,7 +36,7 @@ export default [
     ...sonarjs.configs.recommended,
   },
   {
-    // S6: a tunable number lives in a named constant. The TypeScript form
+    // A tunable number lives in a named constant. The TypeScript form
     // replaces the base rule so an enum member or a literal type is not one.
     files: ['sonarqube-webapp-addons/src/**/*.{ts,tsx}'],
     rules: {
@@ -53,7 +53,7 @@ export default [
     },
   },
   {
-    // S6 for the build scripts.
+    // The same for the build scripts.
     files: ['**/*.mjs'],
     rules: { 'no-magic-numbers': ['error', { ignore: [-1, 0, 1] }] },
   },

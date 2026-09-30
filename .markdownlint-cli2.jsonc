@@ -1,5 +1,5 @@
 // markdownlint-cli2's configuration, read by `npm run lint:md`: a document's
-// structure, which the D rules do not read.
+// structure.
 {
   // Naming `globs` makes the ignore list necessary: markdownlint-cli2 skips
   // `node_modules` only while it chooses the files itself.
@@ -9,15 +9,15 @@
     "build/**",
     // SonarSource's webapp, checked out as a submodule: not our documents.
     "sonarqube-webapp/**",
-    // Written by the release, never by hand (D9).
+    // Written by the release, never by hand.
     "CHANGELOG.md",
-    // Claude's worktrees, each with its own `node_modules`.
+    // Local worktrees, each with its own `node_modules`.
     ".claude/**"
   ],
   "config": {
     // The prose here is wrapped at 120 columns, as the Java is. Tables and
     // fenced blocks cannot wrap, and a wrapped command is no longer
-    // copy-pasteable (D3).
+    // copy-pasteable.
     "MD013": { "line_length": 120, "tables": false, "code_blocks": false }
   }
 }
