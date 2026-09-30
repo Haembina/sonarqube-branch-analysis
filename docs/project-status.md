@@ -15,5 +15,9 @@ conventions gate, the Java suite and the SonarQube scan on ct 102 beside it. The
 findings where jjwt, github-api and SonarQube's `ComponentDto` take a `java.util.Date`; `npm run sonar:ceiling` holds
 their count to the record's `issues.ceiling`.
 
+The public mirror, [Haembina/sonarqube-branch-analysis](https://github.com/Haembina/sonarqube-branch-analysis),
+takes one export commit and the same release on each `v` tag, through `build.yml`'s `mirror` job and the
+`MIRROR_TOKEN` secret. Nothing is merged there; its pull requests land here, as the README's recipe says.
+
 The plugin is Haembina Branch Analysis: package `com.haembina.branchanalysis`, plugin key `haembinabranchanalysis`,
 setting keys under `com.haembina.branchanalysis.`. The class names still carry mc1arke's `CommunityBranch` prefix.
