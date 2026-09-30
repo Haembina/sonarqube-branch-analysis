@@ -24,5 +24,5 @@ git submodule update --init --depth 1 sonarqube-webapp
 npm run test:addons
 
 # The submodule is SonarSource's webapp at a pinned tag: its dependencies are theirs to fix, so the audit and the
-# scan that follow in verify.yml read this repository's own tree and not its lockfile.
+# scan that follow read this repository's own tree and not its lockfile.
 git submodule deinit --force sonarqube-webapp

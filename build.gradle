@@ -157,7 +157,7 @@ jacocoTestReport {
     }
 }
 
-// The jars the Java analyzer resolves types against beside sonarqube-lib, which sonar-project.properties names:
+// The jars the Java analyzer resolves types against beside sonarqube-lib, which a SonarQube scan names:
 // the scanner reads files on disk and cannot ask Gradle for its classpath
 tasks.register('sonarLibraries', Sync) {
     from(files(configurations.compileClasspath, configurations.testCompileClasspath).filter { jar ->

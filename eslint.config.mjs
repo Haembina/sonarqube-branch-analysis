@@ -1,5 +1,4 @@
-// ESLint flat config, read by `npm run lint:es`, which `npm run lint` runs in
-// verify.yml.
+// ESLint flat config, read by `npm run lint:es`, which `npm run lint` runs.
 //
 // The webapp addons compile only inside SonarSource's `sonarqube-webapp`
 // workspace, where `tsconfig.json` and every `~sq-server-commons` import
