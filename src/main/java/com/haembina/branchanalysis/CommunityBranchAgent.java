@@ -35,6 +35,7 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -51,15 +52,21 @@ public final class CommunityBranchAgent {
 
         Component component = Component.fromString(args).orElseThrow(() -> new IllegalArgumentException("Invalid/missing agent argument"));
 
-        if (component == Component.CE) {
-            redefineEdition(instrumentation, "com.haembina.branchanalysis.CommunityBranchPluginBootstrap", redefineIsAvailableFlag());
-            redefineEdition(instrumentation, "org.sonar.core.platform.PlatformEditionProvider", redefineOptionalEditionGetMethod());
-            redefineEdition(instrumentation, "org.sonar.server.almsettings.MultipleAlmFeature", redefineIsAvailableFlag());
-        } else if (component == Component.WEB) {
-            redefineEdition(instrumentation, "com.haembina.branchanalysis.CommunityBranchPluginBootstrap", redefineIsAvailableFlag());
-            redefineEdition(instrumentation, "org.sonar.server.almsettings.MultipleAlmFeature", redefineIsAvailableFlag());
-            redefineEdition(instrumentation, "org.sonar.server.newcodeperiod.ws.SetAction", redefineConstructorEditionProviderField(EditionProvider.Edition.DEVELOPER));
-            redefineEdition(instrumentation, "org.sonar.server.newcodeperiod.ws.UnsetAction", redefineConstructorEditionProviderField(EditionProvider.Edition.DEVELOPER));
+        // Exhaustive, so a component added to the enum fails to compile until it names its redefinitions
+        List<Redefinition> redefinitions = switch (component) {
+            case CE -> List.of(
+                    new Redefinition("com.haembina.branchanalysis.CommunityBranchPluginBootstrap", redefineIsAvailableFlag()),
+                    new Redefinition("org.sonar.core.platform.PlatformEditionProvider", redefineOptionalEditionGetMethod()),
+                    new Redefinition("org.sonar.server.almsettings.MultipleAlmFeature", redefineIsAvailableFlag()));
+            case WEB -> List.of(
+                    new Redefinition("com.haembina.branchanalysis.CommunityBranchPluginBootstrap", redefineIsAvailableFlag()),
+                    new Redefinition("org.sonar.server.almsettings.MultipleAlmFeature", redefineIsAvailableFlag()),
+                    new Redefinition("org.sonar.server.newcodeperiod.ws.SetAction", redefineConstructorEditionProviderField(EditionProvider.Edition.DEVELOPER)),
+                    new Redefinition("org.sonar.server.newcodeperiod.ws.UnsetAction", redefineConstructorEditionProviderField(EditionProvider.Edition.DEVELOPER)));
+        };
+
+        for (Redefinition redefinition : redefinitions) {
+            redefineEdition(instrumentation, redefinition.targetClassName(), redefinition.redefiner());
         }
     }
 
@@ -125,6 +132,10 @@ public final class CommunityBranchAgent {
         private static Optional<Component> fromString(String input) {
             return Arrays.stream(values()).filter(v -> v.name().toLowerCase(Locale.ENGLISH).equals(input)).findFirst();
         }
+    }
+
+    /** A class the agent rewrites as it loads, and how. */
+    private record Redefinition(String targetClassName, Redefiner redefiner) {
     }
 
     @FunctionalInterface
