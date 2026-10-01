@@ -160,10 +160,7 @@ public class AzureDevopsRestClient implements AzureDevopsClient {
 
             validateResponse(httpResponse);
 
-            if (null == type) {
-                return null;
-            }
-            return objectMapper.readValue(EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8), type);
+            return null == type ? null : objectMapper.readValue(EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8), type);
         }
     }
 

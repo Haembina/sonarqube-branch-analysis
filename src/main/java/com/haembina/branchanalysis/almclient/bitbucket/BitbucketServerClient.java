@@ -223,11 +223,12 @@ class BitbucketServerClient implements BitbucketClient {
 
     void validate(Response response) throws IOException {
         if (!response.isSuccessful()) {
+            ErrorResponse errors;
             try (ResponseBody responseBody = response.body()) {
-                ErrorResponse errors = objectMapper.reader().forType(ErrorResponse.class)
+                errors = objectMapper.reader().forType(ErrorResponse.class)
                         .readValue(responseBody.string());
-                throw new BitbucketException(response.code(), errors);
             }
+            throw new BitbucketException(response.code(), errors);
         }
     }
 }

@@ -76,23 +76,20 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
             return;
         }
 
-        ProjectAlmSettingDto projectAlmSettingDto;
+        Optional<ProjectAlmSettingDto> optionalProjectAlmSettingDto;
         Optional<AlmSettingDto> optionalAlmSettingDto;
         try (DbSession dbSession = dbClient.openSession(false)) {
-
-            Optional<ProjectAlmSettingDto> optionalProjectAlmSettingDto =
+            optionalProjectAlmSettingDto =
                     dbClient.projectAlmSettingDao().selectByProject(dbSession, projectAnalysis.getProject().getUuid());
-
-            if (optionalProjectAlmSettingDto.isEmpty()) {
-                LOGGER.debug("No ALM has been set on the current project");
-                return;
-            }
-
-            projectAlmSettingDto = optionalProjectAlmSettingDto.get();
-            String almSettingUuid = projectAlmSettingDto.getAlmSettingUuid();
-            optionalAlmSettingDto = dbClient.almSettingDao().selectByUuid(dbSession, almSettingUuid);
-
+            optionalAlmSettingDto = optionalProjectAlmSettingDto.flatMap(
+                    projectAlmSetting -> dbClient.almSettingDao().selectByUuid(dbSession, projectAlmSetting.getAlmSettingUuid()));
         }
+
+        if (optionalProjectAlmSettingDto.isEmpty()) {
+            LOGGER.debug("No ALM has been set on the current project");
+            return;
+        }
+        ProjectAlmSettingDto projectAlmSettingDto = optionalProjectAlmSettingDto.get();
 
         if (optionalAlmSettingDto.isEmpty()) {
             LOGGER.warn("The ALM configured for this project could not be found");
