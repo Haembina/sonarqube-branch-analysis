@@ -1,6 +1,6 @@
 # Haembina Branch Analysis
 
-Branch analysis and pull request decoration for SonarQube Community Build **26.9.0.129388**
+Branch analysis and pull request decoration for **SonarQube Community Build 26.9.0.129388**
 (`sonarqube:26.9.0.129388-community`). Java 21 and Gradle against the SonarQube plugin API, plus a patched SonarQube
 webapp whose branch pages are TypeScript and React in [`sonarqube-webapp-addons`](sonarqube-webapp-addons/README.md).
 Each release supports only the SonarQube build it names, `sonarqubeVersion` in `build.gradle`.
