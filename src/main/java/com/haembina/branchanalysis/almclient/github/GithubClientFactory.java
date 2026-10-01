@@ -25,7 +25,6 @@ import java.security.PrivateKey;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -95,7 +94,7 @@ public class GithubClientFactory {
     private GHAppInstallationToken getInstallationToken(String apiUrl, String appId, String apiPrivateKey, String projectPath) throws IOException {
         Instant issued = clock.instant().minus(10, ChronoUnit.SECONDS);
         Instant expiry = issued.plus(2, ChronoUnit.MINUTES);
-        String jwtToken = new DefaultJwtBuilder().issuedAt(Date.from(issued)).expiration(Date.from(expiry))
+        String jwtToken = new DefaultJwtBuilder().claim("iat", issued.getEpochSecond()).claim("exp", expiry.getEpochSecond())
             .claim("iss", appId).signWith(createPrivateKey(apiPrivateKey), Jwts.SIG.RS256).compact();
 
         if (!projectPath.contains("/")) {
