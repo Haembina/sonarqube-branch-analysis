@@ -1,6 +1,6 @@
 {
   "name": "haembina-branch-analysis",
-  "version": "27.0.1",
+  "version": "27.0.2",
   "private": true,
   "type": "module",
   "description": "The npm tooling around the Gradle build of Haembina Branch Analysis: linters and test runners.",
