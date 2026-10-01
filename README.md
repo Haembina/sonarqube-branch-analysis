@@ -106,8 +106,7 @@ bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/
 ```
 
 PIT measures whether the suite's assertions notice a change, which coverage cannot. It never fails a build: equivalent
-mutants make a threshold noise. On 2026-09-26 it killed 785 of 988 mutants (79%), with a test strength of 86% over the
-916 a test covers. Run it with:
+mutants make a threshold noise. The report under `build/reports/pitest` holds the score. Run it with:
 
 ```bash
 ./gradlew pitest
