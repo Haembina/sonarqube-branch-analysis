@@ -108,8 +108,9 @@ The plugin key, jar name and every setting key changed, so SonarQube reads this 
 
 ## Testing
 
-Both unit suites fail on any uncovered line. The branch floor sits below 100 only for arms no test can reach, each
-named beside the floor in `build.gradle` and `jest.config.cjs`; a new uncovered branch is tested or deleted with proof.
+Both unit suites fail on any uncovered line. The addons hold every branch; the Java branch floor sits below 100 only
+for arms no test can reach, each named beside the floor in `build.gradle`; a new uncovered branch is tested or deleted
+with proof.
 The addons' suites sit beside their files as `*.test.tsx` and run in the submodule's Jest setup.
 
 The integration test needs Docker, `jq` and `curl`:
