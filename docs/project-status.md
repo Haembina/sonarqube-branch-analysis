@@ -12,8 +12,8 @@ no branch land on main.
 
 The repository has adopted the conventions record. `build.yml` builds, tests and releases the plugin; `ci.yml` runs the
 conventions gate, the Java suite and the SonarQube scan on ct 102 beside it. The scan's open issues are `java:S2143`
-findings where jjwt, github-api and SonarQube's `ComponentDto` take a `java.util.Date`; `npm run sonar:ceiling` holds
-their count to the record's `issues.ceiling`.
+findings where github-api's `GHCheckRunBuilder` and SonarQube's `ComponentDto` take only a `java.util.Date`;
+`npm run sonar:ceiling` holds their count to the record's `issues.ceiling`.
 
 The public mirror, [Haembina/sonarqube-branch-analysis](https://github.com/Haembina/sonarqube-branch-analysis),
 takes one export commit and the same release on each `v` tag, through `build.yml`'s `mirror` job and the
