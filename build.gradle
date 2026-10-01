@@ -166,9 +166,8 @@ tasks.register('sonarLibraries', Sync) {
     into(layout.buildDirectory.dir('sonar-libraries'))
 }
 
-// The Java floor; `check` fails under it. Every line is covered. The branches left are
-// javac's null check on a try-with-resources resource that a factory, openSession or OkHttp never returns null,
-// and the enum arm after the last of CommunityBranchAgent's two components.
+// The Java floor; `check` fails under 100% of lines or branches. A try-with-resources keeps one normal exit,
+// because JaCoCo filters javac's null check on the resource only there.
 jacocoTestCoverageVerification {
     violationRules {
         rule {
@@ -178,7 +177,7 @@ jacocoTestCoverageVerification {
             }
             limit {
                 counter = 'BRANCH'
-                minimum = 0.99
+                minimum = 1.00
             }
         }
     }

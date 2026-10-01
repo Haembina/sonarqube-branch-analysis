@@ -25,7 +25,7 @@ SonarQube Community Build analyses one branch per project and decorates nothing.
 | | mc1arke's plugin | Haembina Branch Analysis |
 | --- | --- | --- |
 | CI branch detection | Always on | Off switch: `com.haembina.branchanalysis.auto-configuration.enabled` |
-| Java coverage | Reported | Build fails under 100% of lines and 99% of branches |
+| Java coverage | Reported | Build fails under 100% of lines and branches |
 | Branch page tests | None | Jest suite, same floor; Playwright suite against a running SonarQube |
 | Accessibility | Unchecked | axe WCAG 2.2 A and AA scan of every branch page and dialog, keyboard-only specs, and a spec per criterion axe cannot measure |
 | Release gate | The build | Jar and webapp publish only after a real SonarQube runs a main, branch and pull request analysis with them |
@@ -108,9 +108,7 @@ The plugin key, jar name and every setting key changed, so SonarQube reads this 
 
 ## Testing
 
-Both unit suites fail on any uncovered line. The addons hold every branch; the Java branch floor sits below 100 only
-for arms no test can reach, each named beside the floor in `build.gradle`; a new uncovered branch is tested or deleted
-with proof.
+Both unit suites fail on any uncovered line or branch; a new uncovered branch is tested or deleted with proof.
 The addons' suites sit beside their files as `*.test.tsx` and run in the submodule's Jest setup.
 
 The integration test needs Docker, `jq` and `curl`:
