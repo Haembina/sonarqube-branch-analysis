@@ -1,3 +1,5 @@
+<p align="center"><img src="icons/icon.png" alt="Haembina Branch Analysis logo" width="128"></p>
+
 # Haembina Branch Analysis
 
 Branch analysis and pull request decoration for **SonarQube Community Build 26.9.0.129388**
