@@ -1,4 +1,6 @@
-<p align="center"><img src="icons/icon.png" alt="Haembina Branch Analysis logo" width="128"></p>
+<p align="center">
+  <img src="icons/icon.png" alt="Haembina Branch Analysis logo" width="128">
+</p>
 
 # Haembina Branch Analysis
 

@@ -15,8 +15,9 @@
     ".claude/**"
   ],
   "config": {
-    // The README opens with the product's logo, centered, which only HTML can do
-    // on GitHub: a <p align="center"> holding an <img>, above the # title.
+    // The README opens with the product's logo, centered, which only HTML
+    // can do on GitHub: a <p align="center"> holding an <img>, above the
+    // # title.
     "MD033": { "allowed_elements": ["p", "img"] },
     "MD041": { "allow_preamble": true },
 
