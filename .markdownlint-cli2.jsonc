@@ -15,6 +15,12 @@
     ".claude/**"
   ],
   "config": {
+    // The README opens with the product's logo, centered, which only HTML
+    // can do on GitHub: a <p align="center"> holding an <img>, above the
+    // # title.
+    "MD033": { "allowed_elements": ["p", "img"] },
+    "MD041": { "allow_preamble": true },
+
     // The prose here is wrapped at 120 columns, as the Java is. Tables and
     // fenced blocks cannot wrap, and a wrapped command is no longer
     // copy-pasteable.
