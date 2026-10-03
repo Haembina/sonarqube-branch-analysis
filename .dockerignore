@@ -1,13 +1,28 @@
+# The two Dockerfiles copy the Gradle build, src, docker, sonarqube-webapp and sonarqube-webapp-addons. Every
+# entry below is a path a checkout, a build or a local run leaves, kept out of the context the daemon is sent.
+
+# Git, the environment and what neither image reads
+.git
+.github
+.env
+e2e
+coverage
+scripts
+icons
+
 # Java
 /build/
-/.idea/
 /.gradle/
-/sonarqube-lib/
+/.idea/
 /out/
+/sonarqube-lib/
+/.scannerwork/
 
 # JavaScript
 node_modules/
 **/node_modules/
 **/.yarn/cache/
+**/.nx/
+sonarqube-webapp/.git
 sonarqube-webapp/apps/sq-server/build/
-/sonarqube-webapp/libs/sq-server-addons
+sonarqube-webapp/libs/sq-server-addons

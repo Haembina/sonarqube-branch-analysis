@@ -11,6 +11,7 @@
     "lint:gradle": "npm-groovy-lint --noserver --failon warning --loglevel warning build.gradle settings.gradle",
     "lint:sh": "shellcheck scripts/integration-test.sh scripts/test-ci.sh docker/branch-analysis-entrypoint.sh docker/test-branch-analysis-entrypoint.sh sonarqube-webapp-addons/setup.sh",
     "lint:md": "markdownlint-cli2",
+    "lint:docker": "docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d hadolint - < Dockerfile && docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d hadolint - < release.Dockerfile",
     "test": "bash scripts/test-ci.sh",
     "test:e2e": "playwright test",
     "test:addons": "node sonarqube-webapp/node_modules/jest/bin/jest.js --config jest.config.cjs --ci",

@@ -73,6 +73,7 @@ The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 | `bash scripts/integration-test.sh <jar> <webapp dir> npm run test:e2e` | The same, then the Playwright suite against that server |
 | `npm run lint` | shellcheck, ESLint (TypeScript, JavaScript, JSON), npm-groovy-lint (Gradle), Error Prone and javac (Java) |
 | `npm run lint:md` | markdownlint over every document |
+| `npm run lint:docker` | hadolint over both Dockerfiles, in Docker |
 
 ## Layout
 
@@ -121,6 +122,9 @@ The integration test needs Docker, `jq` and `curl`:
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
 ```
 
+A failed run prints the server's last 300 log lines, then one `integration-test.sh failed:` line naming the check or
+command that failed, so a CI job's last lines say why it is red.
+
 PIT shows whether the assertions notice a change, which coverage cannot. It sets no threshold, since equivalent
 mutants make one noise.
 
@@ -167,9 +171,12 @@ Take the jar and `sonarqube-webapp.zip` from one release.
 
 ### Docker
 
-`Dockerfile` builds an image from source, `release.Dockerfile` from a release. Overriding
+`Dockerfile` builds an image from source with the Gradle wrapper, running the suite; `release.Dockerfile` downloads a
+release from the public mirror. Both base images are pinned by digest, and `SONARQUBE_VERSION` and `SONARQUBE_DIGEST`
+change together. A tag pushes the release image to `ghcr.io/haembina/haembina-branch-analysis:<version>`. Overriding
 `SONAR_WEB_JAVAADDITIONALOPTS` or `SONAR_CE_JAVAADDITIONALOPTS` drops the `javaagent` settings unless the override
-repeats them. `docker-compose.yml` reads `SONARQUBE_VERSION`, `DOCKERFILE` and `PLUGIN_VERSION` from `.env`:
+repeats them. `docker-compose.yml` reads `SONARQUBE_VERSION`, `SONARQUBE_DIGEST`, `DOCKERFILE`, `PLUGIN_VERSION` and
+`SONARQUBE_PORT` from `.env`:
 
 ```bash
 docker compose up --build

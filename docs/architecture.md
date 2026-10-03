@@ -57,5 +57,8 @@ Gradle builds a shaded jar: the plugin's own dependencies are relocated inside i
 - The agent's transformations name SonarQube classes and methods by string. A Community Build that renames one fails
   at startup with the bootstrap's message, not at compile time. The integration test is what catches it:
   `bash scripts/integration-test.sh <jar> <webapp dir>`.
+- A jar copied into `extensions/plugins` while the compute engine is still starting is loaded without its agent, so
+  that start fails and `ce.log` keeps the ERROR. `/api/system/status` answers UP before the compute engine is, so the
+  integration test installs only after `sonar.log` says `SonarQube is operational`.
 - A SonarQube build newer than `sonarqubeVersion` in `build.gradle` may load the plugin and break a page, because the
   webapp was built against the submodule's tag. Move the submodule and `sonarqubeVersion` together.
