@@ -9,6 +9,8 @@ ARG PLUGIN_VERSION="27.0.2"
 ARG WORKDIR="/home/build/project"
 
 # The Gradle the wrapper pins, on the JDK the plugin targets, running the suite before it packages the jar.
+# verifySonarqubeVersion compares .env, README.md and these Dockerfiles, none of which this stage copies;
+# build.yml's Gradle build runs it.
 FROM eclipse-temurin:21-jdk-noble@sha256:70898f0f893a6b772a0f29834d8b022e3ac20b6a0c33a922973cf66342ef56be AS builder
 ARG PLUGIN_VERSION
 ARG WORKDIR
@@ -17,7 +19,7 @@ WORKDIR ${WORKDIR}
 COPY gradlew build.gradle settings.gradle gradle.properties ./
 COPY gradle ./gradle
 COPY src ./src
-RUN sh gradlew build -Pversion="${PLUGIN_VERSION}" --no-daemon
+RUN sh gradlew build -x verifySonarqubeVersion -Pversion="${PLUGIN_VERSION}" --no-daemon
 
 
 # bash, which setup.sh needs, ships in the Debian image.

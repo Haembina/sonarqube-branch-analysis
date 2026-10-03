@@ -10,7 +10,8 @@ The plugin runs on the Haembina server's SonarQube Community Build, which scans 
 and pull request analysis through it. The server keeps `auto-configuration.enabled` at `false`, so CI scans that name
 no branch land on main.
 
-The repository has adopted the conventions record. `build.yml` builds, tests and releases the plugin; `ci.yml` runs the
+The repository has adopted the conventions record. `build.yml` builds, tests and releases the plugin and builds both
+images, pushing the release image to GHCR on a tag; `ci.yml` runs the
 conventions gate, the Java suite and the SonarQube scan on ct 102 beside it. The scan's open issues are `java:S2143`
 findings where github-api's `GHCheckRunBuilder` and SonarQube's `ComponentDto` take only a `java.util.Date`;
 `npm run sonar:ceiling` holds their count to the record's `issues.ceiling`.

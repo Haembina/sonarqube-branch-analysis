@@ -22,6 +22,7 @@ The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion numbe
 | JSON | ESLint with @eslint/json | Nothing |
 | Gradle | npm-groovy-lint | Nothing |
 | Shell | shellcheck | Nothing: the Docker upgrade test and the integration test run them |
+| Dockerfile | hadolint | Nothing: `build.yml` builds both images |
 | Workflows | actionlint | Nothing |
 | Markdown | markdownlint-cli2 | Nothing |
 
