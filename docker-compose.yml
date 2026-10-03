@@ -9,10 +9,10 @@ services:
       dockerfile: ${DOCKERFILE}
       args:
         SONARQUBE_VERSION: ${SONARQUBE_VERSION}
+        SONARQUBE_DIGEST: ${SONARQUBE_DIGEST}
         PLUGIN_VERSION: ${PLUGIN_VERSION}
-    container_name: sonarqube
     ports:
-      - "9000:9000"
+      - "${SONARQUBE_PORT:-9000}:9000"
     networks:
       - sonarnet
     environment:
@@ -23,14 +23,13 @@ services:
       - sonarqube_conf:/opt/sonarqube/conf
       - sonarqube_data:/opt/sonarqube/data
   db:
-    image: postgres:16
+    image: postgres:16@sha256:1a6ab3f5345eb6dbe04a1349529caabdb0ab09293a09590fad07b2246bfa4b54
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U sonar" ]
       interval: 10s
       timeout: 5s
       retries: 5
     hostname: db
-    container_name: postgres
     networks:
       - sonarnet
     environment:
