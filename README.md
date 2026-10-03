@@ -276,9 +276,9 @@ to a commercial edition, and migrating data analysed with this plugin is unteste
 - `npm-groovy-lint` pins an `axios` that four GitHub advisories name, which npm's own audit does not list yet, so
   `overrides` in `package.json` holds `axios` at a fixed release. Remove the override once `npm-groovy-lint` takes a
   fixed `axios`; `npm ls axios` shows which one resolves.
-- `npm run test:coverage` checks the `sonarqube-webapp` submodule out and removes it afterwards, so a dependency audit reads only
-  this repository's lockfiles. It builds with `NX_DAEMON=false`: Nx's daemon holds the submodule open, and on Windows
-  the removal fails with `Could not remove submodule work tree`.
+- `npm run test:coverage` checks the `sonarqube-webapp` submodule out and removes it afterwards, so a dependency
+  audit reads only this repository's lockfiles. It builds with `NX_DAEMON=false`: Nx's daemon holds the submodule
+  open, and on Windows the removal fails with `Could not remove submodule work tree`.
 
 ## License
 
