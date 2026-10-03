@@ -122,6 +122,9 @@ The integration test needs Docker, `jq` and `curl`:
 bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
 ```
 
+A failed run prints the server's last 300 log lines, then one `integration-test.sh failed:` line naming the check or
+command that failed, so a CI job's last lines say why it is red.
+
 PIT shows whether the assertions notice a change, which coverage cannot. It sets no threshold, since equivalent
 mutants make one noise.
 
