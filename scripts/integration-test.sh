@@ -91,6 +91,18 @@ wait_until_up() {
   done
 }
 
+# The web process answers UP while the compute engine is still loading plugins, so the whole server is
+# operational only once sonar.log says so.
+wait_until_operational() {
+  local deadline=$((SECONDS + STARTUP_TIMEOUT_SECONDS))
+  until docker exec "${container}" grep -q 'SonarQube is operational' /opt/sonarqube/logs/sonar.log 2>/dev/null; do
+    if (( SECONDS >= deadline )); then
+      fail "SonarQube was not operational after ${STARTUP_TIMEOUT_SECONDS}s"
+    fi
+    sleep "${POLL_SECONDS}"
+  done
+}
+
 if [ -z "${container}" ]; then
   echo "Starting sonarqube:${SONARQUBE_VERSION}"
   owned_container="branch-analysis-it-$$"
@@ -99,9 +111,10 @@ if [ -z "${container}" ]; then
     "sonarqube:${SONARQUBE_VERSION}@${SONARQUBE_DIGEST}" >/dev/null
 fi
 
-# A restart while the first start is still migrating its database can corrupt it, so the plain server comes up
-# before anything is installed.
-wait_until_up
+# A restart while the first start is still migrating its database can corrupt it, and a jar copied in while the
+# compute engine loads plugins fails its start without the agent and logs an ERROR, so the plain server is fully
+# operational before anything is installed.
+wait_until_operational
 echo "Installing the candidate plugin and webapp into ${container}"
 docker exec -u root "${container}" sh -c 'rm -rf /opt/sonarqube/web/*'
 docker cp "${webapp_dir}/." "${container}:/opt/sonarqube/web"
