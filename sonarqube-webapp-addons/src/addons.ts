@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-import type { OtherEditionAddons } from './addons.types';
+import type { OtherEditionAddons } from './other-edition-addons';
 import branches from './branches';
 import { installErrorBoundary } from './error-boundary';
 import * as entitlements from './feature-license/entitlements';
