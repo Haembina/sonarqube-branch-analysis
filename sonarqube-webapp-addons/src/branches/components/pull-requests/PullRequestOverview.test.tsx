@@ -28,7 +28,7 @@ import { getQualityGateProjectStatus } from '~sq-server-commons/api/quality-gate
 import { mockPullRequest } from '~sq-server-commons/helpers/mocks/branch-like';
 import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
 import { mockQualityGateProjectStatus } from '~sq-server-commons/helpers/mocks/quality-gates';
-import { mockLoggedInUser, mockMeasure } from '~sq-server-commons/helpers/testMocks';
+import { mockLoggedInUser, mockMeasure, mockPeriod } from '~sq-server-commons/helpers/testMocks';
 import { renderComponent } from '~sq-server-commons/helpers/testReactTestingUtils';
 import { Feature } from '~sq-server-commons/types/features';
 import PullRequestOverview from './PullRequestOverview';
@@ -196,6 +196,7 @@ describe('capability pull-request-overview: read the quality gate and new-code m
     jest.mocked(getMeasuresWithPeriodAndMetrics).mockResolvedValueOnce({
       component: { key: PARENT_COMPONENT_KEY, name: 'project', qualifier: 'TRK' },
       metrics: [],
+      period: mockPeriod(),
     } as Awaited<ReturnType<typeof getMeasuresWithPeriodAndMetrics>>);
     renderOverview();
 
