@@ -16,6 +16,7 @@
     "test:coverage": "bash scripts/test-ci.sh",
     "test:e2e": "playwright test",
     "test:addons": "node sonarqube-webapp/node_modules/jest/bin/jest.js --config jest.config.cjs --ci",
+    "typecheck:addons": "node sonarqube-webapp/node_modules/typescript/bin/tsc --noEmit -p sonarqube-webapp/libs/sq-server-addons/tsconfig.json",
     "docs:fresh": "conventions-docs-fresh",
     "gate": "npm run lint && npm run lint:md"
   },

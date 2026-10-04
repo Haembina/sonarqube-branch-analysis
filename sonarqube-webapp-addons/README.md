@@ -56,6 +56,13 @@ npm run test:addons
 
 The report is `coverage/addons/lcov.info`.
 
+Neither Jest nor the Vite build type-checks the addons. `tsc` does, through the link, so each import resolves to the
+webapp module it names:
+
+```bash
+npm run typecheck:addons
+```
+
 ## Where this bites
 
 - `npm run test:addons` runs the submodule's Jest, so before `yarn install` there it stops at

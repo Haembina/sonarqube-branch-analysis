@@ -1,3 +1,4 @@
 {
-  "extends": "../../apps/sq-server/tsconfig.json"
+  "extends": "../../apps/sq-server/tsconfig.json",
+  "include": ["src/**/*"]
 }

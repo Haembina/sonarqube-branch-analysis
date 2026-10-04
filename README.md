@@ -69,6 +69,7 @@ The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 | `npm test` | The Java suite, without its floor |
 | `npm run test:coverage` | The Java suite with its floor, then the addons' suite, and the jars the SonarQube scan resolves types against. What CI runs |
 | `npm run test:addons` | The addons' Jest suite with its floor; `coverage/addons/lcov.info` |
+| `npm run typecheck:addons` | `tsc --noEmit` over the addons against the webapp they link into, after `setup.sh` and `yarn install` |
 | `./gradlew pitest` | PIT mutation run; report in `build/reports/pitest` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with both and runs a main, branch and pull request analysis |
 | `bash scripts/integration-test.sh <jar> <webapp dir> npm run test:e2e` | The same, then the Playwright suite against that server |
