@@ -17,6 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
+import type { OtherEditionAddons } from './addons.types';
 import branches from './branches';
 import { installErrorBoundary } from './error-boundary';
 import * as entitlements from './feature-license/entitlements';
@@ -27,11 +28,10 @@ installErrorBoundary();
 const registry = { branches, entitlements };
 
 /**
- * The registry's type: the addons this build ships, and any other addon the webapp asks for,
- * which is absent here and so reads as `undefined`.
+ * The registry's type: the addons this build ships, and the other editions' addons the webapp
+ * asks for, which are absent here and so read as `undefined`.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- the webapp reads addons of other editions, each typed where it is called
-export type AddonsType = { [key: string]: any } & typeof registry;
+export type AddonsType = OtherEditionAddons & typeof registry;
 
 /**
  * The addon registry the SonarQube webapp loads: the branch and pull request UI, and the
