@@ -56,6 +56,9 @@ describe('capability list-branches: see every branch and pull request of a proje
     const user = userEvent.setup();
     renderPage();
 
+    // The suite's first render resolves the lazy route, then fetches the branches: each stage
+    // is awaited on its own, so a slow runner spends the wait where the page is.
+    await screen.findByRole('heading', { name: 'project_branch_pull_request.page' });
     await screen.findByText('delete-branch');
     const rows = screen.getAllByRole('row');
     expect(within(rows[1]).getByText('main')).toBeInTheDocument();
