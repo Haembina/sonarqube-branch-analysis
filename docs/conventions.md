@@ -32,8 +32,8 @@ The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion numbe
 
 `sonar-project.properties` names the product's code and its tests. Tool configs at the root that no suite measures,
 such as `jest.config.cjs` and `playwright.config.ts`, stay out of `sonar.sources`, because the quality gate asks
-every new line to be covered. The `sonarqube-webapp` submodule stays out too: `npm test` removes it once the addons'
-suite has run, and its dependencies are SonarSource's.
+every new line to be covered. The `sonarqube-webapp` submodule stays out too: `npm run test:coverage` removes it
+once the addons' suite has run, and its dependencies are SonarSource's.
 
 ## Headers
 

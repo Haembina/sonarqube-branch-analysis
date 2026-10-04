@@ -51,7 +51,7 @@ JDK 21. The first build downloads the SonarQube distribution into `sonarqube-lib
 ./gradlew build
 ```
 
-Node from [`.nvmrc`](.nvmrc). `npm run lint` needs `shellcheck`; `npm test` needs `bash` and `git`:
+Node from [`.nvmrc`](.nvmrc). `npm run lint` needs `shellcheck`; `npm run test:coverage` needs `bash` and `git`:
 
 ```bash
 npm ci
@@ -66,7 +66,8 @@ The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 | --- | --- |
 | `./gradlew build` | Compiles with Error Prone and javac lint as errors, runs the suite under the JaCoCo floor, builds the jar |
 | `./gradlew test` | The Java suite; JaCoCo report in `build/reports/jacoco/test` |
-| `npm test` | The Java suite with its floor, and the jars the SonarQube scan resolves types against |
+| `npm test` | The Java suite, without its floor |
+| `npm run test:coverage` | The Java suite with its floor, then the addons' suite, and the jars the SonarQube scan resolves types against. What CI runs |
 | `npm run test:addons` | The addons' Jest suite with its floor; `coverage/addons/lcov.info` |
 | `./gradlew pitest` | PIT mutation run; report in `build/reports/pitest` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with both and runs a main, branch and pull request analysis |
@@ -85,7 +86,7 @@ The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 | `sonarqube-webapp-addons` | The branch and pull request pages, linked into `sonarqube-webapp` at build time |
 | `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
 | `docker` | The image's entrypoint and its upgrade test |
-| `scripts` | The integration test and the suite `npm test` runs |
+| `scripts` | The integration test and the suites `npm run test:coverage` runs |
 | `e2e` | The Playwright suite |
 | `docs` | How the agent, the extensions and the webapp fit together |
 
@@ -275,9 +276,9 @@ to a commercial edition, and migrating data analysed with this plugin is unteste
 - `npm-groovy-lint` pins an `axios` that four GitHub advisories name, which npm's own audit does not list yet, so
   `overrides` in `package.json` holds `axios` at a fixed release. Remove the override once `npm-groovy-lint` takes a
   fixed `axios`; `npm ls axios` shows which one resolves.
-- `npm test` checks the `sonarqube-webapp` submodule out and removes it afterwards, so a dependency audit reads only
-  this repository's lockfiles. It builds with `NX_DAEMON=false`: Nx's daemon holds the submodule open, and on Windows
-  the removal fails with `Could not remove submodule work tree`.
+- `npm run test:coverage` checks the `sonarqube-webapp` submodule out and removes it afterwards, so a dependency
+  audit reads only this repository's lockfiles. It builds with `NX_DAEMON=false`: Nx's daemon holds the submodule
+  open, and on Windows the removal fails with `Could not remove submodule work tree`.
 
 ## License
 

@@ -4,7 +4,7 @@
 #
 # Every suite with its coverage floor, writing the reports a SonarQube scan reads: the Java suite's
 # JaCoCo XML and classes, then the webapp addons' Jest lcov in coverage/addons/lcov.info.
-# This is `npm test`.
+# This is `npm run test:coverage`.
 #
 # The addons' suite runs inside SonarSource's sonarqube-webapp workspace, so this checks the submodule out,
 # links the addons into it with setup.sh, installs its dependencies and builds sq-server once, because the
