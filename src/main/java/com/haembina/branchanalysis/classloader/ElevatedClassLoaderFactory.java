@@ -59,30 +59,7 @@ public interface ElevatedClassLoaderFactory {
                                                           pluginClassLoader.getClass().getName()));
         }
 
-        /*
-        Sonar analysis wants us to use try-with-resources to close the following Classloader after use. Unfortunately
-        Sonar doesn't give us any indication of the plugin being closed/unloaded and the plugin doesn't upload all its
-        classes upfront, so the ClassLoader can't be closed outside of the JVM shutting down. The following line is
-        therefore marked as 'NOSONAR' to suppress the warning.
-         */
-        ClassLoader newPluginClassLoader =
-                URLClassLoader.newInstance(urlPluginClassLoader.getURLs(), coreClassLoader); //NOSONAR java:S2095 lives until JVM shutdown, as SonarQube never signals a plugin unload
-        return new ClassLoader() {
-            @Override
-            public Class<?> loadClass(String name) throws ClassNotFoundException {
-                return loadClass(name, false);
-            }
-
-            @Override
-            public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                try {
-                    return newPluginClassLoader.loadClass(name);
-                } catch (ClassNotFoundException ex) {
-                    return pluginClassLoader.loadClass(name);
-                }
-            }
-        };
-
-
+        return new ElevatedPluginClassLoader(
+                URLClassLoader.newInstance(urlPluginClassLoader.getURLs(), coreClassLoader), pluginClassLoader);
     }
 }

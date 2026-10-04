@@ -20,7 +20,8 @@ a class SonarQube has already decided to use.
 `CommunityBranchPluginBootstrap` is the `Plugin-Class`. On the web server and the compute engine it checks the agent
 ran, and fails the start with a message naming the missing `javaagent` line if it did not. On the scanner it loads
 `CommunityBranchPlugin` through `ElevatedClassLoaderFactory`, a class loader whose parent is SonarQube's core loader,
-so the scanner-side classes can see the core types a plugin loader hides.
+so the scanner-side classes can see the core types a plugin loader hides. `ElevatedPluginClassLoader` owns that loader
+and can close it; SonarQube never unloads a plugin, so it lives until the JVM exits.
 
 | Package | Runs in | Does |
 | --- | --- | --- |
