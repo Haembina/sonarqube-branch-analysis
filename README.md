@@ -29,7 +29,7 @@ SonarQube Community Build analyses one branch per project and decorates nothing.
 | | mc1arke's plugin | Haembina Branch Analysis |
 | --- | --- | --- |
 | CI branch detection | Always on | Off switch: `com.haembina.branchanalysis.auto-configuration.enabled` |
-| Java coverage | Reported | Build fails under 100% of lines and branches |
+| Java coverage | Reported | Build fails under the floor `conventions.json` declares, in lines and branches |
 | Branch page tests | None | Jest suite, same floor; Playwright suite against a running SonarQube |
 | Accessibility | Unchecked | axe WCAG 2.2 A and AA scan of every branch page and dialog, keyboard-only specs, and a spec per criterion axe cannot measure |
 | Release gate | The build | Jar and webapp publish only after a real SonarQube runs a main, branch and pull request analysis with them |

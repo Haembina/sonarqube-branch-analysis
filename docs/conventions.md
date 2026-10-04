@@ -17,7 +17,7 @@ The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion numbe
 | Language | Linted by | Measured by |
 | --- | --- | --- |
 | Java | Error Prone and javac, every finding an error | JUnit 5 and JaCoCo, failing under the declared floor |
-| TypeScript | ESLint with typescript-eslint and sonarjs, and the `sonarqube-webapp` workspace's TypeScript build | Jest in that workspace, failing under the declared floor; Playwright over the built webapp |
+| TypeScript | ESLint with typescript-eslint and sonarjs, and `tsc` through the webapp the addons link into (`npm run typecheck:addons`) | Jest in that workspace, failing under the declared floor; Playwright over the built webapp |
 | JavaScript | ESLint with sonarjs | Nothing: both files are configuration |
 | JSON | ESLint with @eslint/json | Nothing |
 | Gradle | npm-groovy-lint | Nothing |
@@ -26,7 +26,8 @@ The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion numbe
 | Workflows | actionlint | Nothing |
 | Markdown | markdownlint-cli2 | Nothing |
 
-`conventions.json` carries the reason for each entry.
+`conventions.json` carries the reason for each entry. The ESLint rows are the
+presets `@haembina/config` ships, which `eslint.config.mjs` spreads.
 
 ## What the SonarQube scan reads
 
