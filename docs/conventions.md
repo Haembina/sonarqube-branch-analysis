@@ -34,7 +34,8 @@ presets `@haembina/config` ships, which `eslint.config.mjs` spreads.
 `sonar-project.properties` names the product's code and its tests. Tool configs at the root that no suite measures,
 such as `jest.config.cjs` and `playwright.config.ts`, stay out of `sonar.sources`, because the quality gate asks
 every new line to be covered. The `sonarqube-webapp` submodule stays out too: `npm run test:coverage` removes it
-once the addons' suite has run, and its dependencies are SonarSource's.
+once the addons' suite has run, and its dependencies are SonarSource's. With the submodule gone, the addons'
+`tsconfig.json` extends a path that is missing, so the scan reads the TypeScript through `tsconfig.sonar.json`.
 
 ## Headers
 
