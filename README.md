@@ -175,7 +175,9 @@ Take the jar and `sonarqube-webapp.zip` from one release.
 
 `Dockerfile` builds an image from source with the Gradle wrapper, running the suite; `release.Dockerfile` downloads a
 release from the public mirror. Both base images are pinned by digest, and `SONARQUBE_VERSION` and `SONARQUBE_DIGEST`
-change together. A tag pushes the release image to `ghcr.io/haembina/haembina-branch-analysis:<version>`. Overriding
+change together. A tag pushes the release image to `ghcr.io/haembina/haembina-branch-analysis:<version>` through
+`docker/push-release-image.sh`; every pull request runs it against a recording `docker` in
+`docker/test-push-release-image.sh`. Overriding
 `SONAR_WEB_JAVAADDITIONALOPTS` or `SONAR_CE_JAVAADDITIONALOPTS` drops the `javaagent` settings unless the override
 repeats them. `docker-compose.yml` reads `SONARQUBE_VERSION`, `SONARQUBE_DIGEST`, `DOCKERFILE`, `PLUGIN_VERSION` and
 `SONARQUBE_PORT` from `.env`:

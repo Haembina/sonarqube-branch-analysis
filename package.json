@@ -9,7 +9,7 @@
     "lint:es": "eslint .",
     "lint:java": "sh gradlew compileJava compileTestJava",
     "lint:gradle": "npm-groovy-lint --noserver --failon warning --loglevel warning build.gradle settings.gradle",
-    "lint:sh": "shellcheck scripts/integration-test.sh scripts/test-ci.sh docker/branch-analysis-entrypoint.sh docker/test-branch-analysis-entrypoint.sh sonarqube-webapp-addons/setup.sh",
+    "lint:sh": "shellcheck scripts/integration-test.sh scripts/test-ci.sh docker/branch-analysis-entrypoint.sh docker/test-branch-analysis-entrypoint.sh docker/push-release-image.sh docker/test-push-release-image.sh sonarqube-webapp-addons/setup.sh",
     "lint:md": "markdownlint-cli2",
     "lint:docker": "docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d hadolint - < Dockerfile && docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d hadolint - < release.Dockerfile",
     "test": "sh gradlew test",
