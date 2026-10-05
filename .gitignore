@@ -27,6 +27,7 @@
 #Node
 /node_modules/
 /coverage/
+/reports/
 
 #SonarQube scanner
 /.scannerwork/
