@@ -15,18 +15,18 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import tseslint from 'typescript-eslint';
 import { basePreset, jsonPreset, typescriptPreset } from '@haembina/config';
 
-// The addons' TypeScript is the only TypeScript this repository ships. Its glob
-// is written in both presets rather than held in a constant, so the config is
-// one exported value and no statement for a coverage report to count.
+/** The addons' TypeScript, the only TypeScript this repository ships. */
+const ADDONS = ['sonarqube-webapp-addons/src/**/*.{ts,tsx}'];
+
 export default [
   ...basePreset({
     js,
     sonarjs,
-    files: ['**/*.mjs', 'sonarqube-webapp-addons/src/**/*.{ts,tsx}'],
+    files: ['**/*.mjs', ...ADDONS],
     // SonarSource's webapp is a submodule and not ours to lint, and the rest
     // is Gradle's, SonarQube's or the scanner's output.
     ignores: ['build/**', 'sonarqube-lib/**', 'sonarqube-webapp/**', '.scannerwork/**', '.claude/**'],
   }),
-  ...typescriptPreset({ tseslint, files: ['sonarqube-webapp-addons/src/**/*.{ts,tsx}'] }),
+  ...typescriptPreset({ tseslint, files: ADDONS }),
   ...jsonPreset({ json }),
 ];
