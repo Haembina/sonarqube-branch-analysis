@@ -7,7 +7,7 @@ ARG SONARQUBE_DIGEST="sha256:c0f1160bccfa435db4168c2d7df69af3c3ea7bfeb8739561301
 ARG PLUGIN_VERSION="27.0.2"
 
 # busybox's unzip unpacks the webapp, so nothing is installed.
-FROM alpine:3.23@sha256:85fe1e81d6758c208f3e1eed4338a1997e19d4be002d4dd32d3100c9a8c010a0 AS downloader
+FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS downloader
 ARG PLUGIN_VERSION
 
 ADD https://github.com/Haembina/sonarqube-branch-analysis/releases/download/v${PLUGIN_VERSION}/sonarqube-webapp.zip /tmp/sonarqube-webapp.zip
