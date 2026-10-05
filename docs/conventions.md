@@ -36,6 +36,8 @@ such as `jest.config.cjs` and `playwright.config.ts`, stay out of `sonar.sources
 every new line to be covered. The `sonarqube-webapp` submodule stays out too: `npm run test:coverage` removes it
 once the addons' suite has run, and its dependencies are SonarSource's. With the submodule gone, the addons'
 `tsconfig.json` extends a path that is missing, so the scan reads the TypeScript through `tsconfig.sonar.json`.
+`eslint.config.mjs` is analysed but left out of coverage: `npm run lint:es` loads it by name and no test imports it,
+so `conventions.json` declares it an `entry` exclusion and `sonar.coverage.exclusions` carries it.
 
 ## Headers
 

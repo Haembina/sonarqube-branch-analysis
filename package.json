@@ -6,7 +6,7 @@
   "description": "The npm tooling around the Gradle build of Haembina Branch Analysis: linters and test runners.",
   "scripts": {
     "lint": "npm run lint:sh && npm run lint:es && npm run lint:gradle && npm run lint:java",
-    "lint:es": "eslint .",
+    "lint:es": "eslint --config eslint.config.mjs .",
     "lint:java": "sh gradlew compileJava compileTestJava",
     "lint:gradle": "npm-groovy-lint --noserver --failon warning --loglevel warning build.gradle settings.gradle",
     "lint:sh": "shellcheck scripts/integration-test.sh scripts/test-ci.sh docker/branch-analysis-entrypoint.sh docker/test-branch-analysis-entrypoint.sh sonarqube-webapp-addons/setup.sh",
