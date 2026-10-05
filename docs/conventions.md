@@ -17,8 +17,8 @@ The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion numbe
 | Language | Linted by | Measured by |
 | --- | --- | --- |
 | Java | Error Prone and javac, every finding an error | JUnit 5 and JaCoCo, failing under the declared floor |
-| TypeScript | ESLint with typescript-eslint and sonarjs, and `tsc` through the webapp the addons link into (`npm run typecheck:addons`) | Jest in that workspace, failing under the declared floor; Playwright over the built webapp |
-| JavaScript | ESLint with sonarjs | Nothing: both files are configuration |
+| TypeScript | ESLint with typescript-eslint and sonarjs, and `tsc` through the webapp the addons link into (`npm run typecheck:addons`) | Jest in that workspace, failing under the declared floor; Playwright over the built webapp; Stryker (`npm run mutation`) |
+| JavaScript | ESLint with sonarjs | Nothing: every file is configuration |
 | JSON | ESLint with @eslint/json | Nothing |
 | Gradle | npm-groovy-lint | Nothing |
 | Shell | shellcheck | Nothing: the Docker upgrade test and the integration test run them |

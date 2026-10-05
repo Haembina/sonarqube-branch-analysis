@@ -33,7 +33,7 @@ SonarQube Community Build analyses one branch per project and decorates nothing.
 | Branch page tests | None | Jest suite, same floor; Playwright suite against a running SonarQube |
 | Accessibility | Unchecked | axe WCAG 2.2 A and AA scan of every branch page and dialog, keyboard-only specs, and a spec per criterion axe cannot measure |
 | Release gate | The build | Jar and webapp publish only after a real SonarQube runs a main, branch and pull request analysis with them |
-| Mutation testing | PIT configured | PIT weekly in CI |
+| Mutation testing | PIT configured | PIT weekly in CI; Stryker over the addons |
 | Java compiler | javac warnings | Error Prone and javac lint as errors |
 
 Branch page fixes: long branch names wrap, the pull request overview reflows on a narrow screen, focus returns to a
@@ -71,6 +71,7 @@ The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 | `npm run test:addons` | The addons' Jest suite with its floor; `coverage/addons/lcov.info` |
 | `npm run typecheck:addons` | `tsc --noEmit` over the addons against the webapp they link into, after `setup.sh` and `yarn install` |
 | `./gradlew pitest` | PIT mutation run; report in `build/reports/pitest` |
+| `npm run mutation` | Stryker over the addons, through the webapp's Jest, after `setup.sh` and `yarn install`; report in `reports/mutation` |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with both and runs a main, branch and pull request analysis |
 | `bash scripts/integration-test.sh <jar> <webapp dir> npm run test:e2e` | The same, then the Playwright suite against that server |
 | `npm run lint` | shellcheck, ESLint (TypeScript, JavaScript, JSON), npm-groovy-lint (Gradle), Error Prone and javac (Java) |
@@ -127,7 +128,7 @@ bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/
 A failed run prints the server's last 300 log lines, then one `integration-test.sh failed:` line naming the check or
 command that failed, so a CI job's last lines say why it is red.
 
-PIT shows whether the assertions notice a change, which coverage cannot. It sets no threshold, since equivalent
+PIT and Stryker show whether the assertions notice a change, which coverage cannot. Neither sets a threshold, since equivalent
 mutants make one noise.
 
 ### End-to-end suite
