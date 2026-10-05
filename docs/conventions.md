@@ -36,8 +36,8 @@ such as `jest.config.cjs` and `playwright.config.ts`, stay out of `sonar.sources
 every new line to be covered. The `sonarqube-webapp` submodule stays out too: `npm run test:coverage` removes it
 once the addons' suite has run, and its dependencies are SonarSource's. With the submodule gone, the addons'
 `tsconfig.json` extends a path that is missing, so the scan reads the TypeScript through `tsconfig.sonar.json`.
-`eslint.config.mjs` is analysed but left out of coverage: `npm run lint:es` loads it by name and no test imports it,
-so `conventions.json` declares it an `entry` exclusion and `sonar.coverage.exclusions` carries it.
+`eslint.config.mjs` is analysed but left out of coverage: `npm run lint:es` loads it as ESLint's default config and no
+test imports it, so `conventions.json` declares it an `entry` exclusion and `sonar.coverage.exclusions` carries it.
 
 ## Headers
 
@@ -47,7 +47,7 @@ Every Java and TSX file opens with its LGPL-3.0 licence header. Keep it when cha
 
 - An Error Prone or javac warning fails the Java build: `-Werror` is on every compile task. Run `npm run lint:java`
   to see one before pushing.
-- A number other than -1, 0 or 1 written inline in the addons or an `.mjs` script fails `npm run lint:es` (S6). Name
+- A number other than -1, 0, 1 or 2 written inline in the addons or an `.mjs` script fails `npm run lint:es` (S6). Name
   it as a constant.
 - A suite dropping under the JaCoCo floor fails `./gradlew build`, which `build.yml` runs. The report is
   `build/reports/jacoco/test/html/index.html`.
