@@ -17,7 +17,7 @@ The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion numbe
 | Language | Linted by | Measured by |
 | --- | --- | --- |
 | Java | Error Prone and javac, every finding an error | JUnit 5 and JaCoCo, failing under the declared floor |
-| TypeScript | ESLint with typescript-eslint and sonarjs, and the `sonarqube-webapp` workspace's TypeScript build | Jest in that workspace, failing under the declared floor; Playwright over the built webapp |
+| TypeScript | ESLint with typescript-eslint and sonarjs, and `tsc` through the webapp the addons link into (`npm run typecheck:addons`) | Jest in that workspace, failing under the declared floor; Playwright over the built webapp |
 | JavaScript | ESLint with sonarjs | Nothing: both files are configuration |
 | JSON | ESLint with @eslint/json | Nothing |
 | Gradle | npm-groovy-lint | Nothing |
@@ -26,14 +26,18 @@ The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion numbe
 | Workflows | actionlint | Nothing |
 | Markdown | markdownlint-cli2 | Nothing |
 
-`conventions.json` carries the reason for each entry.
+`conventions.json` carries the reason for each entry. The ESLint rows are the
+presets `@haembina/config` ships, which `eslint.config.mjs` spreads.
 
 ## What the SonarQube scan reads
 
 `sonar-project.properties` names the product's code and its tests. Tool configs at the root that no suite measures,
 such as `jest.config.cjs` and `playwright.config.ts`, stay out of `sonar.sources`, because the quality gate asks
 every new line to be covered. The `sonarqube-webapp` submodule stays out too: `npm run test:coverage` removes it
-once the addons' suite has run, and its dependencies are SonarSource's.
+once the addons' suite has run, and its dependencies are SonarSource's. With the submodule gone, the addons'
+`tsconfig.json` extends a path that is missing, so the scan reads the TypeScript through `tsconfig.sonar.json`.
+`eslint.config.mjs` is analysed but left out of coverage: `npm run lint:es` loads it by name and no test imports it,
+so `conventions.json` declares it an `entry` exclusion and `sonar.coverage.exclusions` carries it.
 
 ## Headers
 
