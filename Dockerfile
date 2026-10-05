@@ -11,7 +11,7 @@ ARG WORKDIR="/home/build/project"
 # The Gradle the wrapper pins, on the JDK the plugin targets, running the suite before it packages the jar.
 # verifySonarqubeVersion compares .env, README.md and these Dockerfiles, none of which this stage copies;
 # build.yml's Gradle build runs it.
-FROM eclipse-temurin:21-jdk-noble@sha256:70898f0f893a6b772a0f29834d8b022e3ac20b6a0c33a922973cf66342ef56be AS builder
+FROM eclipse-temurin:21-jdk-noble@sha256:b468c3fc688b14450571494f588bd939378e7fd542ed5a73f8efc13f17872a87 AS builder
 ARG PLUGIN_VERSION
 ARG WORKDIR
 
@@ -23,7 +23,7 @@ RUN sh gradlew build -x verifySonarqubeVersion -Pversion="${PLUGIN_VERSION}" --n
 
 
 # bash, which setup.sh needs, ships in the Debian image.
-FROM node:22.16-bookworm-slim@sha256:048ed02c5fd52e86fda6fbd2f6a76cf0d4492fd6c6fee9e2c463ed5108da0e34 AS webapp-builder
+FROM node:22.23-bookworm-slim@sha256:43ac6c60b8f89723f746e8a92ce91abd5017e627ce1ddfe4238355d3a30b772c AS webapp-builder
 
 WORKDIR /home/build
 COPY sonarqube-webapp ./sonarqube-webapp
