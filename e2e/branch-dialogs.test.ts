@@ -16,14 +16,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@haembina/accessibility/playwright';
+import type { Page } from '@playwright/test';
 import {
   arrowTo,
   BRANCH,
   CI_PULL_REQUEST,
-  expectNoAxeViolations,
   expectVisibleFocus,
-  OPEN_DIALOG,
   openBranchesPage,
   rowOf,
   tabTo,
@@ -48,7 +47,7 @@ async function pickActionByKeyboard(page: Page, name: string, action: string) {
 }
 
 test.describe('capability rename-main-branch: rename the main branch of a project', () => {
-  test('renames the main branch, and back again by keyboard alone', async ({ page }) => {
+  test('renames the main branch, and back again by keyboard alone', async ({ page, audit }) => {
     await openBranchesPage(page);
 
     await pickAction(page, 'main', 'Rename branch');
@@ -56,7 +55,7 @@ test.describe('capability rename-main-branch: rename the main branch of a projec
     const name = dialog.getByRole('textbox', { name: 'New name' });
     await expect(name).toBeFocused();
     await expect(dialog.getByRole('button', { name: 'Rename' })).toBeDisabled();
-    await expectNoAxeViolations(page, OPEN_DIALOG);
+    await audit('rename branch dialog');
     await name.fill('trunk');
     await dialog.getByRole('button', { name: 'Rename' }).click();
     await expect(dialog).toBeHidden();
@@ -73,13 +72,13 @@ test.describe('capability rename-main-branch: rename the main branch of a projec
 });
 
 test.describe('capability set-main-branch: make another branch the main branch of a project', () => {
-  test('makes a branch main, then restores main by keyboard alone', async ({ page }) => {
+  test('makes a branch main, then restores main by keyboard alone', async ({ page, audit }) => {
     await openBranchesPage(page);
 
     await pickAction(page, BRANCH, 'Set as main branch');
     const dialog = page.getByRole('dialog', { name: `Set "${BRANCH}" as the main branch` });
     await expect(dialog).toBeVisible();
-    await expectNoAxeViolations(page, OPEN_DIALOG);
+    await audit('set main branch dialog');
     await dialog.getByRole('button', { name: 'Set as main branch' }).click();
     await expect(dialog).toBeHidden();
     await expect(rowOf(page, BRANCH)).toContainText('Main Branch');
@@ -96,14 +95,14 @@ test.describe('capability set-main-branch: make another branch the main branch o
 });
 
 test.describe('capability delete-branch: delete a branch or pull request of a project', () => {
-  test('deletes a pull request by keyboard alone', async ({ page }) => {
+  test('deletes a pull request by keyboard alone', async ({ page, audit }) => {
     await openBranchesPage(page);
     await page.getByRole('tab', { name: 'Pull Requests' }).click();
 
     await pickActionByKeyboard(page, CI_PULL_REQUEST, 'Delete Pull Request');
     const dialog = page.getByRole('dialog', { name: 'Delete Pull Request' });
     await expect(dialog).toBeVisible();
-    await expectNoAxeViolations(page, OPEN_DIALOG);
+    await audit('delete pull request dialog');
     await tabTo(page, dialog.getByRole('button', { name: 'Delete' }));
     await page.keyboard.press('Enter');
 
@@ -111,13 +110,13 @@ test.describe('capability delete-branch: delete a branch or pull request of a pr
     await expect(rowOf(page, CI_PULL_REQUEST)).toHaveCount(0);
   });
 
-  test('asks before deleting a branch, and keeps it on cancel', async ({ page }) => {
+  test('asks before deleting a branch, and keeps it on cancel', async ({ page, audit }) => {
     await openBranchesPage(page);
 
     await pickAction(page, BRANCH, 'Delete branch');
     const dialog = page.getByRole('dialog', { name: 'Delete branch' });
     await expect(dialog).toContainText(BRANCH);
-    await expectNoAxeViolations(page, OPEN_DIALOG);
+    await audit('delete branch dialog');
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
     await expect(rowOf(page, BRANCH)).toBeVisible();

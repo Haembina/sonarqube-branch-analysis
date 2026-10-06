@@ -16,7 +16,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import AxeBuilder from '@axe-core/playwright';
 import { expect, type Locator, type Page } from '@playwright/test';
 
 /** The project scripts/integration-test.sh analyses: main, a branch and two pull requests. */
@@ -94,43 +93,4 @@ export async function expectVisibleFocus(page: Page): Promise<void> {
   });
   expect(indicator.outline !== 'none' || indicator.shadow !== 'none').toBe(true);
   expect(indicator.uncovered).toBe(true);
-}
-
-/** The selector an axe scan narrows to while a dialog or a popover is open. */
-export const OPEN_DIALOG = '[role="dialog"]';
-
-/** The axe tags naming every WCAG 2.0, 2.1 and 2.2 success criterion at levels A and AA. */
-const WCAG_22_AA_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa'];
-
-/**
- * Nodes SonarSource's own webapp draws outside `sonarqube-webapp-addons`, whose violations are
- * SonarSource's to fix. Each names the node and what axe reports about it.
- */
-const SONARSOURCE_NODES = [
-  '[data-testid="sidebar-navigation-wrapper"]', // The project sidebar: aria-hidden while collapsed, its links still focusable (aria-hidden-focus).
-  '#graph-type', // The main branch overview's graph picker: an Echoes Select combobox without aria-expanded (aria-required-attr).
-  'a[href^="/tutorials?"]', // The main branch overview's next-steps callout: #5d6cd0 on #f5fbff, 4.45:1 (color-contrast).
-  'a[href*="category=pull_request_decoration_binding"]', // The same callout's second link, at the same 4.45:1 (color-contrast).
-  'a[href*="sonarsource.com/products/sonarqube/why-upgrade"]', // The upgrade callout's link: #5d6cd0 on #fcf5e4, 4.27:1 (color-contrast).
-];
-
-/**
- * Scans the page with axe for violations of WCAG 2.2 A and AA, narrowed to `scope` when given,
- * such as an open dialog, and skipping `SONARSOURCE_NODES`. Fails listing each violated rule
- * and the nodes that break it.
- */
-export async function expectNoAxeViolations(page: Page, scope?: string): Promise<void> {
-  let builder = new AxeBuilder({ page }).withTags(WCAG_22_AA_TAGS);
-  for (const node of SONARSOURCE_NODES) {
-    builder = builder.exclude(node);
-  }
-  if (scope !== undefined) {
-    builder = builder.include(scope);
-  }
-  const { violations } = await builder.analyze();
-  const found = violations.map(
-    ({ id, impact, nodes }) =>
-      `${id} (${impact}): ${nodes.map(({ target }) => target.join(' ')).join(', ')}`,
-  );
-  expect(found).toEqual([]);
 }

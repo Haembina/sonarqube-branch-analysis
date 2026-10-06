@@ -34,7 +34,15 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
   workers: 1, // One SonarQube and one project, whose branches the dialog specs rename and delete.
-  reporter: [['list'], ['html', { open: 'never', outputFolder: 'build/reports/e2e' }]],
+  reporter: [
+    ['list'],
+    ['html', { open: 'never', outputFolder: 'build/reports/e2e' }],
+    // Writes accessibility-report.json from every audit the specs ran; X1 reads it.
+    [
+      '@haembina/accessibility/reporter',
+      { absences: ['no-media', 'no-timing', 'no-pointer-gestures', 'no-motion-actuation'] },
+    ],
+  ],
   outputDir: 'build/e2e-results',
   use: {
     baseURL: process.env.SONARQUBE_URL ?? 'http://localhost:9000',
