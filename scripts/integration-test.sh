@@ -123,6 +123,11 @@ docker exec -u root "${container}" sh -c "chmod -R a+rX /opt/sonarqube/web '${pl
   'sonar.web.javaAdditionalOpts=-javaagent:${plugin_path}=web' \
   'sonar.ce.javaAdditionalOpts=-javaagent:${plugin_path}=ce' >> /opt/sonarqube/conf/sonar.properties"
 docker restart --time 60 "${container}" >/dev/null
+# A job's service publishes 9000 on a host port Docker picks, and a restart may pick another
+if [ -z "${owned_container}" ]; then
+  SONARQUBE_PORT=$(docker port "${container}" 9000/tcp | head -n 1 | sed 's/.*://')
+  SONARQUBE_URL="http://localhost:${SONARQUBE_PORT}"
+fi
 wait_until_up
 
 auth="admin:admin"
