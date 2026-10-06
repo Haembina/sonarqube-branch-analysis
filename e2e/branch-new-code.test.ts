@@ -19,9 +19,11 @@
 import { expect, test } from '@haembina/accessibility/playwright';
 import type { Page } from '@playwright/test';
 import {
+  ADDON_PAGE,
   arrowTo,
   BRANCH,
   expectVisibleFocus,
+  OPEN_DIALOG,
   PROJECT,
   tabTo,
 } from './sonarqube.helper';
@@ -39,7 +41,7 @@ test.describe('capability set-branch-new-code: give a branch its own new code de
       page.getByRole('heading', { name: 'Set a specific setting for a branch' }),
     ).toBeVisible();
     await expect(branchRow(page)).toContainText('Project setting');
-    await audit('new code');
+    await audit('new code', {}, ADDON_PAGE);
 
     await tabTo(page, branchRow(page).getByRole('button', { name: `Edit ${BRANCH}` }));
     await expectVisibleFocus(page);
@@ -47,7 +49,7 @@ test.describe('capability set-branch-new-code: give a branch its own new code de
     const dialog = page.getByRole('dialog', { name: `New Code for ${BRANCH}` });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled();
-    await audit('new code dialog');
+    await audit('new code dialog', {}, OPEN_DIALOG);
 
     // Tab enters the group of choices at its first; the arrows move between them.
     const days = dialog.getByRole('radio', { name: /Number of days/ });

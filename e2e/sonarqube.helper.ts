@@ -16,7 +16,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+import type { Scope } from '@haembina/accessibility/playwright';
 import { expect, type Locator, type Page } from '@playwright/test';
+
+/**
+ * Nodes SonarSource's own webapp draws outside `sonarqube-webapp-addons`, whose violations are
+ * SonarSource's to fix, so no audit judges them. Each names the node and what axe reports about it.
+ */
+const SONARSOURCE_NODES = [
+  '[data-testid="sidebar-navigation-wrapper"]', // The project sidebar: aria-hidden while collapsed, its links still focusable (aria-hidden-focus).
+  '#graph-type', // The main branch overview's graph picker: an Echoes Select combobox without aria-expanded (aria-required-attr).
+  'a[href^="/tutorials?"]', // The main branch overview's next-steps callout: #5d6cd0 on #f5fbff, 4.45:1 (color-contrast).
+  'a[href*="category=pull_request_decoration_binding"]', // The same callout's second link, at the same 4.45:1 (color-contrast).
+  'a[href*="sonarsource.com/products/sonarqube/why-upgrade"]', // The upgrade callout's link: #5d6cd0 on #fcf5e4, 4.27:1 (color-contrast).
+];
+
+/** An audit of a page the addons draw part of, SonarSource's own nodes left out. */
+export const ADDON_PAGE: Scope = { exclude: SONARSOURCE_NODES };
+
+/** An audit of the open dialog or popover alone, which the addons draw whole. */
+export const OPEN_DIALOG: Scope = { include: ['[role="dialog"]'], exclude: SONARSOURCE_NODES };
+
+/** An audit of the branch list the addons draw, inside its root. */
+export const BRANCH_LIST: Scope = { include: ['#project-branch-like'], exclude: SONARSOURCE_NODES };
 
 /** The project scripts/integration-test.sh analyses: main, a branch and two pull requests. */
 export const PROJECT = process.env.SONARQUBE_PROJECT ?? 'branch-analysis-it';

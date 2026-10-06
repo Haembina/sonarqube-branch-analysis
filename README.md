@@ -136,7 +136,8 @@ mutants make one noise.
 A command after the integration test's two paths runs against its server once its checks pass. The Playwright suite
 signs in as a user it creates and drives the branch list, the switcher, the pull request overview, the new code
 settings and the rename, set-as-main and delete dialogs, each also by keyboard alone. Each page and open dialog is
-audited with `@haembina/accessibility`, whose reporter writes `accessibility-report.json` for area X. The
+audited with `@haembina/accessibility`, scoped to the addons' own markup (`e2e/sonarqube.helper.ts` lists the
+SonarSource nodes left out), and its reporter writes `accessibility-report.json` for area X. The
 `e2e/wcag-*.test.ts` specs cover what the package does not measure, over the nodes `e2e/wcag.helper.ts` names. It needs
 `npx playwright install chromium`:
 
