@@ -37,7 +37,10 @@ hands them to the decorator for the project's ALM binding, which posts a summary
 
 The Community Build's frontend dropped the branch and pull request pages. `sonarqube-webapp-addons` reimplements them
 as an Nx library, and `setup.sh` links it into SonarSource's `sonarqube-webapp` submodule as `libs/sq-server-addons`
-before the build. The release publishes the built webapp as `sonarqube-webapp.zip`, which replaces SonarQube's `web`
+before the build. It also wraps the submodule's `vite.config.base.ts` with `preserveSymlinks`, again whenever a checkout
+restores the tracked base: the self-hosted runners reuse their checkout, which keeps the untracked
+`vite.config.src.ts`, and CI builds with `--skip-nx-cache` because the kept `.nx` answers a cache hit without
+restoring `build/webapp`. The release publishes the built webapp as `sonarqube-webapp.zip`, which replaces SonarQube's `web`
 directory. The submodule is pinned to the Community Build tag the plugin compiles against, so a jar and a webapp from
 one release always match.
 
