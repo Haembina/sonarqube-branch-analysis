@@ -38,8 +38,8 @@ test ! -s "${calls}"
 # The job runs on a v-tag only, after the mirror's release, with the token allowed to write packages.
 workflow="${repository_root}/.github/workflows/build.yml"
 job=$(sed -n '/^  image:$/,/^  [a-z-]*:$/p' "${workflow}")
-printf '%s\n' "${job}" | grep -Fq 'needs: [prep, mirror]'
-printf '%s\n' "${job}" | grep -Fq "if: needs.prep.outputs.release == 'true'"
+printf '%s\n' "${job}" | grep -Fq 'needs: [snapshot, mirror]'
+printf '%s\n' "${job}" | grep -Fq "if: needs.snapshot.outputs.release == 'true'"
 printf '%s\n' "${job}" | grep -Fq 'packages: write'
 printf '%s\n' "${job}" | grep -Fq 'run: sh docker/push-release-image.sh'
 grep -Eq "^      - 'v\\*'$" "${workflow}"
