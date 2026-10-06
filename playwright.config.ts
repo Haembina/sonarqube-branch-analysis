@@ -49,6 +49,9 @@ export default defineConfig({
     // Outside outputDir, so an uploaded failure artifact carries no session.
     storageState: 'build/e2e-auth/storage-state.json',
     trace: 'retain-on-failure',
+    // The audit injects axe-core as an inline script, which SonarQube's CSP refuses; bypassing
+    // it in the test browser changes nothing the plugin ships.
+    bypassCSP: true,
     ...devices['Desktop Chrome'],
   },
   projects: [
