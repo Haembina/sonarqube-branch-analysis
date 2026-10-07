@@ -87,8 +87,8 @@ The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 | `src/test` | The JUnit 5 suite and fixtures |
 | `sonarqube-webapp-addons` | The branch and pull request pages, linked into `sonarqube-webapp` at build time |
 | `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
-| `docker` | The image's entrypoint and its upgrade test |
-| `scripts` | The integration test and the suites `npm run test:coverage` runs |
+| `docker` | The image's entrypoint and release push, each with its test |
+| `scripts` | The integration test, the suites `npm run test:coverage` runs, and the Proxmox install |
 | `e2e` | The Playwright suite |
 | `docs` | How the agent, the extensions and the webapp fit together |
 
