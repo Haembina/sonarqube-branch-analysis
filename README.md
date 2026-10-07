@@ -31,7 +31,7 @@ SonarQube Community Build analyses one branch per project and decorates nothing.
 | CI branch detection | Always on | Off switch: `com.haembina.branchanalysis.auto-configuration.enabled` |
 | Java coverage | Reported | Build fails under the floor `conventions.json` declares, in lines and branches |
 | Branch page tests | None | Jest suite, same floor; Playwright suite against a running SonarQube |
-| Accessibility | Unchecked | axe WCAG 2.2 A and AA scan of every branch page and dialog, keyboard-only specs, and a spec per criterion axe cannot measure |
+| Accessibility | Unchecked | `@haembina/accessibility` audit of every branch page and dialog, keyboard-only specs, and a spec per criterion the package cannot measure |
 | Release gate | The build | Jar and webapp publish only after a real SonarQube runs a main, branch and pull request analysis with them |
 | Mutation testing | PIT configured | PIT weekly in CI; Stryker over the addons |
 | Java compiler | javac warnings | Error Prone and javac lint as errors |
@@ -135,9 +135,10 @@ mutants make one noise.
 
 A command after the integration test's two paths runs against its server once its checks pass. The Playwright suite
 signs in as a user it creates and drives the branch list, the switcher, the pull request overview, the new code
-settings and the rename, set-as-main and delete dialogs, each also by keyboard alone. Each page and open dialog gets an
-axe scan for WCAG 2.2 A and AA; `e2e/sonarqube.helper.ts` lists the nodes SonarSource draws outside the addons. The
-`e2e/wcag-*.test.ts` specs cover the criteria axe cannot measure, over the nodes `e2e/wcag.helper.ts` names. It needs
+settings and the rename, set-as-main and delete dialogs, each also by keyboard alone. Each page and open dialog is
+audited with `@haembina/accessibility`, scoped to the addons' own markup (`e2e/sonarqube.helper.ts` lists the
+SonarSource nodes left out), and its reporter writes `accessibility-report.json` for area X. The
+`e2e/wcag-*.test.ts` specs cover what the package does not measure, over the nodes `e2e/wcag.helper.ts` names. It needs
 `npx playwright install chromium`:
 
 ```bash

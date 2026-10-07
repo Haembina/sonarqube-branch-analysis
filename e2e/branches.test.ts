@@ -16,11 +16,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from '@haembina/accessibility/playwright';
 import {
   BRANCH,
+  BRANCH_LIST,
   CI_PULL_REQUEST,
-  expectNoAxeViolations,
   expectVisibleFocus,
   openBranchesPage,
   PULL_REQUEST,
@@ -29,9 +29,12 @@ import {
 } from './sonarqube.helper';
 
 test.describe('capability list-branches: see every branch and pull request of a project', () => {
-  test('lists the branches, main first, then the pull requests on their tab', async ({ page }) => {
+  test('lists the branches, main first, then the pull requests on their tab', async ({
+    page,
+    audit,
+  }) => {
     await openBranchesPage(page);
-    await expectNoAxeViolations(page);
+    await audit('branches', {}, BRANCH_LIST);
 
     await expect(page).toHaveTitle(/Branches & Pull Requests/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -55,7 +58,7 @@ test.describe('capability list-branches: see every branch and pull request of a 
     await expect(rowOf(page, PULL_REQUEST)).toBeVisible();
     await expect(rowOf(page, CI_PULL_REQUEST)).toBeVisible();
     await expect(rowOf(page, BRANCH)).toHaveCount(0);
-    await expectNoAxeViolations(page);
+    await audit('pull requests', {}, BRANCH_LIST);
   });
 
   test('switches tabs by keyboard alone, and only when asked', async ({ page }) => {

@@ -16,11 +16,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { expect, test } from '@playwright/test';
-import { expectNoAxeViolations, expectVisibleFocus, PROJECT, tabTo } from './sonarqube.helper';
+import { expect, test } from '@haembina/accessibility/playwright';
+import { ADDON_PAGE, expectVisibleFocus, PROJECT, tabTo } from './sonarqube.helper';
 
 test.describe('capability pull-request-overview: read the quality gate and new-code measures of a pull request', () => {
-  test('shows the gate, the branches it merges and the new-code measures', async ({ page }) => {
+  test('shows the gate, the branches it merges and the new-code measures', async ({
+    page,
+    audit,
+  }) => {
     await page.goto(`/dashboard?id=${PROJECT}&pullRequest=1`);
 
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
@@ -38,7 +41,7 @@ test.describe('capability pull-request-overview: read the quality gate and new-c
     const box = await newIssues.boundingBox();
     expect(box?.width).toBeGreaterThan(0);
     expect(box?.height).toBeGreaterThan(0);
-    await expectNoAxeViolations(page);
+    await audit('pull request overview', {}, ADDON_PAGE);
   });
 
   test('reaches the new issues of the pull request by keyboard alone', async ({ page }) => {

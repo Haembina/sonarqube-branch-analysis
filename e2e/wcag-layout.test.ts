@@ -23,24 +23,14 @@ import {
   BRANCH_LIST,
   BRANCH_NEW_CODE,
   BRANCH_SWITCHER,
-  clippedText,
   NON_TEXT_CONTRAST,
   nonTextContrast,
-  overflowPast,
   PULL_REQUEST_OVERVIEW,
-  TEXT_SPACING_CSS,
 } from './wcag.helper';
 
 /** A phone held upright, then turned, in CSS pixels. */
 const PORTRAIT = { width: 800, height: 1280 };
 const LANDSCAPE = { width: 1280, height: 800 };
-
-/** A 1280 by 800 window at 200% zoom, which is how a browser resizes text (WCAG 1.4.4). */
-const ZOOMED_200 = { width: 640, height: 400 };
-
-/** The width WCAG 1.4.10 asks content to reflow into: 1280 CSS pixels at 400% zoom. */
-const REFLOW_WIDTH = 320;
-const REFLOW = { width: REFLOW_WIDTH, height: 256 };
 
 /** The largest box an icon bitmap is drawn in; a bitmap any larger could be carrying words. */
 const ICON_PX = 32;
@@ -77,25 +67,6 @@ function layoutCases(surface: AddonSurface) {
         }),
       );
       expect(orientationRules).toEqual([]);
-    });
-
-    test('1.4.4: cuts off no text at 200% zoom', async ({ page }) => {
-      await page.setViewportSize(ZOOMED_200);
-      const region = await surface.open(page);
-      expect(await clippedText(region)).toEqual([]);
-    });
-
-    test('1.4.10: reflows into 320 CSS pixels, tables aside', async ({ page }) => {
-      await page.setViewportSize(REFLOW);
-      const region = await surface.open(page);
-      expect(await overflowPast(region, REFLOW_WIDTH)).toEqual([]);
-      expect(await clippedText(region)).toEqual([]);
-    });
-
-    test('1.4.12: cuts off no text with WCAG text spacing forced on', async ({ page }) => {
-      const region = await surface.open(page);
-      await page.addStyleTag({ content: TEXT_SPACING_CSS });
-      expect(await clippedText(region)).toEqual([]);
     });
 
     test('1.4.5: draws its words as text: no bitmap larger than an icon, no SVG text', async ({
