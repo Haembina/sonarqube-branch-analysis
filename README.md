@@ -126,7 +126,8 @@ bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/
 ```
 
 A failed run prints the server's last 300 log lines, then one `integration-test.sh failed:` line naming the check or
-command that failed, so a CI job's last lines say why it is red.
+command that failed, so a CI job's last lines say why it is red. A server that stops itself while starting fails the
+run at once, naming Elasticsearch's disk watermark line when there is one: past 95% of the disk, it stops SonarQube.
 
 PIT and Stryker show whether the assertions notice a change, which coverage cannot. Neither sets a threshold, since equivalent
 mutants make one noise.
