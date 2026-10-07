@@ -12,6 +12,8 @@
 import { delimiter, join } from 'node:path';
 import process from 'node:process';
 
+import { strykerPreset } from '@haembina/config';
+
 // The jest runner resolves `jest` from the working directory, and this checkout's own
 // node_modules holds none. Stryker's test runners are child processes started after this file
 // is read, so they inherit the workspace's node_modules as a module path.
@@ -19,32 +21,28 @@ process.env.NODE_PATH = [join(import.meta.dirname, 'sonarqube-webapp', 'node_mod
   .filter(Boolean)
   .join(delimiter);
 
+/**
+ * The shared settings (per-test coverage, incremental runs, eight workers, the reporters) are
+ * `strykerPreset`'s; the preset names no Jest runner, so the runner is spelled out here.
+ */
 export default {
-  packageManager: 'npm',
-  testRunner: 'jest',
-  jest: {
-    configFile: 'jest.config.cjs',
-    // Only the suites importing a mutated file rerun.
-    enableFindRelatedTests: true,
-  },
-  mutate: ['sonarqube-webapp-addons/src/**/*.{ts,tsx}', '!sonarqube-webapp-addons/src/**/*.test.{ts,tsx}'],
+  ...strykerPreset({
+    runner: {
+      testRunner: 'jest',
+      jest: {
+        configFile: 'jest.config.cjs',
+        // Only the suites importing a mutated file rerun.
+        enableFindRelatedTests: true,
+      },
+    },
+    mutate: ['sonarqube-webapp-addons/src/**/*.{ts,tsx}', '!sonarqube-webapp-addons/src/**/*.test.{ts,tsx}'],
+  }),
   // In place rather than in a sandbox: a sandbox leaves out every node_modules, and the
   // workspace's is where Jest, Babel and jsdom live. Stryker restores every file when the run
   // ends, interrupted or not.
   inPlace: true,
-  coverageAnalysis: 'perTest',
-  // Kept between runs, so a second pass re-tests only what changed.
-  incremental: true,
   incrementalFile: 'reports/stryker-incremental.json',
-  // One worker per core contends badly on the 32-thread runner box.
-  concurrency: 8,
   // A timeout counts as killed, so a tight one inflates the score. The jsdom suites take tens of
-  // seconds each on a cold transform cache.
+  // seconds each on a cold transform cache, past the preset's minute.
   timeoutMS: 120_000,
-  // `json` writes reports/mutation/mutation.json, which the weekly run uploads to the analysis
-  // server; `html` names each survivor's line.
-  reporters: ['progress', 'clear-text', 'html', 'json'],
-  clearTextReporter: {
-    maxTestsToLog: 0,
-  },
 };
