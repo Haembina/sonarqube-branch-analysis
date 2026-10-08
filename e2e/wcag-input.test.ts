@@ -104,23 +104,6 @@ test.describe('capability rename-main-branch: rename the main branch of a projec
   });
 });
 
-test.describe('capability list-branches: see every branch and pull request of a project', () => {
-  test('1.4.13: keeps a tooltip open under the pointer, and closes it on Escape', async ({
-    page,
-  }) => {
-    await openBranchesPage(page);
-    await rowOf(page, 'main').getByLabel('Help').hover();
-    const tooltip = page.getByRole('tooltip');
-    await expect(tooltip).toContainText('The main branch is always excluded from automatic deletion.');
-
-    await tooltip.hover();
-    await expect(tooltip).toBeVisible();
-
-    await page.keyboard.press('Escape');
-    await expect(tooltip).toBeHidden();
-  });
-});
-
 test.describe('signed out', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 

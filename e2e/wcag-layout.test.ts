@@ -16,59 +16,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
 import { expect, test } from '@playwright/test';
-import { BRANCH, openBranchesPage, rowOf, tabTo } from './sonarqube.helper';
 import {
   type AddonSurface,
   BRANCH_LIST,
   BRANCH_NEW_CODE,
   BRANCH_SWITCHER,
-  NON_TEXT_CONTRAST,
-  nonTextContrast,
   PULL_REQUEST_OVERVIEW,
 } from './wcag.helper';
 
-/** A phone held upright, then turned, in CSS pixels. */
-const PORTRAIT = { width: 800, height: 1280 };
-const LANDSCAPE = { width: 1280, height: 800 };
+/*
+ * What the shared audit cannot tell from a page: that no picture stands in for words (1.4.5).
+ * Orientation, flashes and non-text contrast are `@haembina/accessibility`'s probes, run by
+ * every `audit` call.
+ */
 
 /** The largest box an icon bitmap is drawn in; a bitmap any larger could be carrying words. */
 const ICON_PX = 32;
 
-/** The shortest cycle an animation may repeat on: three flashes a second at most (2.3.1). */
-const FLASH_CYCLE_MS = 1000 / 3;
-
-/** Declares the layout cases for one surface, under the capability describe that calls it. */
+/** Declares the layout case for one surface, under the capability describe that calls it. */
 function layoutCases(surface: AddonSurface) {
   test.describe(`WCAG layout of the ${surface.name}`, () => {
-    test('1.3.4: shows the same content upright and turned, and no style locks either', async ({
-      page,
-    }) => {
-      // Digits are dropped so an age such as "2 minutes ago" ticking over between reads is no
-      // difference in content.
-      const content = async () => (await region.innerText()).trim().replace(/\d+/g, '#');
-      await page.setViewportSize(PORTRAIT);
-      const region = await surface.open(page);
-      const upright = await content();
-      await page.setViewportSize(LANDSCAPE);
-      await expect(region).toBeVisible();
-      expect(await content()).toBe(upright);
-
-      const orientationRules = await page.evaluate(() =>
-        Array.from(document.styleSheets).flatMap((sheet) => {
-          try {
-            return Array.from(sheet.cssRules)
-              .filter((rule) => rule instanceof CSSMediaRule)
-              .map((rule) => (rule as CSSMediaRule).conditionText)
-              .filter((condition) => condition.includes('orientation'));
-          } catch {
-            return []; // A cross-origin sheet hides its rules; SonarQube serves none.
-          }
-        }),
-      );
-      expect(orientationRules).toEqual([]);
-    });
-
     test('1.4.5: draws its words as text: no bitmap larger than an icon, no SVG text', async ({
       page,
     }) => {
@@ -90,27 +59,6 @@ function layoutCases(surface: AddonSurface) {
       }, ICON_PX);
       expect(images).toEqual([]);
     });
-
-    test('2.3.1: runs no animation that repeats faster than three times a second', async ({
-      page,
-    }) => {
-      await surface.open(page);
-      const fast = await page.evaluate(
-        (shortest) =>
-          document
-            .getAnimations()
-            .map((animation) => animation.effect?.getComputedTiming())
-            .filter(
-              (timing) =>
-                timing !== undefined &&
-                (timing.iterations ?? 1) > 1 &&
-                Number(timing.duration) < shortest,
-            )
-            .map((timing) => `${String(timing?.duration)}ms x ${String(timing?.iterations)}`),
-        FLASH_CYCLE_MS,
-      );
-      expect(fast).toEqual([]);
-    });
   });
 }
 
@@ -128,55 +76,4 @@ test.describe('capability switch-branch: open another branch or pull request of 
 
 test.describe('capability list-branches: see every branch and pull request of a project', () => {
   layoutCases(BRANCH_LIST);
-});
-
-// WCAG 1.4.11 reads the branch list's controls and the rename dialog opened from it.
-test.describe('capability list-branches: see every branch and pull request of a project', () => {
-  test('1.4.11: draws each control and its states at 3:1 against the page', async ({ page }) => {
-    await openBranchesPage(page);
-    const row = rowOf(page, BRANCH);
-    const keep = row.getByRole('switch');
-    const kept = await keep.isChecked();
-
-    expect(await nonTextContrast(keep)).toBeGreaterThanOrEqual(NON_TEXT_CONTRAST);
-    await keep.click();
-    await expect(keep).toBeChecked({ checked: !kept });
-    expect(await nonTextContrast(keep)).toBeGreaterThanOrEqual(NON_TEXT_CONTRAST);
-    await keep.click();
-    await expect(keep).toBeChecked({ checked: kept });
-
-    const actions = row.getByRole('button', { name: `Update ${BRANCH}` });
-    expect(await nonTextContrast(actions)).toBeGreaterThanOrEqual(NON_TEXT_CONTRAST);
-  });
-
-  test('1.4.11: draws the focus indicator at 3:1 against the page', async ({ page }) => {
-    await openBranchesPage(page);
-    const actions = rowOf(page, BRANCH).getByRole('button', { name: `Update ${BRANCH}` });
-    await tabTo(page, actions);
-    const indicator = await actions.evaluate((element) => {
-      const style = getComputedStyle(element);
-      return style.outlineStyle === 'none'
-        ? (/rgba?\([^)]+\)/.exec(style.boxShadow)?.[0] ?? 'none')
-        : style.outlineColor;
-    });
-    const probe = await page.evaluate((color) => {
-      const swatch = document.createElement('span');
-      swatch.style.border = `2px solid ${color}`;
-      swatch.id = 'focus-indicator-swatch';
-      document.getElementById('project-branch-like')?.append(swatch);
-      return swatch.id;
-    }, indicator);
-    expect(await nonTextContrast(page.locator(`#${probe}`))).toBeGreaterThanOrEqual(
-      NON_TEXT_CONTRAST,
-    );
-  });
-
-  test('1.4.11: draws the rename field boundary at 3:1 against the dialog', async ({ page }) => {
-    await openBranchesPage(page);
-    await rowOf(page, 'main').getByRole('button', { name: 'Update main' }).click();
-    await page.getByRole('menuitem', { name: 'Rename branch' }).click();
-    const name = page.getByRole('dialog', { name: 'Rename branch' }).getByRole('textbox');
-    expect(await nonTextContrast(name)).toBeGreaterThanOrEqual(NON_TEXT_CONTRAST);
-    await page.keyboard.press('Escape');
-  });
 });

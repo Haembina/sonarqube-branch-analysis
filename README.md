@@ -87,8 +87,8 @@ The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 | `src/test` | The JUnit 5 suite and fixtures |
 | `sonarqube-webapp-addons` | The branch and pull request pages, linked into `sonarqube-webapp` at build time |
 | `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
-| `docker` | The image's entrypoint and its upgrade test |
-| `scripts` | The integration test and the suites `npm run test:coverage` runs |
+| `docker` | The image's entrypoint and release push, each with its test |
+| `scripts` | The integration test, the suites `npm run test:coverage` runs, and the Proxmox install |
 | `e2e` | The Playwright suite |
 | `docs` | How the agent, the extensions and the webapp fit together |
 
@@ -126,7 +126,8 @@ bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/
 ```
 
 A failed run prints the server's last 300 log lines, then one `integration-test.sh failed:` line naming the check or
-command that failed, so a CI job's last lines say why it is red.
+command that failed, so a CI job's last lines say why it is red. A server that stops itself while starting fails the
+run at once, naming Elasticsearch's disk watermark line when there is one: past 95% of the disk, it stops SonarQube.
 
 PIT and Stryker show whether the assertions notice a change, which coverage cannot. Neither sets a threshold, since equivalent
 mutants make one noise.
