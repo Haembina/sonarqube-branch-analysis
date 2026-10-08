@@ -81,9 +81,21 @@ api() {
   curl --silent --show-error --fail -u "${auth}" "$@"
 }
 
+# A server that stopped itself never comes up, so a wait stops as soon as the container has exited and says why
+# rather than running out its timeout. Elasticsearch's flood stage is the usual reason: past 95% of its disk it marks
+# every index read-only, and the web process stops the whole server while creating them.
+assert_running() {
+  if [ "$(docker inspect -f '{{.State.Running}}' "${container}" 2>/dev/null)" != true ]; then
+    local watermark
+    watermark=$(docker logs "${container}" 2>&1 | grep -m 1 'disk watermark' || true)
+    fail "SonarQube stopped during startup${watermark:+: ${watermark}}"
+  fi
+}
+
 wait_until_up() {
   local deadline=$((SECONDS + STARTUP_TIMEOUT_SECONDS))
   until curl --silent "${SONARQUBE_URL}/api/system/status" | jq -e '.status == "UP"' >/dev/null 2>&1; do
+    assert_running
     if (( SECONDS >= deadline )); then
       fail "SonarQube was not UP after ${STARTUP_TIMEOUT_SECONDS}s"
     fi
@@ -96,6 +108,7 @@ wait_until_up() {
 wait_until_operational() {
   local deadline=$((SECONDS + STARTUP_TIMEOUT_SECONDS))
   until docker exec "${container}" grep -q 'SonarQube is operational' /opt/sonarqube/logs/sonar.log 2>/dev/null; do
+    assert_running
     if (( SECONDS >= deadline )); then
       fail "SonarQube was not operational after ${STARTUP_TIMEOUT_SECONDS}s"
     fi
