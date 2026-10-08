@@ -10,7 +10,7 @@ platform finds the suites. The TSX under `sonarqube-webapp-addons` follows Sonar
 component, and its suite beside it as `<Component>.test.tsx`. The Playwright specs in `e2e` are `<page>.test.ts`, so the
 conventions check reads their `capability <name>: <what>` titles; the capabilities in `conventions.json` name them.
 The WCAG specs are `wcag-<concern>.test.ts`, each case titled by criterion number under the capability it drives, and
-`accessibility.criteria` names them.
+they hold what the shared audit's `accessibility-report.json` cannot measure.
 
 ## Languages
 
