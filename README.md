@@ -60,6 +60,10 @@ npm ci
 The webapp builds inside the `sonarqube-webapp` submodule; setup is in
 [`sonarqube-webapp-addons/README.md`](sonarqube-webapp-addons/README.md).
 
+The dev container, [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json),
+opens the checkout in `ghcr.io/haembina/node-android`, the image CI builds in, with
+its parent directory mounted as `/estate`.
+
 ## Commands
 
 | Command | What it does |
