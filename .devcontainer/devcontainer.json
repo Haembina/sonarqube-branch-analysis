@@ -1,0 +1,8 @@
+{
+  "name": "haembina-branch-analysis",
+  "image": "ghcr.io/haembina/node-android:latest",
+  "workspaceMount": "source=${localWorkspaceFolder}/..,target=/estate,type=bind",
+  "workspaceFolder": "/estate/${localWorkspaceFolderBasename}",
+  "remoteUser": "node",
+  "postCreateCommand": "npm ci"
+}
