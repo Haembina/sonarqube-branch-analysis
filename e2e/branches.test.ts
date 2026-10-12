@@ -34,7 +34,7 @@ test.describe('capability list-branches: see every branch and pull request of a 
     audit,
   }) => {
     await openBranchesPage(page);
-    await audit('branches', {}, BRANCH_LIST);
+    await audit('branches', BRANCH_LIST);
 
     await expect(page).toHaveTitle(/Branches & Pull Requests/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -58,7 +58,7 @@ test.describe('capability list-branches: see every branch and pull request of a 
     await expect(rowOf(page, PULL_REQUEST)).toBeVisible();
     await expect(rowOf(page, CI_PULL_REQUEST)).toBeVisible();
     await expect(rowOf(page, BRANCH)).toHaveCount(0);
-    await audit('pull requests', {}, BRANCH_LIST);
+    await audit('pull requests', BRANCH_LIST);
   });
 
   test('switches tabs by keyboard alone, and only when asked', async ({ page }) => {

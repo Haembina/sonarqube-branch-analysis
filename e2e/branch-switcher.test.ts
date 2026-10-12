@@ -78,14 +78,14 @@ test.describe('capability switch-branch: open another branch or pull request of 
     await expect(popover.getByRole('link', { name: new RegExp(PULL_REQUEST) })).toBeVisible();
     await expect(popover.getByRole('link', { name: new RegExp(BRANCH) })).toHaveCount(0);
     // Last, because the audit's Tab walk may take focus out of the popover and close it.
-    await audit('branch switcher', {}, OPEN_DIALOG);
+    await audit('branch switcher', OPEN_DIALOG);
   });
 
   test('opens, walks and leaves by keyboard alone', async ({ page, audit }) => {
     await page.goto(`/dashboard?id=${PROJECT}`);
     const button = page.getByRole('button', { name: 'main', exact: true });
     await expect(button).toBeVisible();
-    await audit('overview', {}, ADDON_PAGE);
+    await audit('overview', ADDON_PAGE);
 
     await tabTo(page, button);
     await expectVisibleFocus(page);
