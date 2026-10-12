@@ -305,4 +305,4 @@ what.
 - [Webapp addons](sonarqube-webapp-addons/README.md): building the branch pages
 - [Changelog](CHANGELOG.md)
 - [License](LICENSE) and [Notice](NOTICE)
-- [Security policy](SECURITY.md): reporting a vulnerability
+- [Security policy](docs/security.md): reporting a vulnerability
