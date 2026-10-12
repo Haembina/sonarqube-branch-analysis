@@ -11,3 +11,7 @@ A confirmed vulnerability is fixed in a release, and its advisory is published w
 ## Supported versions
 
 Only the newest release gets fixes.
+
+## Where this bites
+
+A report filed as a public issue discloses the hole before a release fixes it; close it and ask for a private report.
