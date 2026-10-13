@@ -1,4 +1,19 @@
+<div align="center">
+
+<img src="../icons/icon.png" alt="" width="48">
+
 # Guide
+
+Installing the plugin, configuring decoration, and upgrading from the Community
+Branch Plugin.
+
+[README](../README.md) · [Architecture](architecture.md) ·
+[Contributing](contributing.md) · **Guide** · [Security](security.md) ·
+[Testing](testing.md)
+
+</div>
+
+---
 
 How to install Haembina Branch Analysis on a SonarQube Community Build, and
 configure it. Docker and Kubernetes installs are in the [README](../README.md).

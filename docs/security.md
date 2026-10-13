@@ -7,7 +7,7 @@
 Reporting a vulnerability, which releases get fixes, and what protects a server.
 
 [README](../README.md) · [Architecture](architecture.md) ·
-[Contributing](contributing.md) · [undefined](guide.md) · **Security** ·
+[Contributing](contributing.md) · [Guide](guide.md) · **Security** ·
 [Testing](testing.md)
 
 </div>

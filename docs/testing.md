@@ -7,8 +7,8 @@
 Each suite, what it proves and cannot reach, and what CI runs.
 
 [README](../README.md) · [Architecture](architecture.md) ·
-[Contributing](contributing.md) · [undefined](guide.md) ·
-[Security](security.md) · **Testing**
+[Contributing](contributing.md) · [Guide](guide.md) · [Security](security.md) ·
+**Testing**
 
 </div>
 

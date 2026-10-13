@@ -7,7 +7,7 @@
 How the Java agent, the plugin extensions and the webapp fit together.
 
 [README](../README.md) · **Architecture** · [Contributing](contributing.md) ·
-[undefined](guide.md) · [Security](security.md) · [Testing](testing.md)
+[Guide](guide.md) · [Security](security.md) · [Testing](testing.md)
 
 </div>
 
