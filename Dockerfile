@@ -10,7 +10,7 @@ ARG WORKDIR="/home/build/project"
 
 # The Gradle the wrapper pins, on the JDK the plugin targets, running the suite before it packages the jar.
 # verifySonarqubeVersion compares .env, README.md and these Dockerfiles, none of which this stage copies;
-# build.yml's Gradle build runs it.
+# CI's Gradle build runs it.
 FROM eclipse-temurin:21-jdk-noble@sha256:b468c3fc688b14450571494f588bd939378e7fd542ed5a73f8efc13f17872a87 AS builder
 ARG PLUGIN_VERSION
 ARG WORKDIR
