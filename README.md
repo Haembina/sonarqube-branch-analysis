@@ -185,8 +185,8 @@ extraInitContainers:
 ├── .github/                  The workflows and Dependabot's settings
 ├── LICENSES/                 License texts, by SPDX identifier
 ├── deploy/                   Helm values for SonarSource's SonarQube chart
-├── docker/                   The image's entrypoint and release push, each with
-│                             its test
+├── docker/                   The image's entrypoint, release push and
+│                             published-image check, each with its test
 ├── docs/                     The guide, and how the plugin is built, tested,
 │                             secured and contributed to
 ├── e2e/                      The Playwright suite over the branch pages, with
