@@ -1,203 +1,132 @@
-<p align="center">
-  <img src="icons/icon.png" alt="Haembina Branch Analysis logo" width="128">
-</p>
+<div align="center">
 
-# Haembina Branch Analysis
+<img src="icons/icon.png" alt="" width="112">
 
-Branch analysis and pull request decoration for **SonarQube Community Build 26.9.0.129388**
-(`sonarqube:26.9.0.129388-community`). Java 21 and Gradle against the SonarQube plugin API, plus a patched SonarQube
-webapp whose branch pages are TypeScript and React in [`sonarqube-webapp-addons`](sonarqube-webapp-addons/README.md).
-Each release supports only the SonarQube build it names, `sonarqubeVersion` in `build.gradle`.
+# haembina-branch-analysis
 
-A fork of [mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin)
-by Michael Clarke. SonarQube is a trademark of SonarSource; SonarSource neither makes nor supports this plugin.
+**Branch analysis and pull request decoration for SonarQube Community Build: a
+plugin, and the branch pages its webapp dropped.**
+
+[What it does](#what-it-does) · [Fork](#what-this-fork-adds) · [How it
+works](#how-it-works) · [Setup](#setup-and-use) · [Docker](#docker) ·
+[Kubernetes](#kubernetes) · [Commands](#commands) · [Layout](#layout) ·
+[Documents](#documents)
+
+</div>
+
+---
 
 ## What it does
 
-SonarQube Community Build analyses one branch per project and decorates nothing. This plugin adds:
-
-- Analysis of every branch and pull request, each with its own quality gate, issues and new code, plus the pages to
-  list, rename, delete and set the main branch.
-- Pull request decoration: GitHub check runs with annotations and an optional summary comment, GitLab merge
-  request discussions and a summary comment, Bitbucket Cloud and Server Code Insights reports, Azure DevOps threads
-  and a quality gate status.
-- Branch and pull request parameters read from Azure Pipelines, Bitbucket Pipelines, Cirrus CI, Codemagic, GitHub
-  Actions, GitLab CI and Jenkins, so the scanner needs no `sonar.branch.*` or `sonar.pullrequest.*` there.
+<table>
+<tr>
+<td width="50%" valign="top">
+<img src="icons/readme/git-branch.svg" width="20" alt=""> <b>Branch analysis</b><br>
+Every branch and pull request gets its own quality gate, issues and new code,
+with pages to list, rename, delete and set the main branch.
+</td>
+<td width="50%" valign="top">
+<img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
+GitHub check runs and summary comments, GitLab discussions, Bitbucket Code
+Insights reports, and Azure DevOps threads with a quality gate status.
+</td>
+</tr>
+<tr>
+<td valign="top">
+<img src="icons/readme/bolt.svg" width="20" alt=""> <b>CI detection</b><br>
+Reads branch and pull request parameters from Azure Pipelines, Bitbucket
+Pipelines, Cirrus CI, Codemagic, GitHub Actions, GitLab CI and Jenkins. One
+setting switches it off.
+</td>
+<td valign="top">
+<img src="icons/readme/device-desktop.svg" width="20" alt=""> <b>Branch pages</b><br>
+Restores the branch and pull request pages the Community Build's webapp dropped,
+as a webapp that replaces SonarQube's own.
+</td>
+</tr>
+<tr>
+<td valign="top">
+<img src="icons/readme/alert-triangle.svg" width="20" alt=""> <b>One supported build</b><br>
+Each release supports only the SonarQube Community Build that sonarqubeVersion
+in build.gradle names. SonarSource neither makes nor supports this plugin.
+</td>
+</tr>
+</table>
 
 ## What this fork adds
 
-| | mc1arke's plugin | Haembina Branch Analysis |
+A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin).
+
+| What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| CI branch detection | Always on | Off switch: `com.haembina.branchanalysis.auto-configuration.enabled` |
-| Java coverage | Reported | Build fails under the floor `conventions.json` declares, in lines and branches |
-| Branch page tests | None | Jest suite, same floor; Playwright suite against a running SonarQube |
-| Accessibility | Unchecked | `@haembina/accessibility` audit of every branch page and dialog, keyboard-only specs, and a spec per criterion the package cannot measure |
-| Release gate | The build | Jar and webapp publish only after a real SonarQube runs a main, branch and pull request analysis with them |
-| Mutation testing | PIT configured | PIT weekly in CI; Stryker over the addons |
-| Java compiler | javac warnings | Error Prone and javac lint as errors |
+| CI branch detection | Always on | An off switch: com.haembina.branchanalysis.auto-configuration.enabled |
+| Java coverage | Reported | The build fails under its floor, in lines and branches |
+| Branch page tests | None | A Jest suite under the same floor, and a Playwright suite against a running SonarQube |
+| Accessibility | Unchecked | An audit of every branch page and dialog, keyboard-only specs, and a spec per WCAG criterion the audit cannot measure |
+| Release gate | The build | Jar and webapp publish only after a real SonarQube analyses a main branch, a branch and a pull request with them |
+| Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
+| Java compiler | javac warnings | Error Prone and javac lint, every finding an error |
+| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns after a dialog, controls carry names, uncaught errors show a toast |
+| Upstream pull requests | Open | Merged: newer Community Builds, monorepo keys in Azure DevOps statuses, Bitbucket credentials out of debug logs, GitLab summary cleanup |
 
-Branch page fixes: long branch names wrap, the pull request overview reflows on a narrow screen, focus returns to a
-row's actions button when its dialog closes, controls carry accessible names, and an uncaught error shows as a toast.
+## How it works
 
-Merged from pull requests to mc1arke's repository: SonarQube 26.7, 26.8 and 26.9 support, the project key in Azure
-DevOps quality gate status names for monorepos, Bitbucket Cloud OAuth credentials kept out of debug logs, GitLab
-summary comments deleted on resolved discussions, and plugin upgrades in release images.
-
-## Getting started
-
-JDK 21. The first build downloads the SonarQube distribution into `sonarqube-lib`:
-
-```bash
-./gradlew build
+```mermaid
+flowchart LR
+  s0["SonarQube starts the Java agent from two javaagent lines"]
+  s1["The agent switches the edition check on as classes load"]
+  s2["The plugin fills the branch interfaces the Community Build leaves empty"]
+  s3["The scanner reads or detects the branch or pull request"]
+  s4["The compute engine decorates the pull request on its ALM"]
+  s5["The replaced webapp shows the branch pages"]
+  s0 --> s1
+  s1 --> s2
+  s2 --> s3
+  s3 --> s4
+  s4 --> s5
 ```
 
-Node from [`.nvmrc`](.nvmrc). `npm run lint` needs `shellcheck`; `npm run test:coverage` needs `bash` and `git`:
+## Setup and use
 
-```bash
-npm ci
-```
+1. Download the jar and sonarqube-webapp.zip from the same release: a jar and a
+   webapp from different releases break the branch pages.
+2. Copy the jar into SonarQube's extensions/plugins directory.
+3. In conf/sonar.properties, set
+   sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=web.
+4. In the same file, set
+   sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=ce.
+5. Replace the contents of SonarQube's web directory with the webapp zip's.
+6. Start SonarQube and accept the third-party plugin warning.
+7. Set the server base URL and decorate pull requests as docs/guide.md
+   describes.
 
-The webapp builds inside the `sonarqube-webapp` submodule; setup is in
-[`sonarqube-webapp-addons/README.md`](sonarqube-webapp-addons/README.md).
+## Docker
 
-The dev container, [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json),
-opens the checkout in `ghcr.io/haembina/node-android`, the image CI builds in, with
-its parent directory mounted as `/estate`.
-
-## Commands
+1. Set SONARQUBE_VERSION, SONARQUBE_DIGEST, DOCKERFILE, PLUGIN_VERSION and
+   SONARQUBE_PORT in .env; the version and digest change together.
+2. DOCKERFILE picks Dockerfile, which builds from source, or release.Dockerfile,
+   which downloads the release PLUGIN_VERSION names.
+3. Start SonarQube and its PostgreSQL database with docker-compose.yml.
+4. Or pull a release image,
+   `ghcr.io/haembina/haembina-branch-analysis:<version>`, which a tag publishes.
+5. An override of SONAR_WEB_JAVAADDITIONALOPTS or SONAR_CE_JAVAADDITIONALOPTS
+   must repeat the javaagent settings, or the plugin starts without its agent.
 
 | Command | What it does |
 | --- | --- |
-| `./gradlew build` | Compiles with Error Prone and javac lint as errors, runs the suite under the JaCoCo floor, builds the jar |
-| `./gradlew test` | The Java suite; JaCoCo report in `build/reports/jacoco/test` |
-| `npm test` | The Java suite, without its floor |
-| `npm run test:coverage` | The Java suite with its floor, then the addons' suite, and the jars the SonarQube scan resolves types against. What CI runs |
-| `npm run test:addons` | The addons' Jest suite with its floor; `coverage/addons/lcov.info` |
-| `npm run typecheck:addons` | `tsc --noEmit` over the addons against the webapp they link into, after `setup.sh` and `yarn install` |
-| `./gradlew pitest` | PIT mutation run; report in `build/reports/pitest` |
-| `npm run mutation` | Stryker over the addons, through the webapp's Jest, after `setup.sh` and `yarn install`; report in `reports/mutation` |
-| `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube with both and runs a main, branch and pull request analysis |
-| `bash scripts/integration-test.sh <jar> <webapp dir> npm run test:e2e` | The same, then the Playwright suite against that server |
-| `npm run lint` | shellcheck, ESLint (TypeScript, JavaScript, JSON), npm-groovy-lint (Gradle), Error Prone and javac (Java) |
-| `npm run lint:md` | markdownlint over every document |
-| `npm run lint:docker` | hadolint over both Dockerfiles, in Docker |
+| `docker compose up --build` | Builds the image DOCKERFILE names and starts SonarQube with PostgreSQL on SONARQUBE_PORT |
+| `docker build --file Dockerfile --tag haembina-branch-analysis:source .` | Builds the image from source, running the Java suite |
+| `docker build --file release.Dockerfile --tag haembina-branch-analysis:release .` | Builds the image from a published release |
 
-## Layout
+## Kubernetes
 
-| Path | Holds |
-| --- | --- |
-| `src/main/java` | The Java agent, the compute-engine and web-server extensions, one client per ALM |
-| `src/main/resources/static` | Images that pull request decorations link to |
-| `src/test` | The JUnit 5 suite and fixtures |
-| `sonarqube-webapp-addons` | The branch and pull request pages, linked into `sonarqube-webapp` at build time |
-| `sonarqube-webapp` | SonarSource's webapp, a submodule pinned to one Community Build tag |
-| `docker` | The image's entrypoint and release push, each with its test |
-| `scripts` | The integration test, the suites `npm run test:coverage` runs, and the Proxmox install |
-| `e2e` | The Playwright suite |
-| `docs` | How the agent, the extensions and the webapp fit together |
+1. Take SonarSource's official [SonarQube Helm
+   chart](https://github.com/SonarSource/helm-chart-sonarqube/tree/master/charts/sonarqube).
+2. Replace ${version} in the values below with the release to install.
+3. Install the chart with them; an init container unpacks the release's webapp
+   into SonarQube's web directory.
 
-## Common tasks
-
-### Switch off branch detection from CI
-
-With it off, a scan naming no branch or pull request analyses main, so CI that scans pull requests onto main keeps
-doing so. Set it under Administration, General, Branches and Pull Requests, or:
-
-```bash
-curl -u "$SONAR_ADMIN_TOKEN:" -X POST "$SONAR_HOST_URL/api/settings/set" -d key=com.haembina.branchanalysis.auto-configuration.enabled -d value=false
-```
-
-### Upgrade from the Community Branch Plugin
-
-The plugin key, jar name and every setting key changed, so SonarQube reads this as a different plugin.
-
-1. Note each `com.github.mc1arke.sonarqube.plugin.branch.*` setting on the server.
-2. Stop SonarQube, delete `sonarqube-community-branch-plugin-*.jar` from `extensions/plugins`, and
-   [install](#manual-install) this jar and webapp, with both `javaagent` lines naming the new jar.
-3. Start SonarQube and set each value again under `com.haembina.branchanalysis.*`, same suffix.
-4. Scanners passing `com.github.mc1arke.sonarqube.plugin.branch.pullrequest.gitlab.pipelineId` pass
-   `com.haembina.branchanalysis.pullrequest.gitlab.pipelineId` instead.
-
-## Testing
-
-Both unit suites fail on any uncovered line or branch; a new uncovered branch is tested or deleted with proof.
-The addons' suites sit beside their files as `*.test.tsx` and run in the submodule's Jest setup.
-
-The integration test needs Docker, `jq` and `curl`:
-
-```bash
-bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp
-```
-
-A failed run prints the server's last 300 log lines, then one `integration-test.sh failed:` line naming the check or
-command that failed, so a CI job's last lines say why it is red. A server that stops itself while starting fails the
-run at once, naming Elasticsearch's disk watermark line when there is one: past 95% of the disk, it stops SonarQube.
-
-PIT and Stryker show whether the assertions notice a change, which coverage cannot. Neither sets a threshold, since equivalent
-mutants make one noise.
-
-### End-to-end suite
-
-A command after the integration test's two paths runs against its server once its checks pass. The Playwright suite
-signs in as a user it creates and drives the branch list, the switcher, the pull request overview, the new code
-settings and the rename, set-as-main and delete dialogs, each also by keyboard alone. Each page and open dialog is
-audited with `@haembina/accessibility`, scoped to the addons' own markup (`e2e/sonarqube.helper.ts` lists the
-SonarSource nodes left out), and its reporter writes `accessibility-report.json` for area X. The
-`e2e/wcag-*.test.ts` specs cover what the package does not measure, over the nodes `e2e/wcag.helper.ts` names. It needs
-`npx playwright install chromium`:
-
-```bash
-bash scripts/integration-test.sh build/libs/haembina-branch-analysis-*.jar path/to/unzipped/webapp npm run test:e2e
-```
-
-Against a server of your own, set `SONARQUBE_URL`, `SONARQUBE_PROJECT` and, when the admin password is not `admin`,
-`SONARQUBE_ADMIN_PASSWORD`. The project must hold the integration test's analyses; the dialog specs rename, re-point
-and delete them. Failures leave a report in `build/reports/e2e`.
-
-## Versioning
-
-SemVer, derived from Conventional Commits, independent of the SonarQube build. A level is what an administrator
-notices:
-
-- **Major**: upgrading needs more than swapping the jar and webapp, such as a renamed setting or plugin key, a changed
-  `javaagent` path, or a SonarQube build dropped.
-- **Minor**: something new: a setting, an ALM, a decoration, or a newer SonarQube build.
-- **Patch**: a fix, with nothing to change on the server.
-
-## Deploying
-
-Take the jar and `sonarqube-webapp.zip` from one release.
-
-### Manual install
-
-1. Copy the jar into `extensions/plugins/`.
-2. In `conf/sonar.properties`, set
-   `sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=web`.
-3. In the same file, set
-   `sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=ce`.
-4. Replace the contents of SonarQube's `web` directory with the webapp zip's.
-5. Start SonarQube and accept the third-party plugin warning.
-
-### Docker
-
-`Dockerfile` builds an image from source with the Gradle wrapper, running the suite; `release.Dockerfile` downloads a
-release from the public mirror. Both base images are pinned by digest, and `SONARQUBE_VERSION` and `SONARQUBE_DIGEST`
-change together. A tag pushes the release image to `ghcr.io/haembina/haembina-branch-analysis:<version>` through
-`docker/push-release-image.sh`; every pull request runs it against a recording `docker` in
-`docker/test-push-release-image.sh`. Overriding
-`SONAR_WEB_JAVAADDITIONALOPTS` or `SONAR_CE_JAVAADDITIONALOPTS` drops the `javaagent` settings unless the override
-repeats them. `docker-compose.yml` reads `SONARQUBE_VERSION`, `SONARQUBE_DIGEST`, `DOCKERFILE`, `PLUGIN_VERSION` and
-`SONARQUBE_PORT` from `.env`:
-
-```bash
-docker compose up --build
-```
-
-### Kubernetes with the official Helm chart
-
-Helm values for the
-[SonarQube chart](https://github.com/SonarSource/helm-chart-sonarqube/tree/master/charts/sonarqube), with `${version}`
-replaced:
+`deploy/helm-values.yaml`:
 
 ```yaml
 community:
@@ -233,76 +162,48 @@ extraInitContainers:
         rm -f /tmp/sonarqube-webapp.zip
 ```
 
-## Configuration
+## Commands
 
-Set [`sonar.core.serverBaseURL`](https://docs.sonarsource.com/sonarqube-server/instance-administration/server-base-url)
-or the links in decorations break. Every setting key starts `com.haembina.branchanalysis.`.
+| Command | What it does |
+| --- | --- |
+| `./gradlew build` | Compiles with Error Prone and javac lint as errors, runs the Java suite under its coverage floor, and builds the jar in build/libs |
+| `./sonarqube-webapp-addons/setup.sh` | Links the branch pages into the sonarqube-webapp submodule before a webapp build |
+| `yarn nx run sq-server:build --skip-nx-cache` | Builds the webapp, from inside sonarqube-webapp, into apps/sq-server/build/webapp |
+| `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube in Docker with both and runs a main, branch and pull request analysis |
+| `./gradlew pitest` | PIT mutation run over the Java suite; the report is in build/reports/pitest |
 
-### Decorate a pull request
+## Layout
 
-Analyse the target branch first. CI that supports auto-configuration needs no branch parameters. Otherwise the target
-branch takes `sonar.branch.name`, and the pull request takes these, following
-[SonarQube's guide](https://docs.sonarsource.com/sonarqube-server/discovering/code-analysis/pull-request-analysis#decoration).
-Any `sonar.branch.*` set alongside makes SonarQube analyse a branch and decorate nothing:
+<details>
+<summary>Open the tree</summary>
 
-```properties
-sonar.pullrequest.key = 100
-sonar.pullrequest.branch = feature/TICKET-123
-sonar.pullrequest.base = main
+```text
+.
+├── .devcontainer/            The dev container, on the image CI builds in
+├── .github/                  The workflows and Dependabot's settings
+├── LICENSES/                 License texts, by SPDX identifier
+├── deploy/                   Helm values for SonarSource's SonarQube chart
+├── docker/                   The image's entrypoint and release push, each with
+│                             its test
+├── docs/                     The guide, and how the plugin is built, tested,
+│                             secured and contributed to
+├── e2e/                      The Playwright suite over the branch pages, with
+│                             its accessibility specs
+├── gradle/                   The Gradle wrapper
+├── icons/                    The project icon and the icons the documents show
+├── scripts/                  The integration test, the coverage run and an
+│                             install script
+├── sonarqube-webapp-addons/  The branch and pull request pages, linked into the
+│                             sonarqube-webapp submodule at build time
+└── src/                      The Java agent, the plugin extensions, one client
+                              per ALM, and their JUnit suite
 ```
 
-A GitHub pull request also needs `sonar.scm.revision`, e.g. with
-[SonarQube Scan](https://github.com/marketplace/actions/official-sonarqube-scan):
+</details>
 
-```yaml
-- name: SonarQube Scan
-  uses: sonarsource/sonarqube-scan-action@<action version>
-  with:
-    args: >
-      -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
-  env:
-    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-```
+## Documents
 
-### Decoration images
-
-SonarQube serves them from this plugin. When the ALM cannot reach SonarQube, copy `src/main/resources/static` somewhere
-it can and set `Images base URL` under General, Pull Request.
-
-## Support
-
-Issues on this repository only; SonarSource and its forum close requests about this plugin. There is no migration path
-to a commercial edition, and migrating data analysed with this plugin is untested and may lose some or all of it.
-
-## Where this bites
-
-- A jar and a webapp from different releases load, and the branch pages then fail at runtime. Install both from the
-  same release.
-- Without both `javaagent` lines in `conf/sonar.properties`, SonarQube starts with the plugin listed and no branch
-  support. `grep javaAdditionalOpts conf/sonar.properties` shows whether they are there.
-- With CI detection left on, a CI scan of a pull request lands on that pull request instead of main, and main stops
-  moving.
-- `npm-groovy-lint` pins an `axios` that four GitHub advisories name, which npm's own audit does not list yet, so
-  `overrides` in `package.json` holds `axios` at a fixed release. Remove the override once `npm-groovy-lint` takes a
-  fixed `axios`; `npm ls axios` shows which one resolves.
-- `npm run test:coverage` checks the `sonarqube-webapp` submodule out and removes it afterwards, so a dependency
-  audit reads only this repository's lockfiles. It builds with `NX_DAEMON=false`: Nx's daemon holds the submodule
-  open, and on Windows the removal fails with `Could not remove submodule work tree`. `build.yml`'s `build-ui` and
-  `docker` jobs remove it too as they end: a change that skips the suites leaves the runner's checkout to CI's audit,
-  which then fails on SonarSource's lockfile.
-
-## License
-
-LGPL-3.0 ([LICENSE](LICENSE)), which adds permissions to GPL-3.0 ([COPYING](COPYING)). Derived from
-[mc1arke/sonarqube-community-branch-plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin),
-Copyright (C) 2020-2026 Michael Clarke, and modified by Haembina since 2026-09-25; [NOTICE](NOTICE) says who holds
-what.
-
-## Further reading
-
-- [Architecture](docs/architecture.md): how the agent, the extensions and the webapp fit together
-- [Webapp addons](sonarqube-webapp-addons/README.md): building the branch pages
-- [Changelog](CHANGELOG.md)
-- [License](LICENSE) and [Notice](NOTICE)
-- [Security policy](docs/security.md): reporting a vulnerability
+[Guide](docs/guide.md) · [Architecture](docs/architecture.md) ·
+[Contributing](docs/contributing.md) · [Security](docs/security.md) ·
+[Testing](docs/testing.md) · [Changelog](CHANGELOG.md) ·
+[License](LICENSE)
