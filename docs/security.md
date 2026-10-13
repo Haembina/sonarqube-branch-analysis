@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="../icons/icon.png" alt="" width="48">
+<img src="/icons/icon.png" alt="" width="48">
 
 # Security
 
 Reporting a vulnerability, which releases get fixes, and what protects a server.
 
-[README](../README.md) · [Architecture](architecture.md) ·
-[Contributing](contributing.md) · [Guide](guide.md) · **Security** ·
-[Testing](testing.md)
+[README](/README.md) · [Architecture](/docs/architecture.md) ·
+[Contributing](/docs/contributing.md) · [Guide](/docs/guide.md) · **Security** ·
+[Testing](/docs/testing.md)
 
 </div>
 
