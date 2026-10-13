@@ -16,28 +16,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-// The end-to-end suite over the branch pages of a running SonarQube. It needs a server whose
-// project already holds scripts/integration-test.sh's analyses, named by SONARQUBE_URL and
-// SONARQUBE_PROJECT, which is how that script runs it:
-//   bash scripts/integration-test.sh <jar> <webapp dir> npm run test:e2e
-
+import { playwrightGpuPreset } from '@haembina/config';
 import { defineConfig, devices } from '@playwright/test';
 
-/** How long one case may take, in milliseconds: a first page load compiles SonarQube's bundles. */
 const CASE_TIMEOUT = 60_000;
+
+const NEW_CODE = 'branch-new-code.test.ts';
+
+const INPUT = 'wcag-input.test.ts';
+
+const DIALOGS = 'branch-dialogs.test.ts';
 
 export default defineConfig({
   testDir: 'e2e',
   testMatch: '*.test.ts',
-  globalSetup: './e2e/global-setup.ts',
+  globalSetup: './e2e/global.setup.ts',
   timeout: CASE_TIMEOUT,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
-  workers: 1, // One SonarQube and one project, whose branches the dialog specs rename and delete.
   reporter: [
     ['list'],
     ['html', { open: 'never', outputFolder: 'build/reports/e2e' }],
-    // Writes accessibility-report.json from every audit the specs ran; X1 reads it.
     [
       '@haembina/accessibility/reporter',
       { absences: ['no-media', 'no-timing', 'no-pointer-gestures', 'no-motion-actuation'] },
@@ -46,17 +45,16 @@ export default defineConfig({
   outputDir: 'build/e2e-results',
   use: {
     baseURL: process.env.SONARQUBE_URL ?? 'http://localhost:9000',
-    // Outside outputDir, so an uploaded failure artifact carries no session.
     storageState: 'build/e2e-auth/storage-state.json',
     trace: 'retain-on-failure',
-    // The audit injects axe-core as an inline script, which SonarQube's CSP refuses; bypassing
-    // it in the test browser changes nothing the plugin ships.
     bypassCSP: true,
     ...devices['Desktop Chrome'],
+    ...playwrightGpuPreset(),
   },
   projects: [
-    { name: 'pages', testIgnore: 'branch-dialogs.test.ts' },
-    // The dialogs change the project the other specs read, so they run last.
-    { name: 'dialogs', testMatch: 'branch-dialogs.test.ts', dependencies: ['pages'] },
+    { name: 'pages', testIgnore: [NEW_CODE, INPUT, DIALOGS] },
+    { name: 'new-code', testMatch: NEW_CODE, dependencies: ['pages'] },
+    { name: 'input', testMatch: INPUT, dependencies: ['new-code'] },
+    { name: 'dialogs', testMatch: DIALOGS, dependencies: ['input'] },
   ],
 });

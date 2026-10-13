@@ -24,6 +24,6 @@ import { lazyLoadComponent } from '~shared/helpers/lazyLoadComponent';
 
 const ProjectBranchesApp = lazyLoadComponent(() => import('./ProjectBranchesApp'));
 
-const routes = () => <Route path="branches" element={<ProjectBranchesApp />} />;
+export const ProjectBranchesRoutes = () => <Route path="branches" element={<ProjectBranchesApp />} />;
 
-export default routes;
+export default ProjectBranchesRoutes;

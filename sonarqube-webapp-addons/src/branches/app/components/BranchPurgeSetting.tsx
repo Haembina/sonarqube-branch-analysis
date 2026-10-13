@@ -35,11 +35,6 @@ interface Props {
   component: Component;
 }
 
-/**
- * Switch that excludes a branch from automatic purge of inactive branches, saved at once via
- * `useExcludeFromPurgeMutation`. Disabled while saving and for the main branch, which is
- * never purged; a tooltip says why.
- */
 export default function BranchPurgeSetting(props: Props) {
   const { branch, component } = props;
   const { mutate: excludeFromPurge, isPending } = useExcludeFromPurgeMutation();
@@ -50,7 +45,6 @@ export default function BranchPurgeSetting(props: Props) {
 
   const isTheMainBranch = isMainBranch(branch);
   const disabled = isTheMainBranch || isPending;
-  // The column header names the setting; the switch's own name adds which branch it keeps.
   const keepWhenInactive = translate(
     'project_branch_pull_request.branch.auto_deletion.keep_when_inactive',
   );
@@ -82,8 +76,6 @@ export default function BranchPurgeSetting(props: Props) {
   );
 }
 
-// The switch draws its off track in the weak border color, 1.55:1 on the page; an inset edge in
-// the bolder border color lets the off state meet WCAG 1.4.11's 3:1. A disabled switch is exempt.
 const SwitchBoundary = styled.span`
   display: inline-flex;
 

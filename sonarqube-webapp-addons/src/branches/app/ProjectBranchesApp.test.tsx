@@ -25,9 +25,8 @@ import { mockAppState } from '~sq-server-commons/helpers/testMocks';
 import { renderAppWithComponentContext } from '~sq-server-commons/helpers/testReactTestingUtils';
 import { Feature } from '~sq-server-commons/types/features';
 import { SettingsKey } from '~sq-server-commons/types/settings';
-// Loaded eagerly so the lazy route resolves at once rather than transforming the page on first render.
 import './ProjectBranchesApp';
-import routes from './routes';
+import routes from './ProjectBranchesRoutes';
 
 const branchesHandler = new BranchesServiceMock();
 const settingsHandler = new SettingsServiceMock();
@@ -46,7 +45,6 @@ function renderPage(canAdmin = true) {
   );
 }
 
-/** Moves keyboard focus to an element, as a Tab walk would, inside React's act. */
 const focus = (element: HTMLElement) => act(() => element.focus());
 
 const rowOf = async (name: string) => (await screen.findByText(name)).closest('tr') as HTMLElement;
@@ -56,8 +54,6 @@ describe('capability list-branches: see every branch and pull request of a proje
     const user = userEvent.setup();
     renderPage();
 
-    // The suite's first render resolves the lazy route, then fetches the branches: each stage
-    // is awaited on its own, so a slow runner spends the wait where the page is.
     await screen.findByRole('heading', { name: 'project_branch_pull_request.page' });
     await screen.findByText('delete-branch');
     const rows = screen.getAllByRole('row');

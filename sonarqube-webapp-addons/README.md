@@ -38,17 +38,27 @@ cd sonarqube-webapp && PROXY=http://my-sonarqube.org yarn start-sqs
 If you are building locally, run the [setup script](#setup) first to create the symlink. The Docker build overwrites the
 directory instead.
 
+- Without the link, the build makes the stock webapp: the branch pages are missing and nothing fails.
+  `ls -l sonarqube-webapp/libs/sq-server-addons` shows whether it is there.
+- Nx hashes none of the linked addons, so a cached build replays the old pages. Pass `--skip-nx-cache` after changing
+  them.
+
 ```bash
-cd sonarqube-webapp && yarn nx run sq-server:build
+cd sonarqube-webapp && yarn nx run sq-server:build --skip-nx-cache
 ```
 
 The distribution files are generated in the `sonarqube-webapp/apps/sq-server/build/webapp` directory.
 
+The submodule pins one SonarQube Community Build tag (`git submodule status`). A webapp built from another tag fails at
+runtime against the server.
+
 ## Testing
 
-Each file's suite sits beside it as `<File>.test.tsx`, written with the workspace's Testing Library helpers and service
-mocks. `jest.config.cjs` at the repository root runs them in the workspace's Jest setup, measures every file under
-`src`, and fails under the coverage floor. After `yarn install` in the submodule, from the repository root:
+- Each file's suite sits beside it as `<File>.test.tsx`, written with the workspace's Testing Library helpers and service
+  mocks.
+- `jest.config.cjs` at the repository root runs them in the workspace's Jest setup, measures every file under `src`,
+  and fails under the coverage floor.
+- The suite runs the submodule's Jest, so run `yarn install` in the submodule first. Then, from the repository root:
 
 ```bash
 npm run test:addons
@@ -62,14 +72,3 @@ webapp module it names:
 ```bash
 npm run typecheck:addons
 ```
-
-## Where this bites
-
-- `npm run test:addons` runs the submodule's Jest, so before `yarn install` there it stops at
-  `Cannot find module .../sonarqube-webapp/node_modules/jest/bin/jest.js`.
-- Without `setup.sh`, `yarn nx run sq-server:build` builds the stock webapp: the branch pages are missing and nothing
-  fails. Check the link exists with `ls -l sonarqube-webapp/libs/sq-server-addons`.
-- Nx hashes none of the linked addons, so after a change to them `yarn nx run sq-server:build` can replay the previous
-  build from its cache and ship the old pages. Build with `--skip-nx-cache` after changing the addons.
-- The submodule pins one SonarQube Community Build tag (`git submodule status`). A webapp from another tag loads against
-  a server that does not match it, and the branch pages fail at runtime.

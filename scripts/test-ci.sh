@@ -17,8 +17,6 @@ cd "${root}"
 
 sh gradlew test jacocoTestCoverageVerification sonarLibraries
 
-# Nx's background daemon outlives the build and holds .nx/workspace-data open inside the submodule, so the deinit
-# below cannot remove it on Windows. Without the daemon, nothing is left running.
 export NX_DAEMON=false
 
 git submodule update --init --depth 1 sonarqube-webapp
@@ -27,6 +25,4 @@ git submodule update --init --depth 1 sonarqube-webapp
 
 npm run test:addons
 
-# The submodule is SonarSource's webapp at a pinned tag: its dependencies are theirs to fix, so the audit and the
-# scan that follow read this repository's own tree and not its lockfile.
 git submodule deinit --force sonarqube-webapp

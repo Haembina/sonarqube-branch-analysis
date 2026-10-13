@@ -16,41 +16,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-// The addons' unit and component suites, run by the sonarqube-webapp workspace's own Jest
-// setup: its Babel transform, jsdom environment, Testing Library, jest-axe and the
-// fail-on-console guard. Run it from this directory with `npm run test:addons`, after
-// `yarn install` in the submodule.
-//
-// rootDir is the workspace, so every `<rootDir>` path SonarSource's config names resolves
-// there, and Babel finds the workspace's babel.config.js. The suites are crawled from the
-// addons' real path rather than through setup.sh's link, because Jest does not follow a
-// symlink, and the process runs from this directory so Istanbul instruments them and the
-// lcov names them as `sonarqube-webapp-addons/src/...`.
-
 const path = require('node:path');
 
 const webapp = path.join(__dirname, 'sonarqube-webapp');
 const addons = path.join(__dirname, 'sonarqube-webapp-addons', 'src');
 const common = require('./sonarqube-webapp/apps/sq-server/jest.config.common.js');
 
-/** Coverage floor, in percent, the run fails under. */
 const FLOOR = 100;
 
 module.exports = {
   ...common,
   rootDir: webapp,
-  // The workspace's manual mocks of react-intl, lodash and @emotion, which Jest reads from a
-  // `__mocks__` directory under a root.
   roots: [addons, path.join(webapp, 'apps', 'sq-server', '__mocks__')],
-  // A file under the real addons path looks for packages from there upward, which never
-  // reaches the workspace's node_modules.
   modulePaths: [path.join(webapp, 'node_modules')],
   moduleNameMapper: {
     ...common.moduleNameMapper,
     '~sq-server-addons/(.+)': `${addons}/$1`,
   },
-  // JestPreprocess.js's Babel options, with Babel's cwd moved to the workspace so its
-  // plugins resolve there. Istanbul keeps Jest's cwd, this directory, as its own.
   transform: {
     '^.+\\.(mjs|[jt]sx?)$': [
       'babel-jest',

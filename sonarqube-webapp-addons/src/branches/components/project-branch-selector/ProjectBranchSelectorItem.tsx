@@ -32,10 +32,6 @@ interface Props {
     overridePath?: ProjectBranchSelectorProps['overridePath'];
 }
 
-/**
- * One link in the branch selector popover: a check mark when current, icon, name and quality
- * gate status (`NONE` when the entry has no status). Links to {@link useMergedPath}.
- */
 export function ProjectBranchSelectorItem(props: Readonly<Props>) {
     const { branchLike, isChecked, overridePath } = props;
 
@@ -80,27 +76,19 @@ export function ProjectBranchSelectorItem(props: Readonly<Props>) {
     );
 }
 
-/**
- * The path to open a branch or pull request: `overridePath` (or the current route when absent)
- * with its `branch` and `pullRequest` query parameters replaced. The main branch gets neither,
- * so the link opens the project's default view. Must run inside a router.
- */
 export function useMergedPath(
     branchLike: BranchLikeBase,
     overridePath?: ProjectBranchSelectorProps['overridePath'],
 ) {
-    // Resolve the override path - can be a static To or a function
     const resolvedOverridePath =
         typeof overridePath === 'function' ? overridePath(branchLike) : overridePath;
 
-    // Start path is either the current or the overridden path
     const startPath = useResolvedPath(resolvedOverridePath || {});
     const [startSearchParams] = useSearchParams();
     const searchParams = createSearchParams(
         resolvedOverridePath?.search?.toString() ?? startSearchParams,
     );
 
-    // Remove current branch-like parameters
     searchParams.delete('branch');
     searchParams.delete('pullRequest');
 

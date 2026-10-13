@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Runs docker/push-release-image.sh as build.yml's image job runs it, with a docker on PATH that
-# records what it was asked instead of reaching a registry, and checks the job that calls it.
-
 set -eu
 
 repository_root=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
@@ -27,7 +24,6 @@ test "$(sed -n 3p "${calls}")" = "push ghcr.io/haembina/haembina-branch-analysis
 test "$(wc -l < "${calls}" | tr -d ' ')" = "3"
 if grep -Fq 'secret-token' "${calls}"; then exit 1; fi
 
-# Without a version nothing is built or pushed.
 : > "${calls}"
 if PATH="${test_root}/bin:${PATH}" ACTOR=octocat GHCR_TOKEN=secret-token \
   sh "${repository_root}/docker/push-release-image.sh" 2> /dev/null; then
@@ -35,7 +31,6 @@ if PATH="${test_root}/bin:${PATH}" ACTOR=octocat GHCR_TOKEN=secret-token \
 fi
 test ! -s "${calls}"
 
-# The job runs on a v-tag only, after the mirror's release, with the token allowed to write packages.
 workflow="${repository_root}/.github/workflows/build.yml"
 job=$(sed -n '/^  image:$/,/^  [a-z-]*:$/p' "${workflow}")
 printf '%s\n' "${job}" | grep -Fq 'needs: [snapshot, mirror]'

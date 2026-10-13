@@ -32,7 +32,6 @@ test -f "${disabled_directory}/sonarqube-community-branch-plugin.jar.disabled"
 test -f "${disabled_directory}/sonarqube-community-branch-plugin-26.7.0.jar.disabled"
 test -f "${disabled_directory}/haembina-branch-analysis-26.9.9.jar.disabled"
 
-# A restart refreshes the managed copy without duplicating or disabling it.
 printf '%s\n' 'current plugin after restart' > "${plugin_source}"
 SONARQUBE_HOME="${test_root}" PLUGIN_VERSION="${plugin_version}" \
   sh "${repository_root}/docker/branch-analysis-entrypoint.sh"
@@ -40,7 +39,6 @@ SONARQUBE_HOME="${test_root}" PLUGIN_VERSION="${plugin_version}" \
 cmp "${plugin_source}" "${plugin_directory}/${plugin_name}"
 test "$(find "${plugin_directory}" -name '*.jar' | wc -l | tr -d ' ')" = "1"
 
-# Both image variants must install the immutable source and use the migration entrypoint.
 for dockerfile in Dockerfile release.Dockerfile; do
   grep -Fq '/opt/sonarqube/lib/haembina-branch-analysis/' "${repository_root}/${dockerfile}"
   grep -Fq 'docker/branch-analysis-entrypoint.sh' "${repository_root}/${dockerfile}"

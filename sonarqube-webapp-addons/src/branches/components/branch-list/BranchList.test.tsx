@@ -46,7 +46,6 @@ jest.mock('~sq-server-commons/api/newCodeDefinition');
 const messagesHandler = new MessagesServiceMock();
 const newCodeHandler = new NewCodeDefinitionServiceMock();
 
-// Built afresh for each render, because the list mutates the branch objects it is given.
 const branchList = (): Branch[] => [
   mockMainBranch({ name: 'main' }),
   mockBranch({ name: 'feature' }),
@@ -306,7 +305,6 @@ describe('capability set-branch-new-code: give a branch its own new code definit
       within(await rowOf('feature')).getByText('branch_list.default_setting'),
     ).toBeInTheDocument();
 
-    // A new branch list refetches the settings, showing the spinner meanwhile.
     rerender(
       <BranchListSection
         branchList={branchList()}

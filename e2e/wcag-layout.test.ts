@@ -26,16 +26,8 @@ import {
   PULL_REQUEST_OVERVIEW,
 } from './wcag.helper';
 
-/*
- * What the shared audit cannot tell from a page: that no picture stands in for words (1.4.5).
- * Orientation, flashes and non-text contrast are `@haembina/accessibility`'s probes, run by
- * every `audit` call.
- */
-
-/** The largest box an icon bitmap is drawn in; a bitmap any larger could be carrying words. */
 const ICON_PX = 32;
 
-/** Declares the layout case for one surface, under the capability describe that calls it. */
 function layoutCases(surface: AddonSurface) {
   test.describe(`WCAG layout of the ${surface.name}`, () => {
     test('1.4.5: draws its words as text: no bitmap larger than an icon, no SVG text', async ({

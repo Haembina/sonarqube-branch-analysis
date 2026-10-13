@@ -19,20 +19,12 @@
 import type { HttpHandler } from 'msw';
 import type { ComponentType, ReactNode } from 'react';
 
-/** A component another edition draws; the webapp passes it whatever props its page has. */
 type EditionComponent = ComponentType<Record<string, unknown>>;
 
-/** A function that returns the `<Route>` elements an edition adds to the router. */
 type EditionRoutes = () => ReactNode;
 
-/** A date a "new" badge stops showing at, as `NewBadge` reads it. */
 type BadgeExpiration = string | number | Date;
 
-/**
- * The addons of the other SonarQube editions, as the webapp reads them: each member it names,
- * and nothing more. This build ships none of them, so every one is absent and reads as
- * `undefined`; the webapp checks for each before it draws or routes to it.
- */
 export interface OtherEditionAddons {
   aica?: {
     AICA_SETTINGS_PATH: string;

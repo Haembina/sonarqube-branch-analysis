@@ -74,11 +74,6 @@ interface Props {
   qualityGate?: QualityGate;
 }
 
-/**
- * Measure cards of the pull request overview: failed conditions (shown only when any failed),
- * new, accepted and fixed issues, coverage, duplications and security hotspots, each linking
- * to its list. Accepted and fixed issue cards are disabled while issues are still syncing.
- */
 export default function MeasuresCardPanel(props: React.PropsWithChildren<Props>) {
   const { pullRequest, component, measures, conditions, qualityGate } = props;
 
@@ -272,11 +267,8 @@ export default function MeasuresCardPanel(props: React.PropsWithChildren<Props>)
   );
 }
 
-/** The widest viewport, in CSS pixels, at which the measure cards stack in one column. */
 const ONE_COLUMN_MAX_PX = 640;
 
-// Three or four columns squeeze each card under its own label on a narrow screen; one column
-// lets the cards reflow (WCAG 1.4.10). The column classes are `!important`, so this is too.
 const ReflowingGrid = styled(GridContainer)`
   @media (max-width: ${ONE_COLUMN_MAX_PX}px) {
     grid-template-columns: minmax(0, 1fr) !important;

@@ -19,11 +19,6 @@
 import { expect, test } from '@playwright/test';
 import { openBranchesPage, rowOf, tabTo } from './sonarqube.helper';
 
-/*
- * Reading and focus order the shared audit does not walk: where focus lands once a dialog
- * closes. Reading order, Tab order, sensory words, label in name, languages of parts and
- * single-key shortcuts are `@haembina/accessibility`'s probes, run by every `audit` call.
- */
 test.describe('capability rename-main-branch: rename the main branch of a project', () => {
   test('2.4.3: puts focus back on the control that opened the dialog when it closes', async ({
     page,

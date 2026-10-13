@@ -20,21 +20,16 @@ import { expect, test, type Page } from '@playwright/test';
 import { BRANCH, openBranchesPage, PROJECT, rowOf } from './sonarqube.helper';
 import { expectAnnounced } from './wcag.helper';
 
-/** The error SonarQube shows under a number of days outside its 1 to 90 range. */
 const DAYS_ERROR = 'Please provide a whole number between 1 and 90.';
 
-/** A number of days the setting refuses, below its minimum of 1. */
 const TOO_FEW_DAYS = '0';
 
-/** A number of days the setting accepts. */
 const VALID_DAYS = '15';
 
-/** The toast SonarQube shows once a branch's new code definition is saved. */
 const SAVED = 'New code definition has been updated';
 
 const branchRow = (page: Page) => page.getByRole('row').filter({ hasText: BRANCH });
 
-/** Opens the new code dialog for `BRANCH` and picks "Number of days" in it. */
 async function openDaysSetting(page: Page) {
   await page.goto(`/project/baseline?id=${PROJECT}`);
   await branchRow(page).getByRole('button', { name: `Edit ${BRANCH}` }).click();

@@ -18,20 +18,18 @@
  */
 import { toast } from '@sonarsource/echoes-react';
 import { translate } from '~sq-server-commons/helpers/l10n';
-import { installErrorBoundary } from './error-boundary';
+import { installErrorBoundary } from './install-error-boundary.adapter';
 
 jest.mock('@sonarsource/echoes-react', () => ({
   ...jest.requireActual('@sonarsource/echoes-react'),
   toast: { error: jest.fn() },
 }));
 
-/** Fires a rejection nothing handled, as the browser reports one. */
 function reject(reason: unknown) {
   window.dispatchEvent(Object.assign(new Event('unhandledrejection'), { reason }));
 }
 
 beforeAll(() => {
-  // A second call is a no-op, so each event below is shown once.
   installErrorBoundary();
   installErrorBoundary();
 });

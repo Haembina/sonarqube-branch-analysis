@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-import routes from './app/routes';
+import routes from './app/ProjectBranchesRoutes';
 import Menu from './components/branch-like/Menu';
 import PRLink from './components/branch-like/PRLink';
 import BranchListSection from './components/branch-list/BranchListSection';

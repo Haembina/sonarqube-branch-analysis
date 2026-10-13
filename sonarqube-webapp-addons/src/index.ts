@@ -17,6 +17,4 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-// The webapp imports the registry from `~sq-server-addons/index` by that name, so this file
-// only hands on what addons.ts declares.
 export { addons } from './addons';

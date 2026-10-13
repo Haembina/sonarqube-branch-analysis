@@ -11,7 +11,6 @@ plugin_target="${plugin_directory}/${plugin_name}"
 
 mkdir -p "${plugin_directory}" "${disabled_directory}"
 
-# Any other copy of the plugin, under this name or the Community Branch Plugin's, is disabled so one version loads.
 for installed_plugin in \
   "${plugin_directory}/sonarqube-community-branch-plugin.jar" \
   "${plugin_directory}"/sonarqube-community-branch-plugin-*.jar \

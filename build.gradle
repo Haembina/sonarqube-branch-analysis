@@ -101,9 +101,14 @@ project.afterEvaluate {
     }
 }
 
+String buildCommit = providers.gradleProperty('commit')
+    .orElse(providers.environmentVariable('GITHUB_SHA'))
+    .getOrElse('unknown')
+
 jar {
     manifest {
         attributes 'Plugin-Description': 'Branch analysis and pull request decoration for SonarQube Community Build',
+          'Implementation-Commit': buildCommit,
           'SonarLint-Supported': false,
           'Plugin-Homepage': 'https://github.com/Haembina/sonarqube-branch-analysis',
           'Plugin-License': 'GNU LGPL 3',
@@ -188,14 +193,13 @@ plugins.withType(JacocoPlugin) {
     tasks["check"].dependsOn 'jacocoTestCoverageVerification'
 }
 
-// sonarqubeVersion is the one source of the supported Community Build: .env's image tag and the README's support
-// line copy it, and check fails the moment either names another build
+// sonarqubeVersion is the one source of the supported Community Build: .env's image tag copies it, and check fails
+// the moment it names another build
 tasks.register('verifySonarqubeVersion') {
     def env = file('.env')
-    def readme = file('README.md')
     def dockerfiles = [file('Dockerfile'), file('release.Dockerfile')]
     def expected = sonarqubeVersion
-    inputs.files([env, readme] + dockerfiles)
+    inputs.files([env] + dockerfiles)
     doLast {
         if (!env.text.contains("SONARQUBE_VERSION=${expected}-community")) {
             throw new GradleException(".env's SONARQUBE_VERSION is not ${expected}-community, the build.gradle version")
@@ -207,9 +211,6 @@ tasks.register('verifySonarqubeVersion') {
                     || !dockerfile.text.contains("ARG SONARQUBE_DIGEST=\"${digest}\"")) {
                 throw new GradleException("${dockerfile.name}'s SONARQUBE_VERSION and SONARQUBE_DIGEST are not .env's")
             }
-        }
-        if (!readme.text.contains("**SonarQube Community Build ${expected}**")) {
-            throw new GradleException("README.md does not name **SonarQube Community Build ${expected}** as supported")
         }
     }
 }

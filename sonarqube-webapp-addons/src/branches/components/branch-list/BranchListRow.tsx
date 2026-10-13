@@ -45,10 +45,6 @@ import {
   NewCodeDefinitionType,
 } from '~sq-server-commons/types/new-code-definition';
 
-/**
- * Props for {@link BranchListRow}. `existingBranches` holds branch names, used to flag a
- * reference branch that no longer exists; `inheritedSetting` is the project-level definition.
- */
 export interface BranchListRowProps {
   branch: BranchWithNewCodePeriod;
   existingBranches: Array<string>;
@@ -103,11 +99,6 @@ function referenceBranchDoesNotExist(
   );
 }
 
-/**
- * One branch and its new code definition, or "default" when it inherits, with a warning when
- * the branch would reference itself or a missing branch. Offers edit, and reset to default when
- * the branch has its own setting; reset is disabled while the project setting is non-compliant.
- */
 export default function BranchListRow(props: BranchListRowProps) {
   const { branch, existingBranches, inheritedSetting } = props;
 

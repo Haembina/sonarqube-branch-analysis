@@ -39,11 +39,6 @@ interface SetAsMainBranchModalProps {
 
 const FORM_ID = 'branch-setasmain-form';
 
-/**
- * Confirmation dialog that makes a branch the project's main branch via
- * `useSetMainBranchMutation`, warning that this needs a reindex. Calls `onSetAsMain` on
- * success; on failure the dialog stays open.
- */
 export default function SetAsMainBranchModal(props: SetAsMainBranchModalProps) {
   const { branch, component, onClose, onSetAsMain } = props;
   const { mutate: setMainBranch, isPending } = useSetMainBranchMutation();

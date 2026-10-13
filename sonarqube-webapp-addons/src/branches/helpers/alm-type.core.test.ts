@@ -17,7 +17,7 @@
  */
 
 import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
-import { AlmType, getComponentAlmKey, isAzure, isBitbucket, sanitizeAlmId } from './alm-integrations';
+import { AlmType, getComponentAlmKey, isAzure, isBitbucket, sanitizeAlmId } from './alm-type.core';
 
 describe('sanitizeAlmId', () => {
   it.each([

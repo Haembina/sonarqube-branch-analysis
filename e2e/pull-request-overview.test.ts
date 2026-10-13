@@ -28,7 +28,6 @@ test.describe('capability pull-request-overview: read the quality gate and new-c
 
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
     await expect(page).toHaveTitle(/Overview/);
-    // The gate's state is a word, not only a colour.
     await expect(page.getByText('Passed', { exact: true }).first()).toBeVisible();
     await expect(
       page.getByText('for merge into main from feature/pull-request').first(),
@@ -41,7 +40,7 @@ test.describe('capability pull-request-overview: read the quality gate and new-c
     const box = await newIssues.boundingBox();
     expect(box?.width).toBeGreaterThan(0);
     expect(box?.height).toBeGreaterThan(0);
-    await audit('pull request overview', {}, ADDON_PAGE);
+    await audit('pull request overview', ADDON_PAGE);
   });
 
   test('reaches the new issues of the pull request by keyboard alone', async ({ page }) => {

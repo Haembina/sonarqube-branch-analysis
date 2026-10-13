@@ -23,7 +23,7 @@ import {
   useEntitlementCheckQuery,
   useEntitlementChecksQuery,
   usePurchasableFeature,
-} from './entitlements';
+} from './use-entitlement-check-query.hook';
 
 const wrapper = getContextWrapper();
 
