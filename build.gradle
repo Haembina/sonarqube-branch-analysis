@@ -101,9 +101,14 @@ project.afterEvaluate {
     }
 }
 
+String buildCommit = providers.gradleProperty('commit')
+    .orElse(providers.environmentVariable('GITHUB_SHA'))
+    .getOrElse('unknown')
+
 jar {
     manifest {
         attributes 'Plugin-Description': 'Branch analysis and pull request decoration for SonarQube Community Build',
+          'Implementation-Commit': buildCommit,
           'SonarLint-Supported': false,
           'Plugin-Homepage': 'https://github.com/Haembina/sonarqube-branch-analysis',
           'Plugin-License': 'GNU LGPL 3',
