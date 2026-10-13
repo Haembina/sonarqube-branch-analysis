@@ -8,6 +8,7 @@
 import styled from '@emotion/styled';
 import {
     Button,
+    cssVar,
     IconChevronDown,
     LinkStandalone,
     Popover,
@@ -80,7 +81,7 @@ export default function ProjectBranchSelector(props: Readonly<ProjectBranchSelec
         <StyledPopover
             contentProps={{ 'aria-label': formatMessage({ id: 'project_branch_selector.title' }) }}
             extraContent={
-                <div className="sw-mt-4">
+                <div className="sw-mt-4" ref={hidePopoverArrow}>
                     <SearchInput
                         ariaLabel={formatMessage({ id: 'project_branch_selector.search' })}
                         className="sw-mb-4 sw-max-w-5000"
@@ -93,13 +94,15 @@ export default function ProjectBranchSelector(props: Readonly<ProjectBranchSelec
                         <PRMessage almKey={getComponentAlmKey(component)} message="{pull_requests}">
                             {(prLabel) => (
                                 <>
-                                    <ToggleButtonGroup
-                                        onChange={(v: BranchLikeFilter) => {
-                                            setFilter(v);
-                                        }}
-                                        options={getOptions(prLabel)}
-                                        selected={filter}
-                                    />
+                                    <FilterBoundary>
+                                        <ToggleButtonGroup
+                                            onChange={(v: BranchLikeFilter) => {
+                                                setFilter(v);
+                                            }}
+                                            options={getOptions(prLabel)}
+                                            selected={filter}
+                                        />
+                                    </FilterBoundary>
                                     {linkToAll && filter === BranchLikeFilter.All && (
                                         <LinkStandalone to={linkToAll}>
                                             <FormattedMessage id="project_branch_selector.link.all" />
@@ -161,6 +164,24 @@ const StyledPopover = styled(Popover)`
   max-width: unset;
   width: 600px;
 `;
+
+const FilterBoundary = styled.span`
+  display: inline-flex;
+
+  & [role='radio'][aria-checked='true'] {
+    font-weight: ${cssVar('font-weight-semi-bold')};
+  }
+`;
+
+export function hidePopoverArrow(content: HTMLElement | null): void {
+    const dialog = content?.closest('[role="dialog"]');
+
+    for (const child of Array.from(dialog?.children ?? [])) {
+        if (child.tagName === 'SPAN') {
+            child.querySelector('svg')?.setAttribute('aria-hidden', 'true');
+        }
+    }
+}
 
 function getBranchLikesToDisplay(
     filter: BranchLikeFilter,

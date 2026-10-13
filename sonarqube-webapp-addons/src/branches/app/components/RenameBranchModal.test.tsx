@@ -73,6 +73,23 @@ it('offers no rename while the name is unchanged or empty', async () => {
   expect(screen.getByRole('textbox')).toHaveValue('');
 });
 
+it('says the name is required once it is emptied, and stops saying it once one is typed', async () => {
+  const user = userEvent.setup();
+  renderModal();
+
+  const input = screen.getByRole('textbox');
+  expect(input).not.toHaveAccessibleDescription();
+  expect(input).not.toBeInvalid();
+
+  await user.clear(input);
+  expect(input).toHaveAccessibleDescription('field_required');
+  expect(input).toBeInvalid();
+
+  await user.type(input, 'main');
+  expect(input).not.toHaveAccessibleDescription();
+  expect(screen.queryByText('field_required')).not.toBeInTheDocument();
+});
+
 it('stays open when the server refuses the name', async () => {
   const user = userEvent.setup();
   jest.mocked(renameBranch).mockRejectedValueOnce(new Error('refused'));
