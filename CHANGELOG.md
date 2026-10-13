@@ -6,6 +6,20 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.1.0 (2026-10-13)
+
+### Features
+
+* branch analysis runs on SonarQube Community Build 26.10
+
+### Bug Fixes
+
+* the branch pages show focus, selection and an empty name without relying on color
+* each branch's actions menu has an id an ARIA reference can name
+* a reused checkout keeps the add-ons' Vite override
+* verifySonarqubeVersion holds both Dockerfiles to the SonarQube tag and digest .env pins (#24)
+* the SonarQube images build from the wrapper's Gradle on pinned bases, and CI lints and builds them (#24)
+
 ## 27.0.2 (2026-10-01)
 
 ### Bug Fixes
