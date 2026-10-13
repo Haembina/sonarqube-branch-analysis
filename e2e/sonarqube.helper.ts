@@ -16,13 +16,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { test as base, type Scope } from '@haembina/accessibility/playwright';
+import { test as base, type Scope, type ShortcutSetting } from '@haembina/accessibility/playwright';
 import { expect, type Locator, type Page } from '@playwright/test';
 import { addonLanguageTables } from './language-tables.helper';
+
+const SHORTCUTS_PREFERENCE = 'sonarqube.preferences.keyboard_shortcuts_enabled';
+
+export const SONARQUBE_SHORTCUTS: ShortcutSetting = {
+  off: async (page) => {
+    await page.evaluate((key) => localStorage.setItem(key, 'false'), SHORTCUTS_PREFERENCE);
+  },
+  on: async (page) => {
+    await page.evaluate((key) => localStorage.removeItem(key), SHORTCUTS_PREFERENCE);
+  },
+};
 
 export const test = base.extend({
   accessibilityLanguageTables: async ({ request }, use) => {
     await use(await addonLanguageTables(request));
+  },
+  accessibilityShortcuts: async ({}, use) => {
+    await use(SONARQUBE_SHORTCUTS);
   },
 });
 
