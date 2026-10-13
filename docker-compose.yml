@@ -40,10 +40,10 @@ services:
       - postgresql_data:/var/lib/postgresql/data
 
 volumes:
-  sonarqube_conf:
-  sonarqube_data:
-  postgresql:
-  postgresql_data:
+  sonarqube_conf: {}
+  sonarqube_data: {}
+  postgresql: {}
+  postgresql_data: {}
 
 networks:
-  sonarnet:
+  sonarnet: {}

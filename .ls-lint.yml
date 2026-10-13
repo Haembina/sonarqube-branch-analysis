@@ -1,0 +1,7 @@
+{
+  "kinds": ["core", "adapter", "hook", "model", "helper", "setup", "config", "test"],
+  "testKind": "test",
+  "ignore": ["sonarqube-webapp-addons/src/addons.ts"],
+  "mirrored": ["e2e"],
+  "houseStyle": { "tsx": "pascal-case" }
+}
