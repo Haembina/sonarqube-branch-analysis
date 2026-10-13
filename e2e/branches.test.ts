@@ -16,16 +16,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { expect, test } from '@haembina/accessibility/playwright';
 import {
   BRANCH,
   BRANCH_LIST,
   CI_PULL_REQUEST,
+  expect,
   expectVisibleFocus,
   openBranchesPage,
   PULL_REQUEST,
   rowOf,
   tabTo,
+  test,
 } from './sonarqube.helper';
 
 test.describe('capability list-branches: see every branch and pull request of a project', () => {

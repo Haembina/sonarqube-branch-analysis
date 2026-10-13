@@ -16,16 +16,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { expect, test } from '@haembina/accessibility/playwright';
 import type { Page } from '@playwright/test';
 import {
-  ADDON_PAGE,
   arrowTo,
   BRANCH,
+  expect,
   expectVisibleFocus,
+  NEW_CODE_SETTINGS,
   OPEN_DIALOG,
   PROJECT,
+  reopening,
   tabTo,
+  test,
 } from './sonarqube.helper';
 
 const branchRow = (page: Page) => page.getByRole('row').filter({ hasText: BRANCH });
@@ -40,7 +42,7 @@ test.describe('capability set-branch-new-code: give a branch its own new code de
       page.getByRole('heading', { name: 'Set a specific setting for a branch' }),
     ).toBeVisible();
     await expect(branchRow(page)).toContainText('Project setting');
-    await audit('new code', ADDON_PAGE);
+    await audit('new code', NEW_CODE_SETTINGS);
 
     await tabTo(page, branchRow(page).getByRole('button', { name: `Edit ${BRANCH}` }));
     await expectVisibleFocus(page);
@@ -48,7 +50,11 @@ test.describe('capability set-branch-new-code: give a branch its own new code de
     const dialog = page.getByRole('dialog', { name: `New Code for ${BRANCH}` });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled();
-    await audit('new code dialog', OPEN_DIALOG);
+    await audit(
+      'new code dialog',
+      OPEN_DIALOG,
+      reopening(page, () => branchRow(page).getByRole('button', { name: `Edit ${BRANCH}` }).click()),
+    );
 
     const days = dialog.getByRole('radio', { name: /Number of days/ });
     await tabTo(page, dialog.getByRole('radio').first());
