@@ -3,7 +3,7 @@
   "version": "27.0.2",
   "private": true,
   "type": "module",
-  "description": "The npm tooling around the Gradle build of Haembina Branch Analysis: linters and test runners.",
+  "description": "Branch analysis and pull request decoration for SonarQube Community Build: a plugin, and the branch pages its webapp dropped.",
   "scripts": {
     "lint": "npm run lint:sh && npm run lint:es && npm run lint:gradle && npm run lint:java",
     "lint:es": "eslint .",
@@ -27,6 +27,7 @@
     "@playwright/test": "^1.64.0",
     "eslint": "^10.12.0",
     "eslint-plugin-sonarjs": "^4.2.2",
+    "eslint-plugin-yml": "^3.9.0",
     "markdownlint-cli2": "^0.23.3",
     "npm-groovy-lint": "^18.0.0",
     "typescript": "^6.0.3",
