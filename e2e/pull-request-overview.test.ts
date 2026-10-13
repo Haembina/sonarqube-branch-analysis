@@ -28,7 +28,6 @@ test.describe('capability pull-request-overview: read the quality gate and new-c
 
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
     await expect(page).toHaveTitle(/Overview/);
-    // The gate's state is a word, not only a colour.
     await expect(page.getByText('Passed', { exact: true }).first()).toBeVisible();
     await expect(
       page.getByText('for merge into main from feature/pull-request').first(),

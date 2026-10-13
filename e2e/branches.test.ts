@@ -47,7 +47,6 @@ test.describe('capability list-branches: see every branch and pull request of a 
     await expect(rows.nth(1)).toContainText('main');
     await expect(rows.nth(1)).toContainText('Main Branch');
     await expect(rowOf(page, BRANCH)).toBeVisible();
-    // The gate status is spelled out beside its colour.
     await expect(rowOf(page, BRANCH)).toContainText('Passed');
 
     await page.getByRole('tab', { name: 'Pull Requests' }).click();
@@ -69,7 +68,6 @@ test.describe('capability list-branches: see every branch and pull request of a 
     await expectVisibleFocus(page);
     await page.keyboard.press('Tab');
     await expect(page.getByRole('tab', { name: 'Pull Requests' })).toBeFocused();
-    // Focus alone changes nothing on screen.
     await expect(rowOf(page, BRANCH)).toBeVisible();
 
     await page.keyboard.press('Enter');

@@ -20,14 +20,6 @@ import { randomBytes } from 'node:crypto';
 import { request, type APIResponse, type FullConfig } from '@playwright/test';
 import { PROJECT } from './sonarqube.helper';
 
-/**
- * Signs a fresh user in once for the whole suite. The built-in admin must change its password
- * on its first browser visit, so the suite browses as a user of its own instead: created
- * through the web API with the admin's default password, given the project's admin
- * permission, and signed in so every spec starts from the stored session.
- *
- * Throws when the server refuses any step, which fails the run before a spec starts.
- */
 export default async function globalSetup(config: FullConfig): Promise<void> {
   const { baseURL, storageState } = config.projects[0].use;
   const admin = await request.newContext({
@@ -40,7 +32,6 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   });
 
   const login = `e2e-${randomBytes(4).toString('hex')}`;
-  // Twelve or more characters with a digit, a capital and a symbol, as SonarQube requires.
   const password = `E2e-${randomBytes(12).toString('hex')}!`;
 
   await expectOk(admin.post('/api/users/create', { form: { login, name: login, password } }));
@@ -51,7 +42,6 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   );
   await admin.dispose();
 
-  // The SonarQube for IDE notice a new user sees floats over the page corner until dismissed.
   const account = await request.newContext({
     baseURL,
     httpCredentials: { username: login, password, send: 'always' },

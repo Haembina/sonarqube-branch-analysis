@@ -28,7 +28,6 @@ import {
   tabTo,
 } from './sonarqube.helper';
 
-/** The fixture branch's row: its name sits beside an icon, not in an element of its own. */
 const branchRow = (page: Page) => page.getByRole('row').filter({ hasText: BRANCH });
 
 test.describe('capability set-branch-new-code: give a branch its own new code definition', () => {
@@ -51,7 +50,6 @@ test.describe('capability set-branch-new-code: give a branch its own new code de
     await expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled();
     await audit('new code dialog', OPEN_DIALOG);
 
-    // Tab enters the group of choices at its first; the arrows move between them.
     const days = dialog.getByRole('radio', { name: /Number of days/ });
     await tabTo(page, dialog.getByRole('radio').first());
     await arrowTo(page, days);

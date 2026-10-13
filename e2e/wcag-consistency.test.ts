@@ -20,7 +20,6 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { BRANCH, openBranchesPage, PROJECT, PULL_REQUEST, rowOf } from './sonarqube.helper';
 import { common, namesAround, SWITCHER } from './wcag.helper';
 
-/** The project pages the addons draw on or beside, each opened as a user reaches it. */
 const PAGES: Record<string, (page: Page) => Promise<void>> = {
   overview: async (page) => {
     await page.goto(`/dashboard?id=${PROJECT}`);
@@ -37,16 +36,10 @@ const PAGES: Record<string, (page: Page) => Promise<void>> = {
   },
 };
 
-/** The project sidebar, which SonarQube opens on hover or focus and draws on every page. */
 const SIDEBAR = '[data-testid="sidebar-navigation-wrapper"]';
 
-/** The global bar across the top of every page, which holds the Help menu. */
 const GLOBAL_BAR = 'header, nav, [role="banner"]';
 
-/**
- * Reads, on every page in `PAGES`, the names of the controls in the nearest `container` around
- * the node `anchor` finds there.
- */
 async function namesOnEveryPage(page: Page, anchor: (page: Page) => Locator, container: string) {
   const lists: string[][] = [];
   for (const open of Object.values(PAGES)) {
@@ -59,11 +52,9 @@ async function namesOnEveryPage(page: Page, anchor: (page: Page) => Locator, con
 test.describe('capability list-branches: see every branch and pull request of a project', () => {
   test('2.4.5: reaches the branch list from the project sidebar', async ({ page }) => {
     await PAGES.overview(page);
-    // The sidebar is folded to no width until the header's button opens it.
     await page.getByRole('button', { name: 'Open sidebar' }).click();
     const sidebar = page.getByTestId('sidebar-navigation-wrapper');
     const link = sidebar.getByRole('link', { name: 'Branches & Pull Requests' });
-    // The Project group folds its links away until it is opened, and may already be open.
     if (!(await link.isVisible())) {
       await sidebar.getByRole('button', { name: 'Project', exact: true }).click();
     }

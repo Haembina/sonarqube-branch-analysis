@@ -28,7 +28,6 @@ import {
   tabTo,
 } from './sonarqube.helper';
 
-/** The switcher's popover: a dialog named, like its heading, for what it lists. */
 function switcherOf(page: Page) {
   return page.getByRole('dialog', { name: 'Branches and pull requests' });
 }
@@ -47,7 +46,6 @@ test.describe('capability switch-branch: open another branch or pull request of 
     const { popover } = await openSwitcher(page);
 
     await expect(popover.getByRole('listitem').first()).toContainText('main');
-    // A second way to the branches page, beside the project's own navigation.
     await expect(popover.getByRole('link', { name: 'View all' })).toHaveAttribute(
       'href',
       `/project/branches?id=${PROJECT}`,
@@ -65,7 +63,6 @@ test.describe('capability switch-branch: open another branch or pull request of 
     const url = page.url();
 
     await popover.getByRole('searchbox', { name: 'Search branches or pull requests' }).fill('ci');
-    // Typing filters in place; it navigates nowhere.
     await expect(page).toHaveURL(url);
     await expect(popover.getByRole('link', { name: /7 – feature\/ci/ })).toBeVisible();
     await expect(popover.getByRole('link', { name: new RegExp(BRANCH) })).toHaveCount(0);
@@ -77,7 +74,6 @@ test.describe('capability switch-branch: open another branch or pull request of 
     await popover.getByRole('radio', { name: 'Pull Requests' }).click();
     await expect(popover.getByRole('link', { name: new RegExp(PULL_REQUEST) })).toBeVisible();
     await expect(popover.getByRole('link', { name: new RegExp(BRANCH) })).toHaveCount(0);
-    // Last, because the audit's Tab walk may take focus out of the popover and close it.
     await audit('branch switcher', OPEN_DIALOG);
   });
 
@@ -99,7 +95,6 @@ test.describe('capability switch-branch: open another branch or pull request of 
 
     await page.keyboard.press('Enter');
     await expect(popover).toBeVisible();
-    // Tab walks the search box, the filters and "View all" before the entries.
     await tabTo(page, popover.getByRole('link', { name: new RegExp(BRANCH) }));
     await expectVisibleFocus(page);
     await page.keyboard.press('Enter');

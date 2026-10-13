@@ -29,16 +29,13 @@ import {
   tabTo,
 } from './sonarqube.helper';
 
-// Each case leaves the project as the next one expects it, so they run in this order.
 test.describe.configure({ mode: 'serial' });
 
-/** Opens a row's actions menu with the mouse and picks one entry. */
 async function pickAction(page: Page, name: string, action: string) {
   await rowOf(page, name).getByRole('button', { name: `Update ${name}` }).click();
   await page.getByRole('menuitem', { name: action }).click();
 }
 
-/** Opens a row's actions menu from the keyboard and picks one entry. */
 async function pickActionByKeyboard(page: Page, name: string, action: string) {
   await tabTo(page, rowOf(page, name).getByRole('button', { name: `Update ${name}` }));
   await expectVisibleFocus(page);
