@@ -145,6 +145,7 @@ export default function ProjectBranchSelector(props: Readonly<ProjectBranchSelec
             title={<FormattedMessage id="project_branch_selector.title" />}
         >
             <Button
+                id="project-branch-selector"
                 className={classNames(className, 'sw-max-w-5000')}
                 prefix={<BranchLikeIcon branchLike={currentBranchLike} />}
                 size="medium"
