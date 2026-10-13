@@ -37,10 +37,6 @@ interface Props {
 
 const FORM_ID = 'branch-rename-form';
 
-/**
- * Dialog that renames the main branch via `useRenameMainBranchMutation`. Submit stays disabled
- * while the name is empty or unchanged; the dialog closes only on success.
- */
 export default function RenameBranchModal(props: Props) {
   const { branch, component, onClose } = props;
   const [name, setName] = useState<string>();

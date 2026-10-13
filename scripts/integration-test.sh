@@ -42,7 +42,6 @@ container="${SONARQUBE_CONTAINER:-}"
 owned_container=""
 project_key="branch-analysis-it"
 project_dir=$(mktemp -d)
-# The scanner container runs as its own user and writes .scannerwork into the project
 chmod 777 "${project_dir}"
 plugin_path="/opt/sonarqube/extensions/plugins/$(basename "${plugin_jar}")"
 
@@ -51,7 +50,6 @@ failed_line=""
 failed_command=""
 trap 'failed_line=${LINENO}; failed_command=${BASH_COMMAND}' ERR
 
-# Says why the test failed and stops it; cleanup repeats the reason after the server's logs.
 fail() {
   failure="$*"
   echo "$*" >&2
@@ -65,7 +63,6 @@ cleanup() {
     docker logs "${container}" 2>&1 | tail -300 || true
     echo "::endgroup::"
   fi
-  # Last, after the server's logs, so the line a failed job ends on says which step failed
   if [ -n "${failure}" ]; then
     echo "integration-test.sh failed: ${failure}" >&2
   elif [ "${status}" -ne 0 ]; then
@@ -81,9 +78,6 @@ api() {
   curl --silent --show-error --fail -u "${auth}" "$@"
 }
 
-# A server that stopped itself never comes up, so a wait stops as soon as the container has exited and says why
-# rather than running out its timeout. Elasticsearch's flood stage is the usual reason: past 95% of its disk it marks
-# every index read-only, and the web process stops the whole server while creating them.
 assert_running() {
   if [ "$(docker inspect -f '{{.State.Running}}' "${container}" 2>/dev/null)" != true ]; then
     local watermark
@@ -103,8 +97,6 @@ wait_until_up() {
   done
 }
 
-# The web process answers UP while the compute engine is still loading plugins, so the whole server is
-# operational only once sonar.log says so.
 wait_until_operational() {
   local deadline=$((SECONDS + STARTUP_TIMEOUT_SECONDS))
   until docker exec "${container}" grep -q 'SonarQube is operational' /opt/sonarqube/logs/sonar.log 2>/dev/null; do
@@ -124,9 +116,6 @@ if [ -z "${container}" ]; then
     "sonarqube:${SONARQUBE_VERSION}@${SONARQUBE_DIGEST}" >/dev/null
 fi
 
-# A restart while the first start is still migrating its database can corrupt it, and a jar copied in while the
-# compute engine loads plugins fails its start without the agent and logs an ERROR, so the plain server is fully
-# operational before anything is installed.
 wait_until_operational
 echo "Installing the candidate plugin and webapp into ${container}"
 docker exec -u root "${container}" sh -c 'rm -rf /opt/sonarqube/web/*'
@@ -136,7 +125,6 @@ docker exec -u root "${container}" sh -c "chmod -R a+rX /opt/sonarqube/web '${pl
   'sonar.web.javaAdditionalOpts=-javaagent:${plugin_path}=web' \
   'sonar.ce.javaAdditionalOpts=-javaagent:${plugin_path}=ce' >> /opt/sonarqube/conf/sonar.properties"
 docker restart --time 60 "${container}" >/dev/null
-# A job's service publishes 9000 on a host port Docker picks, and a restart may pick another
 if [ -z "${owned_container}" ]; then
   SONARQUBE_PORT=$(docker port "${container}" 9000/tcp | head -n 1 | sed 's/.*://')
   SONARQUBE_URL="http://localhost:${SONARQUBE_PORT}"
@@ -162,13 +150,8 @@ EOF
 printf '%s\n' 'function greet(name) {' '  return "Hello " + name;' '}' 'console.log(greet("integration test"));' \
   > "${project_dir}/greet.js"
 
-# Extra `docker run` options for the scanner, such as the CI variables auto-configuration reads.
 scanner_env=()
 
-# Runs one analysis and waits for its compute engine task, because the scanner reports
-# success once the report is uploaded, before the plugin has processed anything. The project
-# is copied into the scanner's container rather than mounted, for the same reason the server's
-# artifacts are.
 analyse() {
   local scanner output task_id task_status
   scanner=$(docker create --network host "${scanner_env[@]}" "${SCANNER_IMAGE}" \
@@ -195,7 +178,6 @@ analyse() {
   return 1
 }
 
-# A branch or pull request only has a quality gate once its analysis was processed.
 assert_quality_gate() {
   api "${SONARQUBE_URL}/api/qualitygates/project_status?projectKey=${project_key}&$1" \
     | jq -e '.projectStatus.status | IN("OK", "ERROR")' >/dev/null \
@@ -219,7 +201,6 @@ api "${SONARQUBE_URL}/api/project_pull_requests/list?project=${project_key}" \
   || fail "pull request 1 is not listed"
 assert_quality_gate "pullRequest=1"
 
-# Pretends to be a GitHub Actions pull request run, which auto-configuration reads.
 github_pull_request() {
   scanner_env=(-e GITHUB_ACTIONS=true -e "GITHUB_REF=refs/pull/$1/merge" -e GITHUB_HEAD_REF=feature/ci -e GITHUB_BASE_REF=main)
 }

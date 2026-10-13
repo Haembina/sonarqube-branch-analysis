@@ -48,7 +48,6 @@ interface Props {
   fetchComponent: () => Promise<void>;
 }
 
-/** The two tabs of the project branches page. */
 export enum Tabs {
   Branch,
   PullRequest,
@@ -79,11 +78,6 @@ const TABS = [
   },
 ];
 
-/**
- * Branches and pull requests tabs of the project branches page, fetched with
- * `useProjectBranchesQuery` and sorted, plus the delete, rename and set-as-main dialogs.
- * Calls `fetchComponent` after the main branch changes so the page reloads the project.
- */
 export default function BranchLikeTabs(props: Props) {
   const { component, fetchComponent } = props;
   const [currentTab, setCurrentTab] = useState<Tabs>(Tabs.Branch);
@@ -93,8 +87,6 @@ export default function BranchLikeTabs(props: Props) {
 
   const [returnFocusTo, setReturnFocusTo] = useState<string>();
 
-  // react-modal hands focus back to the menu item that opened the dialog, which the menu has
-  // already unmounted, so focus would fall to the page; the row's actions button takes it.
   useEffect(() => {
     if (returnFocusTo !== undefined) {
       document.getElementById(`${getBranchLikeActionsId(returnFocusTo)}-trigger`)?.focus();

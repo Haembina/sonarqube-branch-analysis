@@ -7,9 +7,6 @@ WEBAPP_DIR=${1:-"${CURRENT_DIR}/sonarqube-webapp"}
 ADDONS_DIR=${2:-"${CURRENT_DIR}/sonarqube-webapp-addons"}
 
 function override_vite_config() {
-    # Skipped only while the base still wraps the source. A reused checkout keeps the
-    # untracked vite.config.src.ts while checkout restores the tracked base, so the
-    # source alone existing is no sign the override is in place.
     if [[ -f ./vite.config.src.ts ]] && grep -q "from './vite.config.src'" ./vite.config.base.ts; then
         echo "vite.config.base.ts already wraps vite.config.src.ts, skipping override"
         return

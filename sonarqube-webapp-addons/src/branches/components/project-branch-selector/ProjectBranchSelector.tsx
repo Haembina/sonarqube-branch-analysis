@@ -29,7 +29,7 @@ import {
 } from '~shared/helpers/branch-like';
 import { isDefined, isStringDefined } from '~shared/helpers/types';
 import { BranchLikeBase, ProjectBranchSelectorProps } from '~shared/types/branch-like';
-import { getComponentAlmKey } from '../../helpers/alm-integrations';
+import { getComponentAlmKey } from '../../helpers/alm-type.core';
 import { PRMessage } from '../common/PRMessage';
 import { ProjectBranchSelectorItem } from './ProjectBranchSelectorItem';
 
@@ -41,12 +41,6 @@ enum BranchLikeFilter {
     'PullRequests' = 'pull_requests',
 }
 
-/**
- * Button naming the current branch or pull request that opens a popover to switch: search,
- * an all/branches/pull requests filter with optional "see all" links, and the main branch
- * (except under the pull requests filter) above the ten most recently analyzed matches.
- * Never-analyzed branches and pull requests are not listed.
- */
 export default function ProjectBranchSelector(props: Readonly<ProjectBranchSelectorProps>) {
     const {
         className,
@@ -174,7 +168,6 @@ function getBranchLikesToDisplay(
 ) {
     const organizedBranchLikes = branchLikes
         .filter((b) => {
-            // remove non-analyzed branches and the main branch
             if (!isStringDefined(b.analysisDate) || isMainBranch(b)) {
                 return false;
             }
@@ -195,7 +188,6 @@ function getBranchLikesToDisplay(
         .sort((a, b) => compareDesc(a.analysisDate!, b.analysisDate!))
         .slice(0, MAX_BRANCHES_OR_PRS_TO_SHOW);
 
-    // Add the main branch at the top
     if ([BranchLikeFilter.All, BranchLikeFilter.Branches].includes(filter)) {
         const mainBranch = branchLikes.find(isMainBranch);
 
@@ -216,11 +208,8 @@ function matchSearch(query: string, branchLike?: BranchLikeBase) {
     const q = query.toLowerCase();
 
     return (
-        // No search means everything matches
         query.length === 0 ||
-        // Check the label
         label.toLowerCase().includes(q) ||
-        // Check the branch name for PRs
         (isPullRequest(branchLike) && branchLike.branch.toLowerCase().includes(q))
     );
 }

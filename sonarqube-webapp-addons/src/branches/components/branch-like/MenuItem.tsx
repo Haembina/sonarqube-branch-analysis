@@ -30,10 +30,6 @@ import { translate } from '~sq-server-commons/helpers/l10n';
 import { isMainBranch } from '~shared/helpers/branch-like';
 import { BranchLike } from '~sq-server-commons/types/branch-like';
 
-/**
- * Props for {@link MenuItem}. `indent` nests a pull request under its branch;
- * `setSelectedNode` receives the element only while the item is selected.
- */
 export interface MenuItemProps {
   branchLike: BranchLike;
   indent: boolean;
@@ -42,7 +38,6 @@ export interface MenuItemProps {
   setSelectedNode?: (node: HTMLLIElement) => void;
 }
 
-/** One entry of the branch switcher: icon, name, a main-branch badge and quality gate status. */
 export function MenuItem(props: MenuItemProps) {
   const { branchLike, setSelectedNode, onSelect, selected, indent } = props;
   const displayName = getBranchLikeDisplayName(branchLike);

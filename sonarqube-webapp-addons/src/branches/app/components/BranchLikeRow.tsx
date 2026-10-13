@@ -42,15 +42,10 @@ import { BranchLike } from '~sq-server-commons/types/branch-like';
 import { Component } from '~sq-server-commons/types/types';
 import BranchPurgeSetting from './BranchPurgeSetting';
 
-/**
- * The id of a row's actions menu, from its branch or pull request display name. Echoes names
- * the menu's trigger button with this id and a `-trigger` suffix.
- */
 export function getBranchLikeActionsId(displayName: string): string {
   return `branch-settings-action-${displayName}`;
 }
 
-/** Props for {@link BranchLikeRow}; the three callbacks open the matching action dialog. */
 export interface BranchLikeRowProps {
   branchLike: BranchLike;
   component: Component;
@@ -60,12 +55,7 @@ export interface BranchLikeRowProps {
   onSetAsMain: () => void;
 }
 
-/**
- * One table row for a branch or pull request: name, quality gate status, last analysis date,
- * the keep-when-inactive switch (branches only, when `displayPurgeSetting` is set) and an
- * actions menu. The main branch offers rename only; every other entry offers delete.
- */
-function BranchLikeRow(props: BranchLikeRowProps) {
+export function BranchLikeRow(props: BranchLikeRowProps) {
   const { branchLike, component, displayPurgeSetting } = props;
   const intl = useIntl();
   const branchLikeDisplayName = getBranchLikeDisplayName(branchLike);

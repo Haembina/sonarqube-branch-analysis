@@ -54,11 +54,6 @@ interface Props {
   pullRequest: PullRequest;
 }
 
-/**
- * The pull request overview page: quality gate status, analysis status, measure cards and the
- * SonarLint promotion, from the branch status, quality gate and measures queries. Shows a
- * spinner while any loads, and renders nothing when the branch status has no conditions.
- */
 export default function PullRequestOverview(props: Readonly<Readonly<Props>>) {
   const { component, pullRequest } = props;
   const intl = useIntl();

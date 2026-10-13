@@ -21,19 +21,12 @@ function getTranslation(intl: IntlShape, key: string, almKey: string | undefined
         return defaultMessage;
     }
 
-    // Try the ALM-specific translation first (e.g., "pull_request.github").
-    // If it doesn't exist, fall back to the generic translation (e.g., "pull_request").
     return intl.formatMessage({
         id: `${key}.${almKey}`,
         defaultMessage,
     });
 }
 
-/**
- * Replaces `{pull_request}` and `{pull_requests}` in `message` with the platform's own term
- * (the `pull_request.<almKey>` translation), falling back to the generic term when `almKey` is
- * absent or has no translation. Returns the string, or passes it to `children` when given.
- */
 export function PRMessage({ almKey, children, message }: Readonly<Props>) {
     const intl = useIntl();
 

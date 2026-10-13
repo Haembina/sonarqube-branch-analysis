@@ -52,10 +52,6 @@ interface Props {
   pullRequest: PullRequest;
 }
 
-/**
- * Button linking to a pull request on its DevOps platform, named from the project binding or
- * else guessed from the URL, with a tooltip naming the platform. Renders nothing without a URL.
- */
 export default function PRLink({ pullRequest, component }: Readonly<Props>) {
   const almKey = component.alm?.key || getPRUrlAlmKey(pullRequest.url);
 

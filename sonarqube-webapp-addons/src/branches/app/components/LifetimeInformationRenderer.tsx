@@ -26,18 +26,13 @@ import { Link } from '~design-system';
 import { translate } from '~sq-server-commons/helpers/l10n';
 import { formatMeasure } from '~sq-server-commons/sonar-aligned/helpers/measures';
 
-/** Props for {@link LifetimeInformationRenderer}; the lifetime is whole days, as a string. */
 export interface LifetimeInformationRendererProps {
   branchAndPullRequestLifeTimeInDays?: string;
   canAdmin?: boolean;
   loading: boolean;
 }
 
-/**
- * Says how many days an inactive branch or pull request is kept before deletion, with a link
- * to the housekeeping settings for admins. Renders nothing once loaded if the lifetime is absent.
- */
-function LifetimeInformationRenderer(props: LifetimeInformationRendererProps) {
+export function LifetimeInformationRenderer(props: LifetimeInformationRendererProps) {
   const { branchAndPullRequestLifeTimeInDays, canAdmin, loading } = props;
 
   return (

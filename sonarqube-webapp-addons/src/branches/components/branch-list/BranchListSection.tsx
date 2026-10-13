@@ -33,10 +33,6 @@ interface Props {
   projectNewCodeDefinition: NewCodeDefinition;
 }
 
-/**
- * The "configure branches" section of the project new code settings: a heading over
- * {@link BranchList}, with the project's definition as what each branch inherits.
- */
 export default function BranchListSection(props: Readonly<Props>) {
   const { branchList, component, globalNewCodeDefinition, projectNewCodeDefinition } = props;
 

@@ -42,10 +42,6 @@ interface Props {
 
 const SONARLINT_PR_LS_KEY = 'sonarqube.pr_overview.show_sonarlint_promotion';
 
-/**
- * Card promoting SonarLint connected mode, shown only on a failed quality gate to a logged-in
- * user not already using connected mode. Dismissal is stored in this browser's local storage.
- */
 export default function SonarLintAd({ status }: Readonly<Props>) {
   const intl = useIntl();
   const { currentUser } = useCurrentUser();

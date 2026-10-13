@@ -29,7 +29,6 @@ import Tooltip from '~sq-server-commons/components/controls/Tooltip';
 import { BranchLike, BranchLikeTree } from '~sq-server-commons/types/branch-like';
 import MenuItem from './MenuItem';
 
-/** Props for {@link MenuItemList}; `search` is echoed in the no-results message. */
 export interface MenuItemListProps {
   branchLikeTree: BranchLikeTree;
   hasResults: boolean;
@@ -38,11 +37,6 @@ export interface MenuItemListProps {
   selectedBranchLike: BranchLike | undefined;
 }
 
-/**
- * The branch switcher's list: each branch with its pull requests nested under it, then pull
- * requests whose branch was filtered out, then orphan pull requests. Scrolls to and focuses
- * the selected entry after every render, and announces the result count to screen readers.
- */
 export function MenuItemList(props: MenuItemListProps) {
   const intl = useIntl();
   let selectedNode: HTMLLIElement | null = null;
@@ -92,7 +86,6 @@ export function MenuItemList(props: MenuItemListProps) {
         )}
       </output>
 
-      {/* BRANCHES & PR */}
       {branches.map((tree, treeIndex) => (
         <React.Fragment key={getBranchLikeKey(tree.branch)}>
           {renderItem(tree.branch)}
@@ -112,7 +105,6 @@ export function MenuItemList(props: MenuItemListProps) {
         </React.Fragment>
       ))}
 
-      {/* PARENTLESS PR (for display during search) */}
       {branchLikeTree.parentlessPullRequests.length > 0 && (
         <ul aria-label={` - ${translate('branch_like_navigation.pull_requests')}`}>
           <ItemDivider aria-hidden />
@@ -122,7 +114,6 @@ export function MenuItemList(props: MenuItemListProps) {
         </ul>
       )}
 
-      {/* ORPHAN PR */}
       {branchLikeTree.orphanPullRequests.length > 0 && (
         <ul aria-label={` - ${translate('branch_like_navigation.orphan_pull_requests')}`}>
           <ItemDivider aria-hidden />

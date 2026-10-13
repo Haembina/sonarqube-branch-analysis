@@ -17,24 +17,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-import type { OtherEditionAddons } from './other-edition-addons';
+import type { OtherEditionAddons } from './other-edition-addons.model';
 import branches from './branches';
-import { installErrorBoundary } from './error-boundary';
-import * as entitlements from './feature-license/entitlements';
+import { installErrorBoundary } from './install-error-boundary.adapter';
+import * as entitlements from './feature-license/use-entitlement-check-query.hook';
 
-// The webapp imports this registry once, at startup, so the boundary covers every page it draws.
 installErrorBoundary();
 
 const registry = { branches, entitlements };
 
-/**
- * The registry's type: the addons this build ships, and the other editions' addons the webapp
- * asks for, which are absent here and so read as `undefined`.
- */
 export type AddonsType = OtherEditionAddons & typeof registry;
 
-/**
- * The addon registry the SonarQube webapp loads: the branch and pull request UI, and the
- * entitlement hooks, which always answer "not entitled" in this community build.
- */
 export const addons: AddonsType = registry;

@@ -30,7 +30,6 @@ import { BranchLike } from '~sq-server-commons/types/branch-like';
 import { Feature } from '~sq-server-commons/types/features';
 import ProjectBranchSelector from './ProjectBranchSelector';
 
-/** Where the bound platform lives; the selector never reads it. */
 const ALM_URL = 'https://alm.example.com';
 
 jest.mock('~sq-server-commons/api/branches');
@@ -106,7 +105,6 @@ describe('capability switch-branch: open another branch or pull request of a pro
     expect(within(popover).queryByText('never-analyzed')).not.toBeInTheDocument();
     const [mainLink, , developLink] = links;
     expect(mainLink).toHaveTextContent('metric.level.OK');
-    // Only the current entry, main, shows its check mark.
     expect(mainLink.querySelector('.sw-invisible')).toBeNull();
     expect(developLink.querySelector('.sw-invisible')).not.toBeNull();
   });

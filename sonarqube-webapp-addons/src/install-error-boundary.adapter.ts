@@ -21,10 +21,6 @@ import { translate } from '~sq-server-commons/helpers/l10n';
 
 let installed = false;
 
-/**
- * The text a user can copy into a report: the error's own message, a thrown string as it is, and
- * anything else as JSON, or its type where JSON has no form for it (`undefined`, a function).
- */
 function describe(reason: unknown): string {
   if (reason instanceof Error) {
     return reason.message;
@@ -37,18 +33,10 @@ function describe(reason: unknown): string {
   return JSON.stringify(reason) ?? typeof reason;
 }
 
-/** Shows what escaped every handler as SonarQube's global error toast. */
 function show(reason: unknown) {
   toast.error({ title: translate('default_error_message'), description: describe(reason) });
 }
 
-/**
- * Installs the webapp's last handler: an error or a rejected promise nothing caught is shown as
- * a toast naming it, rather than only in the browser console.
- *
- * A rejection whose reason is a `Response` is skipped, because SonarQube's API layer has already
- * shown its message before rejecting. Safe to call more than once; only the first call installs.
- */
 export function installErrorBoundary() {
   if (installed) {
     return;

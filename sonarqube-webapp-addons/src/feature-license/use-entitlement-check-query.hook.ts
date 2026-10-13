@@ -25,10 +25,6 @@ import {
 import { EntitlementCheckFeatureKey } from '~shared/types/billing';
 import { PurchaseableFeature } from '~sq-server-commons/types/editions';
 
-/**
- * Query hook for one entitlement check. Resolves locally to "not entitled" for the given
- * feature key; no server call is made, so it never fails.
- */
 export const useEntitlementCheckQuery = createQueryHook((params: EntitlementCheckParams) =>
   queryOptions({
     queryKey: ['entitlement-check', params.featureKey, params.resourceType, params.resourceId],
@@ -37,10 +33,6 @@ export const useEntitlementCheckQuery = createQueryHook((params: EntitlementChec
   }),
 );
 
-/**
- * Checks several feature keys at once, skipping empty keys, and combines the results.
- * Every key resolves locally to "not entitled"; no server call is made.
- */
 export function useEntitlementChecksQuery(featureKeys: readonly EntitlementCheckFeatureKey[]) {
   const usableKeys = featureKeys.filter((key) => key.length > 0);
 
@@ -56,10 +48,6 @@ export function useEntitlementChecksQuery(featureKeys: readonly EntitlementCheck
   });
 }
 
-/**
- * Query hook for the purchasable feature matching `featureKey`. The feature list is always
- * empty here, so the selected value is always `undefined`.
- */
 export const usePurchasableFeature = createQueryHook((featureKey: string) =>
   queryOptions({
     queryKey: ['purchasable-feature', featureKey],

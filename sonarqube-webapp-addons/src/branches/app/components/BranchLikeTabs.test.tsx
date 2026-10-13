@@ -25,8 +25,6 @@ import { renderComponent } from '~sq-server-commons/helpers/testReactTestingUtil
 import { BranchLike } from '~sq-server-commons/types/branch-like';
 import BranchLikeTabs from './BranchLikeTabs';
 
-// The table's contract hands any branch-like to onSetAsMain; its row menu offers the action only
-// for a branch, so a stub table is what can hand the tabs a pull request.
 jest.mock('./BranchLikeTable', () => ({
   __esModule: true,
   default: ({ onSetAsMain }: { onSetAsMain: (branchLike: BranchLike) => void }) => (

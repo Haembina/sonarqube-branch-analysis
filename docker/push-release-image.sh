@@ -1,12 +1,5 @@
 #!/bin/sh
 
-# Builds the release image for one released version from release.Dockerfile and pushes it to GHCR.
-# build.yml's image job runs it on a v-tag once the mirror holds that version's release.
-#
-# Environment: VERSION (the released version, without the v), ACTOR (the GitHub user that logs in)
-# and GHCR_TOKEN (a token with packages: write), all required. IMAGE overrides the repository the
-# image is pushed to. The token reaches docker on stdin, never on a command line.
-
 set -eu
 
 : "${VERSION:?VERSION names the released version}"
