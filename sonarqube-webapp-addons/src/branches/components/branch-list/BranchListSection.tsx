@@ -37,7 +37,7 @@ export default function BranchListSection(props: Readonly<Props>) {
   const { branchList, component, globalNewCodeDefinition, projectNewCodeDefinition } = props;
 
   return (
-    <div className="sw-mt-6">
+    <div className="sw-mt-6" id="branch-new-code-settings">
       <Heading as="h3" className="sw-mb-4">
         {translate('project_baseline.configure_branches')}
       </Heading>

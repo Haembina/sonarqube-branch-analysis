@@ -16,8 +16,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import type { Scope } from '@haembina/accessibility/playwright';
+import { test as base, type Scope, type ShortcutSetting } from '@haembina/accessibility/playwright';
 import { expect, type Locator, type Page } from '@playwright/test';
+import { addonLanguageTables } from './language-tables.helper';
+
+const SHORTCUTS_PREFERENCE = 'sonarqube.preferences.keyboard_shortcuts_enabled';
+
+export const SONARQUBE_SHORTCUTS: ShortcutSetting = {
+  off: async (page) => {
+    await page.evaluate((key) => localStorage.setItem(key, 'false'), SHORTCUTS_PREFERENCE);
+  },
+  on: async (page) => {
+    await page.evaluate((key) => localStorage.removeItem(key), SHORTCUTS_PREFERENCE);
+  },
+};
+
+export const test = base.extend({
+  accessibilityLanguageTables: async ({ request }, use) => {
+    await use(await addonLanguageTables(request));
+  },
+  accessibilityShortcuts: async ({}, use) => {
+    await use(SONARQUBE_SHORTCUTS);
+  },
+});
+
+export { expect };
 
 const SONARSOURCE_NODES = [
   '[data-testid="sidebar-navigation-wrapper"]',
@@ -27,11 +50,24 @@ const SONARSOURCE_NODES = [
   'a[href*="sonarsource.com/products/sonarqube/why-upgrade"]',
 ];
 
-export const ADDON_PAGE: Scope = { exclude: SONARSOURCE_NODES };
-
 export const OPEN_DIALOG: Scope = { include: ['[role="dialog"]'], exclude: SONARSOURCE_NODES };
 
 export const BRANCH_LIST: Scope = { include: ['#project-branch-like'], exclude: SONARSOURCE_NODES };
+
+export const NEW_CODE_SETTINGS: Scope = { include: ['#branch-new-code-settings'], exclude: SONARSOURCE_NODES };
+
+export const BRANCH_SWITCHER: Scope = { include: ['#project-branch-selector'], exclude: SONARSOURCE_NODES };
+
+export const PULL_REQUEST_PAGE: Scope = { include: ['main'], exclude: SONARSOURCE_NODES };
+
+export function reopening(page: Page, open: () => Promise<void>): { reload: () => Promise<void> } {
+  return {
+    reload: async () => {
+      await page.reload();
+      await open();
+    },
+  };
+}
 
 export const PROJECT = process.env.SONARQUBE_PROJECT ?? 'branch-analysis-it';
 

@@ -28,7 +28,7 @@ import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
 import { renderComponent } from '~sq-server-commons/helpers/testReactTestingUtils';
 import { BranchLike } from '~sq-server-commons/types/branch-like';
 import { Feature } from '~sq-server-commons/types/features';
-import ProjectBranchSelector from './ProjectBranchSelector';
+import ProjectBranchSelector, { hidePopoverArrow } from './ProjectBranchSelector';
 
 const ALM_URL = 'https://alm.example.com';
 
@@ -197,5 +197,31 @@ describe('capability switch-branch: open another branch or pull request of a pro
     expect(within(popover).getByRole('searchbox')).toBeInTheDocument();
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps the popover arrow from screen readers', async () => {
+    renderSelector();
+    const { popover } = await open();
+
+    for (const arrow of Array.from(popover.children).flatMap((child) =>
+      child.tagName === 'SPAN' ? Array.from(child.querySelectorAll('svg')) : [],
+    )) {
+      expect(arrow).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
+});
+
+describe('hidePopoverArrow', () => {
+  it('hides the arrow drawn beside the dialog content, and nothing when there is none', () => {
+    document.body.innerHTML =
+      '<div role="dialog"><div id="popover-content"></div><span><svg id="popover-arrow"></svg></span></div>' +
+      '<div id="no-dialog"><span><svg id="other-drawing"></svg></span></div>';
+
+    hidePopoverArrow(document.getElementById('popover-content'));
+    hidePopoverArrow(document.getElementById('no-dialog'));
+    hidePopoverArrow(null);
+
+    expect(document.getElementById('popover-arrow')).toHaveAttribute('aria-hidden', 'true');
+    expect(document.getElementById('other-drawing')).not.toHaveAttribute('aria-hidden');
   });
 });

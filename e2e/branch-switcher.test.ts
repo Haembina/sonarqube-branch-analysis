@@ -16,16 +16,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { expect, test } from '@haembina/accessibility/playwright';
 import type { Page } from '@playwright/test';
 import {
-  ADDON_PAGE,
   BRANCH,
+  BRANCH_SWITCHER,
+  expect,
   expectVisibleFocus,
   OPEN_DIALOG,
   PROJECT,
   PULL_REQUEST,
+  reopening,
   tabTo,
+  test,
 } from './sonarqube.helper';
 
 function switcherOf(page: Page) {
@@ -74,14 +76,20 @@ test.describe('capability switch-branch: open another branch or pull request of 
     await popover.getByRole('radio', { name: 'Pull Requests' }).click();
     await expect(popover.getByRole('link', { name: new RegExp(PULL_REQUEST) })).toBeVisible();
     await expect(popover.getByRole('link', { name: new RegExp(BRANCH) })).toHaveCount(0);
-    await audit('branch switcher', OPEN_DIALOG);
+    await audit(
+      'branch switcher',
+      OPEN_DIALOG,
+      reopening(page, async () => {
+        await openSwitcher(page);
+      }),
+    );
   });
 
   test('opens, walks and leaves by keyboard alone', async ({ page, audit }) => {
     await page.goto(`/dashboard?id=${PROJECT}`);
     const button = page.getByRole('button', { name: 'main', exact: true });
     await expect(button).toBeVisible();
-    await audit('overview', ADDON_PAGE);
+    await audit('overview', BRANCH_SWITCHER);
 
     await tabTo(page, button);
     await expectVisibleFocus(page);

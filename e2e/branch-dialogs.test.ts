@@ -16,17 +16,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { expect, test } from '@haembina/accessibility/playwright';
 import type { Page } from '@playwright/test';
 import {
   arrowTo,
   BRANCH,
   CI_PULL_REQUEST,
+  expect,
   expectVisibleFocus,
   OPEN_DIALOG,
   openBranchesPage,
+  reopening,
   rowOf,
   tabTo,
+  test,
 } from './sonarqube.helper';
 
 test.describe.configure({ mode: 'serial' });
@@ -53,7 +55,7 @@ test.describe('capability rename-main-branch: rename the main branch of a projec
     const name = dialog.getByRole('textbox', { name: 'New name' });
     await expect(name).toBeFocused();
     await expect(dialog.getByRole('button', { name: 'Rename' })).toBeDisabled();
-    await audit('rename branch dialog', OPEN_DIALOG);
+    await audit('rename branch dialog', OPEN_DIALOG, reopening(page, () => pickAction(page, 'main', 'Rename branch')));
     await name.fill('trunk');
     await dialog.getByRole('button', { name: 'Rename' }).click();
     await expect(dialog).toBeHidden();
@@ -76,7 +78,7 @@ test.describe('capability set-main-branch: make another branch the main branch o
     await pickAction(page, BRANCH, 'Set as main branch');
     const dialog = page.getByRole('dialog', { name: `Set "${BRANCH}" as the main branch` });
     await expect(dialog).toBeVisible();
-    await audit('set main branch dialog', OPEN_DIALOG);
+    await audit('set main branch dialog', OPEN_DIALOG, reopening(page, () => pickAction(page, BRANCH, 'Set as main branch')));
     await dialog.getByRole('button', { name: 'Set as main branch' }).click();
     await expect(dialog).toBeHidden();
     await expect(rowOf(page, BRANCH)).toContainText('Main Branch');
@@ -100,7 +102,14 @@ test.describe('capability delete-branch: delete a branch or pull request of a pr
     await pickActionByKeyboard(page, CI_PULL_REQUEST, 'Delete Pull Request');
     const dialog = page.getByRole('dialog', { name: 'Delete Pull Request' });
     await expect(dialog).toBeVisible();
-    await audit('delete pull request dialog', OPEN_DIALOG);
+    await audit(
+      'delete pull request dialog',
+      OPEN_DIALOG,
+      reopening(page, async () => {
+        await page.getByRole('tab', { name: 'Pull Requests' }).click();
+        await pickAction(page, CI_PULL_REQUEST, 'Delete Pull Request');
+      }),
+    );
     await tabTo(page, dialog.getByRole('button', { name: 'Delete' }));
     await page.keyboard.press('Enter');
 
@@ -114,7 +123,7 @@ test.describe('capability delete-branch: delete a branch or pull request of a pr
     await pickAction(page, BRANCH, 'Delete branch');
     const dialog = page.getByRole('dialog', { name: 'Delete branch' });
     await expect(dialog).toContainText(BRANCH);
-    await audit('delete branch dialog', OPEN_DIALOG);
+    await audit('delete branch dialog', OPEN_DIALOG, reopening(page, () => pickAction(page, BRANCH, 'Delete branch')));
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
     await expect(rowOf(page, BRANCH)).toBeVisible();

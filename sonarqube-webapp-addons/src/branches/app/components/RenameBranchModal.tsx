@@ -37,6 +37,8 @@ interface Props {
 
 const FORM_ID = 'branch-rename-form';
 
+const ERROR_ID = 'rename-branch-name-error';
+
 export default function RenameBranchModal(props: Props) {
   const { branch, component, onClose } = props;
   const [name, setName] = useState<string>();
@@ -61,6 +63,7 @@ export default function RenameBranchModal(props: Props) {
 
   const header = translate('project_branch_pull_request.branch.rename');
   const submitDisabled = isPending || !name || name === branch.name;
+  const emptied = name === '';
 
   return (
     <Modal
@@ -69,12 +72,22 @@ export default function RenameBranchModal(props: Props) {
         <form id={FORM_ID} onSubmit={handleSubmit}>
           <FormField
             className="sw-mb-1"
+            description={
+              emptied && (
+                <span id={ERROR_ID}>
+                  <FormattedMessage id="field_required" />
+                </span>
+              )
+            }
             htmlFor="rename-branch-name"
             label={<FormattedMessage id="new_name" />}
           >
             <InputField
+              aria-describedby={emptied ? ERROR_ID : undefined}
+              aria-invalid={emptied}
               autoFocus
               id="rename-branch-name"
+              isInvalid={emptied}
               maxLength={100}
               name="name"
               onChange={handleNameChange}

@@ -79,7 +79,7 @@ export default function BranchPurgeSetting(props: Props) {
 const SwitchBoundary = styled.span`
   display: inline-flex;
 
-  & [role='switch'][aria-checked='false']:not(:disabled) {
+  & [role='switch'][aria-checked='false']:not(:disabled):not(:focus-visible) {
     box-shadow: inset 0 0 0 1px ${cssVar('color-border-bolder')};
   }
 `;

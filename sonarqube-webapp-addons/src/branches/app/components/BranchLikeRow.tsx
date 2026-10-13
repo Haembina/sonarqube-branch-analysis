@@ -42,8 +42,17 @@ import { BranchLike } from '~sq-server-commons/types/branch-like';
 import { Component } from '~sq-server-commons/types/types';
 import BranchPurgeSetting from './BranchPurgeSetting';
 
+const ID_SAFE = /^[A-Za-z0-9-]$/;
+
+const HEX = 16;
+
+const escapedForId = (character: string): string =>
+  ID_SAFE.test(character)
+    ? character
+    : [...new TextEncoder().encode(character)].map((byte) => `_${byte.toString(HEX).padStart(2, '0')}`).join('');
+
 export function getBranchLikeActionsId(displayName: string): string {
-  return `branch-settings-action-${displayName}`;
+  return `branch-settings-action-${Array.from(displayName, escapedForId).join('')}`;
 }
 
 export interface BranchLikeRowProps {
