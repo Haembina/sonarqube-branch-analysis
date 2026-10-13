@@ -67,7 +67,9 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 | Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
 | Java compiler | javac warnings | Error Prone and javac lint, every finding an error |
 | Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns after a dialog, controls carry names, uncaught errors show a toast |
-| Upstream pull requests | Open | Merged: newer Community Builds, monorepo keys in Azure DevOps statuses, Bitbucket credentials out of debug logs, GitLab summary cleanup |
+| Azure DevOps monorepos | One quality gate status per pull request, which each project overwrites | One status per project, named with its project key |
+| Bitbucket Cloud debug logs | Write the OAuth client secret and bearer token | Redact the Authorization header and log no token exchange |
+| GitLab summary comment | A new one piles up on every passed gate | Replaces the previous one |
 
 ## How it works
 
