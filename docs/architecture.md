@@ -1,13 +1,14 @@
 <div align="center">
 
-<img src="../icons/icon.png" alt="" width="48">
+<img src="/icons/icon.png" alt="" width="48">
 
 # Architecture
 
 How the Java agent, the plugin extensions and the webapp fit together.
 
-[README](../README.md) · **Architecture** · [Contributing](contributing.md) ·
-[Guide](guide.md) · [Security](security.md) · [Testing](testing.md)
+[README](/README.md) · **Architecture** · [Contributing](/docs/contributing.md)
+· [Guide](/docs/guide.md) · [Security](/docs/security.md) ·
+[Testing](/docs/testing.md)
 
 </div>
 

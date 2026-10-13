@@ -1,15 +1,15 @@
 <div align="center">
 
-<img src="../icons/icon.png" alt="" width="48">
+<img src="/icons/icon.png" alt="" width="48">
 
 # Guide
 
 Installing the plugin, configuring decoration, and upgrading from the Community
 Branch Plugin.
 
-[README](../README.md) · [Architecture](architecture.md) ·
-[Contributing](contributing.md) · **Guide** · [Security](security.md) ·
-[Testing](testing.md)
+[README](/README.md) · [Architecture](/docs/architecture.md) ·
+[Contributing](/docs/contributing.md) · **Guide** ·
+[Security](/docs/security.md) · [Testing](/docs/testing.md)
 
 </div>
 
