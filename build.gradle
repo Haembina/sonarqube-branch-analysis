@@ -41,7 +41,7 @@ repositories {
     }
 }
 
-def sonarqubeVersion = '26.9.0.129388'
+def sonarqubeVersion = '26.10.0.133078'
 def sonarqubeLibDir = "${projectDir}/sonarqube-lib"
 def sonarLibraries = "${sonarqubeLibDir}/sonarqube-${sonarqubeVersion}/lib"
 def sonarServerLibraries = fileTree(dir: sonarLibraries, include: 'sonar-application-*.jar')

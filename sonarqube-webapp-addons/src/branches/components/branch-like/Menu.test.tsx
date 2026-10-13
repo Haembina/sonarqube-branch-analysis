@@ -27,6 +27,7 @@ import {
 import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
 import { mockRouter } from '~sq-server-commons/helpers/testMocks';
 import { renderComponent } from '~sq-server-commons/helpers/testReactTestingUtils';
+import { getProjectUrl } from '~sq-server-commons/helpers/urls';
 import { BranchLike } from '~sq-server-commons/types/branch-like';
 import MenuWithRouter, { Menu } from './Menu';
 
@@ -108,9 +109,7 @@ describe('the branch and pull request menu', () => {
 
     await user.keyboard('{Enter}');
     expect(onClose).toHaveBeenCalled();
-    expect(router.push).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: '/dashboard' }),
-    );
+    expect(router.push).toHaveBeenCalledWith(getProjectUrl('project'));
   });
 
   it('opens the entry a user clicks', async () => {
