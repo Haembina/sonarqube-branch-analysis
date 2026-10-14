@@ -129,6 +129,9 @@ flowchart LR
   Elasticsearch's disk watermark line when there is one.
 - A command after the script's two paths runs against its server once its
   checks pass; `npm run test:e2e` is the Playwright suite.
+- In CI that suite runs in the record's image, inside the SonarQube container's
+  network: on the shared runner, another job's Docker network change aborts a
+  host Chromium's loads with `ERR_NETWORK_CHANGED`.
 - Against a server of your own, set `SONARQUBE_URL`, `SONARQUBE_PROJECT` and,
   when the admin password is not `admin`, `SONARQUBE_ADMIN_PASSWORD`. The
   project must hold the integration test's analyses.
