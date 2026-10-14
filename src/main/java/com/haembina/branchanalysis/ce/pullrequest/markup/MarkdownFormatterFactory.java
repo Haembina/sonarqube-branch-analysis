@@ -83,6 +83,6 @@ public final class MarkdownFormatterFactory extends BaseFormatterFactory {
 
     @Override
     public Formatter<Bold> boldFormatter() {
-        return node -> String.format("**%s**", childContents(node));
+        return node -> "**" + childContents(node) + "**";
     }
 }

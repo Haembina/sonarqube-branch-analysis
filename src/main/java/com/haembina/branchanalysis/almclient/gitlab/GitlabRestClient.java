@@ -79,7 +79,7 @@ class GitlabRestClient implements GitlabClient {
 
     @Override
     public User getCurrentUser() throws IOException {
-        return entity(new HttpGet(String.format("%s/user", baseGitlabApiUrl)), User.class);
+        return entity(new HttpGet(baseGitlabApiUrl + "/user"), User.class);
     }
 
     @Override
@@ -169,7 +169,7 @@ class GitlabRestClient implements GitlabClient {
 
     @Override
     public Project getProject(String projectSlug) throws IOException {
-        return entity(new HttpGet(String.format("%s/projects/%s", baseGitlabApiUrl, URLEncoder.encode(projectSlug, StandardCharsets.UTF_8))), Project.class);
+        return entity(new HttpGet(baseGitlabApiUrl + "/projects/" + URLEncoder.encode(projectSlug, StandardCharsets.UTF_8)), Project.class);
     }
 
     private <X> X entity(HttpRequestBase httpRequest, Class<X> type) throws IOException {

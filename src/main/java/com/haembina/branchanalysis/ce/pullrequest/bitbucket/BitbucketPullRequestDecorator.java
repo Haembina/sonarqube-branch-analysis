@@ -49,7 +49,8 @@ import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLim
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsReport;
-import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
+import com.haembina.branchanalysis.almclient.bitbucket.model.Text;
+import com.haembina.branchanalysis.almclient.bitbucket.model.Percentage;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
@@ -120,11 +121,11 @@ public class BitbucketPullRequestDecorator implements PullRequestBuildStatusDeco
 
     private static List<ReportData> toReport(BitbucketClient client, AnalysisSummary analysisSummary) {
         List<ReportData> reportData = new ArrayList<>();
-        reportData.add(new ReportData("New Issues", new DataValue.Text(issueLabel(analysisSummary.getNewIssues().getValue()))));
-        reportData.add(new ReportData("Accepted Issues", new DataValue.Text(issueLabel(analysisSummary.getAcceptedIssues().getValue()))));
-        reportData.add(new ReportData("Fixed Issues", new DataValue.Text(issueLabel(analysisSummary.getFixedIssues().getValue()))));
-        reportData.add(new ReportData("Code coverage", new DataValue.Percentage(Optional.ofNullable(analysisSummary.getNewCoverage()).orElse(BigDecimal.ZERO))));
-        reportData.add(new ReportData("Duplication", new DataValue.Percentage(Optional.ofNullable(analysisSummary.getNewDuplications()).orElse(BigDecimal.ZERO))));
+        reportData.add(new ReportData("New Issues", new Text(issueLabel(analysisSummary.getNewIssues().getValue()))));
+        reportData.add(new ReportData("Accepted Issues", new Text(issueLabel(analysisSummary.getAcceptedIssues().getValue()))));
+        reportData.add(new ReportData("Fixed Issues", new Text(issueLabel(analysisSummary.getFixedIssues().getValue()))));
+        reportData.add(new ReportData("Code coverage", new Percentage(Optional.ofNullable(analysisSummary.getNewCoverage()).orElse(BigDecimal.ZERO))));
+        reportData.add(new ReportData("Duplication", new Percentage(Optional.ofNullable(analysisSummary.getNewDuplications()).orElse(BigDecimal.ZERO))));
         reportData.add(new ReportData("Analysis details", client.createLinkDataValue(analysisSummary.getDashboardUrl())));
 
         return reportData;
@@ -205,7 +206,7 @@ public class BitbucketPullRequestDecorator implements PullRequestBuildStatusDeco
     private static String reportDescription(AnalysisDetails details, AnalysisSummary analysisSummary) {
         String header = details.getQualityGateStatus() == QualityGate.Status.OK ? "Quality Gate passed" : "Quality Gate failed";
         String body = analysisSummary.getFailedQualityGateConditions().stream()
-                .map(s -> format("- %s", s))
+                .map(s -> "- " + s)
                 .collect(Collectors.joining(System.lineSeparator()));
         return format("%s%n%s", header, body);
     }

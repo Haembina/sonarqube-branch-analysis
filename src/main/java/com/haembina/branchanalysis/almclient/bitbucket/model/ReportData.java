@@ -36,9 +36,9 @@ public class ReportData {
     }
 
     private static String typeFrom(DataValue value) {
-        if (value instanceof DataValue.Link || value instanceof DataValue.CloudLink) {
+        if (value instanceof Link || value instanceof CloudLink) {
             return "LINK";
-        } else if (value instanceof DataValue.Percentage) {
+        } else if (value instanceof Percentage) {
             return "PERCENTAGE";
         } else {
             return "TEXT";

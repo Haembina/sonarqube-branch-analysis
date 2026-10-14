@@ -72,7 +72,7 @@ public interface BitbucketClient {
     void uploadAnnotations(String commitSha, Set<CodeInsightsAnnotation> annotations, String reportKey) throws IOException;
 
     /**
-     * Creates a DataValue of type DataValue.Link or DataValue.CloudLink depending on the implementation
+     * Creates a DataValue of type Link or CloudLink depending on the implementation
      */
     DataValue createLinkDataValue(String dashboardUrl);
 

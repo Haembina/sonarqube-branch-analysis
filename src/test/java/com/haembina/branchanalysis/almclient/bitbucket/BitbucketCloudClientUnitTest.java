@@ -27,6 +27,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsReport;
 import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
+import com.haembina.branchanalysis.almclient.bitbucket.model.CloudLink;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.cloud.CloudAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.cloud.CloudCreateReportRequest;
@@ -212,8 +213,8 @@ class BitbucketCloudClientUnitTest {
         DataValue data = underTest.createLinkDataValue("https://localhost:9000/any/project");
 
         // then
-        assertInstanceOf(DataValue.CloudLink.class, data);
-        assertEquals("https://localhost:9000/any/project", ((DataValue.CloudLink) data).getHref());
+        assertInstanceOf(CloudLink.class, data);
+        assertEquals("https://localhost:9000/any/project", ((CloudLink) data).getHref());
     }
 
     @Test
