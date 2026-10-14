@@ -169,8 +169,8 @@ extraInitContainers:
 | Command | What it does |
 | --- | --- |
 | `./gradlew build` | Compiles with Error Prone and javac lint as errors, runs the Java suite under its coverage floor, and builds the jar in build/libs |
-| `./sonarqube-webapp-addons/setup.sh` | Links the branch pages into the sonarqube-webapp submodule before a webapp build |
-| `yarn nx run sq-server:build --skip-nx-cache` | Builds the webapp, from inside sonarqube-webapp, into apps/sq-server/build/webapp |
+| `./sonarqube-webapp-addons/setup.sh` | Copies the branch pages into the sonarqube-webapp submodule; rerun after changing them |
+| `yarn nx run sq-server:build` | Builds the webapp, from inside sonarqube-webapp, into apps/sq-server/build/webapp |
 | `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube in Docker with both and runs a main, branch and pull request analysis |
 | `./gradlew pitest` | PIT mutation run over the Java suite; the report is in build/reports/pitest |
 
