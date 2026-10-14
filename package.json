@@ -1,6 +1,6 @@
 {
   "name": "haembina-branch-analysis",
-  "version": "27.1.0",
+  "version": "27.1.1",
   "private": true,
   "type": "module",
   "description": "Branch analysis and pull request decoration for SonarQube Community Build: a plugin, and the branch pages its webapp dropped.",
