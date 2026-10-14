@@ -26,6 +26,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsReport;
 import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
+import com.haembina.branchanalysis.almclient.bitbucket.model.Link;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.Repository;
 import com.haembina.branchanalysis.almclient.bitbucket.model.server.Annotation;
@@ -348,8 +349,8 @@ class BitbucketServerClientUnitTest {
         DataValue data = underTest.createLinkDataValue("https://localhost:9000/any/project");
 
         // then
-        assertInstanceOf(DataValue.Link.class, data);
-        assertEquals("https://localhost:9000/any/project", ((DataValue.Link) data).getHref());
+        assertInstanceOf(Link.class, data);
+        assertEquals("https://localhost:9000/any/project", ((Link) data).getHref());
     }
 
     @Test

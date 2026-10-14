@@ -104,7 +104,7 @@ export default function BranchLikeTabs(props: Props) {
 
   const handleSetAsMainBranch = () => {
     handleClose();
-    fetchComponent();
+    void fetchComponent();
   };
 
   const handleSetAsMainBranchOption = (branchLike: BranchLike) => {

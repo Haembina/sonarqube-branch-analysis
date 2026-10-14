@@ -41,7 +41,6 @@ import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import java.util.Optional;
 
-import static java.lang.String.format;
 
 @ServerSide
 @ComputeEngineSide
@@ -103,7 +102,7 @@ public class DefaultBitbucketClientFactory implements BitbucketClientFactory {
     private static OkHttpClient createAuthorisingClient(OkHttpClient.Builder clientBuilder, String bearerToken) {
         return clientBuilder.addInterceptor(chain -> {
                     Request newRequest = chain.request().newBuilder()
-                            .addHeader("Authorization", format("Bearer %s", bearerToken))
+                            .addHeader("Authorization", "Bearer " + bearerToken)
                             .addHeader("Accept", "application/json")
                             .build();
                     return chain.proceed(newRequest);

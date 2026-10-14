@@ -29,6 +29,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsReport;
 import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
+import com.haembina.branchanalysis.almclient.bitbucket.model.CloudLink;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.Repository;
@@ -150,7 +151,7 @@ class BitbucketCloudClient implements BitbucketClient {
 
     @Override
     public DataValue createLinkDataValue(String dashboardUrl) {
-        return new DataValue.CloudLink(LINK_TEXT, dashboardUrl);
+        return new CloudLink(LINK_TEXT, dashboardUrl);
     }
 
     @Override
