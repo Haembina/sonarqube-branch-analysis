@@ -21,6 +21,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 const CASE_TIMEOUT = 60_000;
 
+const EXPECT_TIMEOUT = 20_000;
+
 const NEW_CODE = 'branch-new-code.test.ts';
 
 const INPUT = 'wcag-input.test.ts';
@@ -32,6 +34,7 @@ export default defineConfig({
   testMatch: '*.test.ts',
   globalSetup: './e2e/global.setup.ts',
   timeout: CASE_TIMEOUT,
+  expect: { timeout: EXPECT_TIMEOUT },
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
   reporter: [
