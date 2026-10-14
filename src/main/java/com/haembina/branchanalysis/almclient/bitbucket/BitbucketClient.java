@@ -24,8 +24,6 @@ import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsReport;
 import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
-import com.haembina.branchanalysis.almclient.bitbucket.model.Link;
-import com.haembina.branchanalysis.almclient.bitbucket.model.CloudLink;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.Repository;
