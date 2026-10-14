@@ -4,7 +4,7 @@
 # PLUGIN_VERSION here from package.json.
 ARG SONARQUBE_VERSION="26.10.0.133078-community"
 ARG SONARQUBE_DIGEST="sha256:2e378f7852b67d43507d3d383ee8fb5a522b8b0f920be9803f74f72952fce8f1"
-ARG PLUGIN_VERSION="27.1.1"
+ARG PLUGIN_VERSION="27.1.2"
 
 # busybox's unzip unpacks the webapp, so nothing is installed.
 FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS downloader
