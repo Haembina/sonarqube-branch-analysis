@@ -59,17 +59,17 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| Compatible SonarQube Community Build | The release its plugin version names | 26.10.0.133078 |
+| Compatible SonarQube Community Build | The release its version names | 26.10.0.133078 |
 | CI branch detection | Always on | An off switch: com.haembina.branchanalysis.auto-configuration.enabled |
 | Java coverage | Reported | The build fails under its floor, in lines and branches |
-| Branch page tests | None | Jest under the same floor, and Playwright against a running SonarQube |
-| Accessibility | Unchecked | An audit of every branch page and dialog, keyboard-only specs, and a spec per WCAG criterion the audit cannot measure |
-| Release gate | The build | Jar and webapp publish only after a real SonarQube analyses a main branch, a branch and a pull request with them |
+| Branch page tests | None | Jest under the same floor, Playwright against a running SonarQube |
+| Accessibility | Unchecked | An audit of every page and dialog, keyboard-only specs, and a spec per criterion no audit measures |
+| Release gate | The build | Jar and webapp publish only after a real SonarQube analyses main, a branch and a pull request with them |
 | Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
 | Java compiler | javac warnings | Error Prone and javac lint, every finding an error |
-| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns after a dialog, controls carry names, uncaught errors show a toast |
+| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns from dialogs, controls carry names, uncaught errors show a toast |
 | Azure DevOps monorepos | One status per pull request, overwritten by each project | One status per project |
-| Bitbucket Cloud debug logs | Hold the OAuth client secret and token | Hold neither |
+| Bitbucket Cloud debug logs | Hold the OAuth secret and token | Hold neither |
 | GitLab summary comment | Piles up on every passed gate | Replaced on each analysis |
 
 ## How it works
