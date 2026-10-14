@@ -60,7 +60,8 @@ import com.haembina.branchanalysis.almclient.bitbucket.BitbucketException;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
-import com.haembina.branchanalysis.almclient.bitbucket.model.DataValue;
+import com.haembina.branchanalysis.almclient.bitbucket.model.Text;
+import com.haembina.branchanalysis.almclient.bitbucket.model.Percentage;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportData;
 import com.haembina.branchanalysis.almclient.bitbucket.model.ReportStatus;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
@@ -129,11 +130,11 @@ class BitbucketPullRequestDecoratorTest {
 
         assertThat(reportDataArgumentCaptor.getValue())
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(new ReportData("New Issues", new DataValue.Text("666 Issues")),
-                        new ReportData("Accepted Issues", new DataValue.Text("0 Issues")),
-                        new ReportData("Fixed Issues", new DataValue.Text("12 Issues")),
-                        new ReportData("Code coverage", new DataValue.Percentage(BigDecimal.ONE)),
-                        new ReportData("Duplication", new DataValue.Percentage(BigDecimal.TEN)),
+                .isEqualTo(List.of(new ReportData("New Issues", new Text("666 Issues")),
+                        new ReportData("Accepted Issues", new Text("0 Issues")),
+                        new ReportData("Fixed Issues", new Text("12 Issues")),
+                        new ReportData("Code coverage", new Percentage(BigDecimal.ONE)),
+                        new ReportData("Duplication", new Percentage(BigDecimal.TEN)),
                         new ReportData("Analysis details", null)));
     }
 
@@ -167,11 +168,11 @@ class BitbucketPullRequestDecoratorTest {
 
         assertThat(reportDataArgumentCaptor.getValue())
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(new ReportData("New Issues", new DataValue.Text("666 Issues")),
-                        new ReportData("Accepted Issues", new DataValue.Text("0 Issues")),
-                        new ReportData("Fixed Issues", new DataValue.Text("1 Issue")),
-                        new ReportData("Code coverage", new DataValue.Percentage(BigDecimal.ZERO)),
-                        new ReportData("Duplication", new DataValue.Percentage(BigDecimal.ZERO)),
+                .isEqualTo(List.of(new ReportData("New Issues", new Text("666 Issues")),
+                        new ReportData("Accepted Issues", new Text("0 Issues")),
+                        new ReportData("Fixed Issues", new Text("1 Issue")),
+                        new ReportData("Code coverage", new Percentage(BigDecimal.ZERO)),
+                        new ReportData("Duplication", new Percentage(BigDecimal.ZERO)),
                         new ReportData("Analysis details", null)));
     }
 
