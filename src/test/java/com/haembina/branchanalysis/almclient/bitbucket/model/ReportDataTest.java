@@ -28,8 +28,8 @@ class ReportDataTest {
 
     @Test
     void shouldTypeServerAndCloudLinksAsLink() {
-        DataValue.Link serverLink = new DataValue.Link("Go to SonarQube", "https://sonar/dashboard");
-        DataValue.CloudLink cloudLink = new DataValue.CloudLink("Go to SonarQube", "https://sonar/dashboard");
+        Link serverLink = new Link("Go to SonarQube", "https://sonar/dashboard");
+        CloudLink cloudLink = new CloudLink("Go to SonarQube", "https://sonar/dashboard");
 
         assertThat(new ReportData("Analysis details", serverLink).getType()).isEqualTo("LINK");
         assertThat(new ReportData("Analysis details", cloudLink).getType()).isEqualTo("LINK");
@@ -39,7 +39,7 @@ class ReportDataTest {
 
     @Test
     void shouldTypePercentageAndText() {
-        assertThat(new ReportData("Coverage", new DataValue.Percentage(BigDecimal.ONE)).getType()).isEqualTo("PERCENTAGE");
-        assertThat(new ReportData("New Issues", new DataValue.Text("1 Issue")).getType()).isEqualTo("TEXT");
+        assertThat(new ReportData("Coverage", new Percentage(BigDecimal.ONE)).getType()).isEqualTo("PERCENTAGE");
+        assertThat(new ReportData("New Issues", new Text("1 Issue")).getType()).isEqualTo("TEXT");
     }
 }

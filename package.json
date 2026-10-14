@@ -1,6 +1,6 @@
 {
   "name": "haembina-branch-analysis",
-  "version": "27.1.0",
+  "version": "27.1.1",
   "private": true,
   "type": "module",
   "description": "Branch analysis and pull request decoration for SonarQube Community Build: a plugin, and the branch pages its webapp dropped.",
@@ -30,7 +30,7 @@
     "markdownlint-cli2": "^0.23.3",
     "npm-groovy-lint": "^18.0.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.0"
+    "typescript-eslint": "^8.71.2"
   },
   "overrides": {
     "axios": "1.20.0",

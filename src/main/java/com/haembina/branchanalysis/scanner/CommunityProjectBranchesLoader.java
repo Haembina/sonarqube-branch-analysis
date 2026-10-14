@@ -45,8 +45,8 @@ import java.util.List;
 public class CommunityProjectBranchesLoader implements ProjectBranchesLoader {
 
     private static final String PROJECT_BRANCHES_URL =
-            String.format("/%s/%s?%s=", ProjectBranchesParameters.CONTROLLER, ProjectBranchesParameters.ACTION_LIST,
-                          ProjectBranchesParameters.PARAM_PROJECT);
+            "/" + ProjectBranchesParameters.CONTROLLER + "/" + ProjectBranchesParameters.ACTION_LIST + "?"
+                    + ProjectBranchesParameters.PARAM_PROJECT + "=";
 
     private final ServiceClient serviceClient;
     private final Gson gson;
