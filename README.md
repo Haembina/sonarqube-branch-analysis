@@ -59,6 +59,7 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
+| Compatible SonarQube Community Build | The release its plugin version names | 26.10.0.133078 |
 | CI branch detection | Always on | An off switch: com.haembina.branchanalysis.auto-configuration.enabled |
 | Java coverage | Reported | The build fails under its floor, in lines and branches |
 | Branch page tests | None | Jest under the same floor, and Playwright against a running SonarQube |
