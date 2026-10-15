@@ -22,6 +22,7 @@ package com.haembina.branchanalysis.server.pullrequest.validator;
 import com.haembina.branchanalysis.InvalidConfigurationException;
 import com.haembina.branchanalysis.almclient.gitlab.GitlabClient;
 import com.haembina.branchanalysis.almclient.gitlab.GitlabClientFactory;
+import com.haembina.branchanalysis.almclient.gitlab.model.Project;
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.sonar.db.alm.setting.ALM;
@@ -85,7 +86,8 @@ class GitlabValidatorTest {
     void testHappyPath() throws IOException {
         GitlabValidator underTest = new GitlabValidator(gitlabClientFactory);
         GitlabClient gitlabClient = mock();
-        when(gitlabClient.getProject(any())).thenReturn(mock());
+        Project project = mock();
+        when(gitlabClient.getProject(any())).thenReturn(project);
         when(gitlabClientFactory.createClient(any(), any())).thenReturn(gitlabClient);
 
         underTest.validate(projectAlmSettingDto, almSettingDto);

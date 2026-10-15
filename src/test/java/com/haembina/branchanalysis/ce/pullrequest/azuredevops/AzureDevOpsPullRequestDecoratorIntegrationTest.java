@@ -92,8 +92,10 @@ class AzureDevOpsPullRequestDecoratorIntegrationTest {
     @BeforeEach
     void setUp() {
         when(settings.getEncryption()).thenReturn(encryption);
-        when(reportGenerator.createAnalysisIssueSummary(any(), any())).thenReturn(mock());
-        when(reportGenerator.createAnalysisSummary(any())).thenReturn(mock());
+        AnalysisIssueSummary defaultIssueSummary = mock();
+        AnalysisSummary defaultSummary = mock();
+        when(reportGenerator.createAnalysisIssueSummary(any(), any())).thenReturn(defaultIssueSummary);
+        when(reportGenerator.createAnalysisSummary(any())).thenReturn(defaultSummary);
     }
 
     private void configureTestDefaults() {
