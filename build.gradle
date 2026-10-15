@@ -21,7 +21,7 @@ plugins {
     id('java')
     id('jacoco')
     id('org.sonarqube') version('7.5.0.8588')
-    id('info.solidsoft.pitest') version('1.19.0')
+    id('info.solidsoft.pitest') version('1.19.0') apply(false)
     id('com.gradleup.shadow') version('9.6.1')
     id('net.ltgt.errorprone') version('5.1.1')
 }
@@ -83,6 +83,7 @@ dependencies {
     implementation('com.squareup.okhttp3:logging-interceptor:5.5.0')
     testImplementation(platform('org.junit:junit-bom:6.1.3'))
     testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     errorprone('com.google.errorprone:error_prone_core:2.50.0')
 }
 
@@ -144,16 +145,21 @@ tasks.withType(JavaCompile) {
 
 assemble.dependsOn('shadowJar')
 
-// Mutation testing, never run by the build: a score is read, not gated
-pitest {
-    pitestVersion = '1.30.0'
-    junit5PluginVersion = '1.2.3'
-    timestampedReports = false
-    avoidCallsTo = ['org.slf4j.Logger']
-    outputFormats = ['HTML', 'XML']
-    threads = Runtime.runtime.availableProcessors()
-    // The agent tests append to the boot class path, which class data sharing cannot cover
-    jvmArgs = ['-Xshare:off']
+// Mutation testing, never run by the build: a score is read, not gated. Only a pitest run applies the plugin,
+// because applying 1.19.0, its latest release, calls Configuration.setVisible, which Gradle 9 deprecates
+// (fixed upstream in https://github.com/szpak/gradle-pitest-plugin/pull/400, not yet released)
+if (gradle.startParameter.taskNames.any { task -> task.tokenize(':').last() == 'pitest' }) {
+    apply(plugin: 'info.solidsoft.pitest')
+    pitest {
+        pitestVersion = '1.30.0'
+        junit5PluginVersion = '1.2.3'
+        timestampedReports = false
+        avoidCallsTo = ['org.slf4j.Logger']
+        outputFormats = ['HTML', 'XML']
+        threads = Runtime.runtime.availableProcessors()
+        // The agent tests append to the boot class path, which class data sharing cannot cover
+        jvmArgs = ['-Xshare:off']
+    }
 }
 
 jacocoTestReport {
