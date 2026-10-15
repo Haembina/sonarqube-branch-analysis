@@ -241,7 +241,7 @@ class BitbucketPullRequestDecoratorTest {
             "MAINTAINABILITY, MEDIUM, MEDIUM, CODE_SMELL",
             "RELIABILITY, LOW, LOW, BUG",
             "RELIABILITY, INFO, LOW, BUG"})
-    void shouldMapHighestImpactToBitbucketSeverityAndType(SoftwareQuality quality, Severity severity, String bitbucketSeverity, String bitbucketType) throws IOException {
+    void shouldMapHighestImpactToBitbucketSeverityAndType(SoftwareQuality quality, Severity severity, String bitbucketSeverity, String bitbucketType) {
         mockDecoratableAnalysis(List.of(componentIssue(Map.of(quality, severity))));
 
         underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
@@ -250,7 +250,7 @@ class BitbucketPullRequestDecoratorTest {
     }
 
     @Test
-    void shouldRefuseIssueWithoutImpacts() throws IOException {
+    void shouldRefuseIssueWithoutImpacts() {
         mockDecoratableAnalysis(List.of(componentIssue(Map.of())));
 
         assertThatThrownBy(() -> underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto))
@@ -295,7 +295,7 @@ class BitbucketPullRequestDecoratorTest {
                 .isSameAs(forbidden);
     }
 
-    private void mockDecoratableAnalysis(List<PostAnalysisIssueVisitor.ComponentIssue> issues) throws IOException {
+    private void mockDecoratableAnalysis(List<PostAnalysisIssueVisitor.ComponentIssue> issues) {
         when(client.supportsCodeInsights()).thenReturn(true);
         when(client.getAnnotationUploadLimit()).thenReturn(new AnnotationUploadLimit(1000, 1000));
         when(client.normaliseReportKey(any())).thenReturn("reportKey");

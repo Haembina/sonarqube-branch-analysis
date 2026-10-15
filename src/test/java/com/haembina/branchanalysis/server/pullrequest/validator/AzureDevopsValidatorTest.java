@@ -22,6 +22,7 @@ package com.haembina.branchanalysis.server.pullrequest.validator;
 import com.haembina.branchanalysis.InvalidConfigurationException;
 import com.haembina.branchanalysis.almclient.azuredevops.AzureDevopsClient;
 import com.haembina.branchanalysis.almclient.azuredevops.AzureDevopsClientFactory;
+import com.haembina.branchanalysis.almclient.azuredevops.model.Repository;
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.sonar.db.alm.setting.ALM;
@@ -87,7 +88,8 @@ class AzureDevopsValidatorTest {
     void testExceptionOnMissingSlug() throws IOException {
         AzureDevopsValidator underTest = new AzureDevopsValidator(azureDevopsClientFactory);
         AzureDevopsClient azureDevopsClient = mock();
-        when(azureDevopsClient.getRepository(any(), any())).thenReturn(mock());
+        Repository repository = mock();
+        when(azureDevopsClient.getRepository(any(), any())).thenReturn(repository);
         when(azureDevopsClientFactory.createClient(any(), any())).thenReturn(azureDevopsClient);
 
         assertThatThrownBy(() -> underTest.validate(projectAlmSettingDto, almSettingDto))
@@ -100,7 +102,8 @@ class AzureDevopsValidatorTest {
     void testExceptionOnMissingRepo() throws IOException {
         AzureDevopsValidator underTest = new AzureDevopsValidator(azureDevopsClientFactory);
         AzureDevopsClient azureDevopsClient = mock();
-        when(azureDevopsClient.getRepository(any(), any())).thenReturn(mock());
+        Repository repository = mock();
+        when(azureDevopsClient.getRepository(any(), any())).thenReturn(repository);
         when(azureDevopsClientFactory.createClient(any(), any())).thenReturn(azureDevopsClient);
         when(projectAlmSettingDto.getAlmSlug()).thenReturn("slug");
 
@@ -115,7 +118,8 @@ class AzureDevopsValidatorTest {
     void testHappyPath() throws IOException {
         AzureDevopsValidator underTest = new AzureDevopsValidator(azureDevopsClientFactory);
         AzureDevopsClient azureDevopsClient = mock();
-        when(azureDevopsClient.getRepository(any(), any())).thenReturn(mock());
+        Repository repository = mock();
+        when(azureDevopsClient.getRepository(any(), any())).thenReturn(repository);
         when(azureDevopsClientFactory.createClient(any(), any())).thenReturn(azureDevopsClient);
         when(projectAlmSettingDto.getAlmSlug()).thenReturn("slug");
         when(projectAlmSettingDto.getAlmRepo()).thenReturn("repo");

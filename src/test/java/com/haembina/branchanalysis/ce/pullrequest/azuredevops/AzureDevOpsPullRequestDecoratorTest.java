@@ -532,7 +532,8 @@ class AzureDevOpsPullRequestDecoratorTest {
         mockPullRequest(azureDevopsClient, azureProject, azureRepository, pullRequestId);
 
         when(azureDevopsClient.retrievePullRequestIterationIdForCommit(azureProject, azureRepository, pullRequestId, commitSha)).thenReturn(iterationId);
-        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(mock());
+        CommentThread createdThread = mock();
+        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(createdThread);
 
         AzureDevOpsPullRequestDecorator underTest = new AzureDevOpsPullRequestDecorator(scmInfoRepository, azureDevopsClientFactory, reportGenerator, markdownFormatterFactory);
         underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
@@ -564,7 +565,8 @@ class AzureDevOpsPullRequestDecoratorTest {
         mockPullRequest(azureDevopsClient, azureProject, azureRepository, pullRequestId);
 
         when(azureDevopsClient.retrievePullRequestIterationIdForCommit(any(), any(), anyInt(), any())).thenThrow(new IOException("403 Forbidden"));
-        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(mock());
+        CommentThread createdThread = mock();
+        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(createdThread);
 
         AzureDevOpsPullRequestDecorator underTest = new AzureDevOpsPullRequestDecorator(scmInfoRepository, azureDevopsClientFactory, reportGenerator, markdownFormatterFactory);
 
@@ -595,7 +597,8 @@ class AzureDevOpsPullRequestDecoratorTest {
         when(azureDevopsClientFactory.createClient(any(), any())).thenReturn(azureDevopsClient);
         PullRequest pullRequest = mockPullRequest(azureDevopsClient, azureProject, azureRepository, pullRequestId);
         when(pullRequest.doesSupportIterations()).thenReturn(false);
-        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(mock());
+        CommentThread createdThread = mock();
+        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(createdThread);
 
         AzureDevOpsPullRequestDecorator underTest = new AzureDevOpsPullRequestDecorator(scmInfoRepository, azureDevopsClientFactory, reportGenerator, markdownFormatterFactory);
         underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
@@ -627,7 +630,8 @@ class AzureDevOpsPullRequestDecoratorTest {
         when(azureDevopsClientFactory.createClient(any(), any())).thenReturn(azureDevopsClient);
         PullRequest pullRequest = mockPullRequest(azureDevopsClient, azureProject, azureRepository, pullRequestId);
         when(pullRequest.doesSupportIterations()).thenReturn(false);
-        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(mock());
+        CommentThread createdThread = mock();
+        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(createdThread);
 
         AzureDevOpsPullRequestDecorator underTest = new AzureDevOpsPullRequestDecorator(scmInfoRepository, azureDevopsClientFactory, reportGenerator, markdownFormatterFactory);
         underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
@@ -661,7 +665,8 @@ class AzureDevOpsPullRequestDecoratorTest {
         when(azureDevopsClientFactory.createClient(any(), any())).thenReturn(azureDevopsClient);
         PullRequest pullRequest = mockPullRequest(azureDevopsClient, azureProject, azureRepository, pullRequestId);
         when(pullRequest.doesSupportIterations()).thenReturn(false);
-        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(mock());
+        CommentThread createdThread = mock();
+        when(azureDevopsClient.createThread(any(), any(), anyInt(), any())).thenReturn(createdThread);
 
         AzureDevOpsPullRequestDecorator underTest = new AzureDevOpsPullRequestDecorator(scmInfoRepository, azureDevopsClientFactory, reportGenerator, markdownFormatterFactory);
         underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
