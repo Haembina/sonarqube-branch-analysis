@@ -15,7 +15,7 @@ set -euo pipefail
 root=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
 cd "${root}"
 
-sh gradlew test jacocoTestCoverageVerification sonarLibraries
+sh gradlew test jacocoTestCoverageVerification
 
 export NX_DAEMON=false
 
