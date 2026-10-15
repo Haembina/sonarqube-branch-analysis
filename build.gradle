@@ -162,15 +162,6 @@ jacocoTestReport {
     }
 }
 
-// The jars the Java analyzer resolves types against beside sonarqube-lib, which a SonarQube scan names:
-// the scanner reads files on disk and cannot ask Gradle for its classpath
-tasks.register('sonarLibraries', Sync) {
-    from(files(configurations.compileClasspath, configurations.testCompileClasspath).filter { jar ->
-        !jar.path.startsWith(file(sonarqubeLibDir).path)
-    })
-    into(layout.buildDirectory.dir('sonar-libraries'))
-}
-
 // The Java floor; `check` fails under 100% of lines or branches. A try-with-resources keeps one normal exit,
 // because JaCoCo filters javac's null check on the resource only there.
 jacocoTestCoverageVerification {
