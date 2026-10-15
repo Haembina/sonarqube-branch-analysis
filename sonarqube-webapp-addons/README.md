@@ -12,7 +12,8 @@ Clone the `sonarqube-webapp` submodule:
 git submodule update --init --recursive
 ```
 
-Link this directory into the submodule as `libs/sq-server-addons`, and point its Vite config at it:
+Copy this directory into the submodule as `libs/sq-server-addons`, and point its Vite config at it. Run it again
+after each change:
 
 ```bash
 ./sonarqube-webapp-addons/setup.sh
@@ -35,16 +36,13 @@ cd sonarqube-webapp && PROXY=http://my-sonarqube.org yarn start-sqs
 
 ## Building
 
-If you are building locally, run the [setup script](#setup) first to create the symlink. The Docker build overwrites the
-directory instead.
+Run the [setup script](#setup) before each build; the Docker build runs it too.
 
-- Without the link, the build makes the stock webapp: the branch pages are missing and nothing fails.
-  `ls -l sonarqube-webapp/libs/sq-server-addons` shows whether it is there.
-- Nx hashes none of the linked addons, so a cached build replays the old pages. Pass `--skip-nx-cache` after changing
-  them.
+- Without the copy, the build makes the stock webapp: the branch pages are missing and nothing fails.
+  `ls sonarqube-webapp/libs/sq-server-addons/setup.sh` shows whether it is there.
 
 ```bash
-cd sonarqube-webapp && yarn nx run sq-server:build --skip-nx-cache
+cd sonarqube-webapp && yarn nx run sq-server:build
 ```
 
 The distribution files are generated in the `sonarqube-webapp/apps/sq-server/build/webapp` directory.
@@ -66,7 +64,7 @@ npm run test:addons
 
 The report is `coverage/addons/lcov.info`.
 
-Neither Jest nor the Vite build type-checks the addons. `tsc` does, through the link, so each import resolves to the
+Neither Jest nor the Vite build type-checks the addons. `tsc` does, through the copy, so each import resolves to the
 webapp module it names:
 
 ```bash
