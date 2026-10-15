@@ -55,11 +55,11 @@ in build.gradle names. SonarSource neither makes nor supports this plugin.
 
 ## What this fork adds
 
-A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin).
+A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [81c7ae1](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/81c7ae1a860934f3d63df8279c73c6d29ea3c622).
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| Compatible SonarQube Community Build | The release its version names | 26.10.0.133078 |
+| Compatible SonarQube Community Build | 26.5.0.122743 | 26.10.0.133078 |
 | CI branch detection | Always on | An off switch: com.haembina.branchanalysis.auto-configuration.enabled |
 | Java coverage | Reported | The build fails under its floor, in lines and branches |
 | Branch page tests | None | Jest under the same floor, Playwright against a running SonarQube |
