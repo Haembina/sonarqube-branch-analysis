@@ -7,7 +7,7 @@
 # This is `npm run test:coverage`.
 #
 # The addons' suite runs inside SonarSource's sonarqube-webapp workspace, so this checks the submodule out,
-# links the addons into it with setup.sh, installs its dependencies and builds sq-server once, because the
+# copies the addons into it with setup.sh, installs its dependencies and builds sq-server once, because the
 # workspace's Jest setup reads the Nx project graph that build writes. Without Java 21 or Node on the PATH,
 # it cannot start.
 set -euo pipefail

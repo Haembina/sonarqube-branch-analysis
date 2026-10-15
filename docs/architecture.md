@@ -41,7 +41,7 @@ flowchart LR
 | `src/main/java/com/haembina/branchanalysis/CommunityBranchPluginBootstrap.java` | The `Plugin-Class`: checks the agent ran, and loads the scanner side |
 | `src/main/java/com/haembina/branchanalysis/classloader/ElevatedClassLoaderFactory.java` | A class loader whose parent is SonarQube's core loader |
 | `src/main/java/com/haembina/branchanalysis/ce/pullrequest/PullRequestPostAnalysisTask.java` | Decorates a pull request after its analysis |
-| `sonarqube-webapp-addons/setup.sh` | Links the branch pages into the `sonarqube-webapp` submodule |
+| `sonarqube-webapp-addons/setup.sh` | Copies the branch pages into the `sonarqube-webapp` submodule |
 | `sonarqube-webapp-addons/src/install-error-boundary.adapter.ts` | Shows an uncaught error as SonarQube's error toast |
 | `build.gradle` | The shaded jar, the coverage floor, and `sonarqubeVersion`, the supported build |
 
@@ -89,13 +89,13 @@ flowchart LR
 
 - `sonarqube-webapp-addons` reimplements the branch and pull request pages as
   an Nx library.
-- `setup.sh` links it into SonarSource's `sonarqube-webapp` submodule as
-  `libs/sq-server-addons`, and wraps the submodule's `vite.config.base.ts` with
-  `preserveSymlinks`.
-- It wraps the base again whenever a checkout restores it: a reused checkout
-  keeps the untracked `vite.config.src.ts`.
-- Builds pass `--skip-nx-cache`: Nx hashes none of the linked addons, so a
-  cached build replays the old pages.
+- `setup.sh` copies it into SonarSource's `sonarqube-webapp` submodule as
+  `libs/sq-server-addons`, and wraps the submodule's `vite.config.base.ts`.
+- A copy, since Nx walks no symlink: linked addons are in no build hash.
+- The wrapper's relative `outDir` makes a cache hit restore
+  `apps/sq-server/build/webapp`.
+- Each run deletes `.nx/workspace-data`, whose graph may predate the copy, and
+  rewrites the wrapper.
 - The release publishes the built webapp as `sonarqube-webapp.zip`, which
   replaces SonarQube's `web` directory.
 - The submodule is pinned to the Community Build tag the plugin compiles

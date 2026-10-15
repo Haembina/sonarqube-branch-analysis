@@ -1,7 +1,7 @@
 {
   // What the SonarQube scan reads the TypeScript with. The addons' own
   // tsconfig.json extends the webapp's, which exists only once setup.sh has
-  // linked them into sonarqube-webapp; the scan runs on the repository as it
+  // copied them into sonarqube-webapp; the scan runs on the repository as it
   // is checked out, where that path is missing and the analyzer would read
   // every file with no program. Imports of `~sq-server-commons` stay unresolved
   // here, as they are for ESLint; `npm run typecheck:addons` is the type check.
