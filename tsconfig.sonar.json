@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["sonarqube-webapp-addons/src/**/*", "e2e/**/*", "playwright.config.ts"]
+  "include": ["sonarqube-webapp-addons/src/**/*"]
 }
