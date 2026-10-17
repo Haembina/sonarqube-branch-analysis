@@ -75,7 +75,8 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 ## How it works
 
 ```mermaid
-flowchart LR
+%%{init: {"flowchart": {"wrappingWidth": 600}}}%%
+flowchart TD
   s0["SonarQube starts the Java agent from two javaagent lines"]
   s1["The agent switches the edition check on as classes load"]
   s2["The plugin fills the branch interfaces the Community Build leaves empty"]

@@ -17,7 +17,8 @@ How a change lands, setting up a checkout, and what to do when.
 ## How a change lands
 
 ```mermaid
-flowchart LR
+%%{init: {"flowchart": {"wrappingWidth": 600}}}%%
+flowchart TD
   s0["Fork"]
   s1["Branch"]
   s2["npm run gate"]
