@@ -17,7 +17,8 @@ How a change lands, setting up a checkout, and what to do when.
 ## How a change lands
 
 ```mermaid
-flowchart LR
+%%{init: {"flowchart": {"wrappingWidth": 600}}}%%
+flowchart TD
   s0["Fork"]
   s1["Branch"]
   s2["npm run gate"]
@@ -40,7 +41,7 @@ flowchart LR
    sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=web.
 4. In the same file, set
    sonar.ce.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=ce.
-5. Replace the contents of SonarQube's web directory with the webapp zip's.
+5. Replace what SonarQube's web directory holds with the webapp zip.
 6. Start SonarQube and accept the third-party plugin warning.
 7. Set the server base URL and decorate pull requests as docs/guide.md
    describes.

@@ -28,7 +28,8 @@ Each suite, what it proves and cannot reach, and what CI runs.
 ## What CI runs
 
 ```mermaid
-flowchart LR
+%%{init: {"flowchart": {"wrappingWidth": 600}}}%%
+flowchart TD
   s0["Java build and suite"]
   s1["Webapp build and branch page suite"]
   s2["Dockerfile lint and image builds"]
