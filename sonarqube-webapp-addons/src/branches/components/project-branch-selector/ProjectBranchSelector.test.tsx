@@ -105,8 +105,8 @@ describe('capability switch-branch: open another branch or pull request of a pro
     expect(within(popover).queryByText('never-analyzed')).not.toBeInTheDocument();
     const [mainLink, , developLink] = links;
     expect(mainLink).toHaveTextContent('metric.level.OK');
-    expect(mainLink.querySelector('.sw-invisible')).toBeNull();
-    expect(developLink.querySelector('.sw-invisible')).not.toBeNull();
+    expect(within(mainLink).getByTestId('branch-check')).not.toHaveClass('sw-invisible');
+    expect(within(developLink).getByTestId('branch-check')).toHaveClass('sw-invisible');
   });
 
   it('links each entry to the same page on that branch or pull request', async () => {
@@ -203,9 +203,10 @@ describe('capability switch-branch: open another branch or pull request of a pro
     renderSelector();
     const { popover } = await open();
 
-    for (const arrow of Array.from(popover.children).flatMap((child) =>
-      child.tagName === 'SPAN' ? Array.from(child.querySelectorAll('svg')) : [],
-    )) {
+    const arrows = Array.from(popover.querySelectorAll('polygon'), (shape) => shape.closest('svg'));
+
+    expect(arrows).not.toHaveLength(0);
+    for (const arrow of arrows) {
       expect(arrow).toHaveAttribute('aria-hidden', 'true');
     }
   });

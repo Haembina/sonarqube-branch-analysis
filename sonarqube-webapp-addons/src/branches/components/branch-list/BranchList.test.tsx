@@ -355,7 +355,9 @@ describe('capability set-branch-new-code: give a branch its own new code definit
     await user.click(await screen.findByRole('button', { name: 'branch_list.edit_for_x.release' }));
     const dialog = screen.getByRole('dialog');
     jest.mocked(setNewCodeDefinition).mockClear();
-    fireEvent.submit(dialog.querySelector('form') as HTMLFormElement);
+    fireEvent.submit(
+      (within(dialog).getByRole('button', { name: 'save' }) as HTMLButtonElement).form as HTMLFormElement,
+    );
 
     expect(setNewCodeDefinition).not.toHaveBeenCalled();
     expect(within(dialog).getByRole('button', { name: 'save' })).toBeDisabled();
