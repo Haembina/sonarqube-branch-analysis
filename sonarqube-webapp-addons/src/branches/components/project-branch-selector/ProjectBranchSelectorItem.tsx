@@ -45,6 +45,7 @@ export function ProjectBranchSelectorItem(props: Readonly<Props>) {
                         <IconCheck
                             className={classNames({ 'sw-invisible': !isChecked })}
                             color="echoes-color-icon-selected"
+                            data-testid="branch-check"
                         />
                     </Text>
 
