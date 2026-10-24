@@ -21,7 +21,8 @@ export NX_DAEMON=false
 
 git submodule update --init --depth 1 sonarqube-webapp
 ./sonarqube-webapp-addons/setup.sh
-(cd sonarqube-webapp && corepack enable && yarn install --no-immutable && yarn nx run sq-server:build)
+corepack="${root}/node_modules/.bin/corepack"
+(cd sonarqube-webapp && "${corepack}" yarn install --no-immutable && "${corepack}" yarn nx run sq-server:build)
 
 npm run test:addons
 
