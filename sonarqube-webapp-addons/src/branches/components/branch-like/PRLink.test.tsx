@@ -17,12 +17,24 @@
  */
 
 import { screen } from '@testing-library/react';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { mockPullRequest } from '~sq-server-commons/helpers/mocks/branch-like';
 import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
 import { renderComponent } from '~sq-server-commons/helpers/testReactTestingUtils';
 import PRLink from './PRLink';
 
 const ALM_URL = 'https://alm.example.com';
+
+const PUBLIC = path.join(__dirname, '../../../../../sonarqube-webapp/apps/sq-server/public');
+
+function servedFile(src: string | null) {
+  return existsSync(path.join(PUBLIC, src ?? ''));
+}
+
+afterEach(() => {
+  delete document.documentElement.dataset.echoesTheme;
+});
 
 function renderLink(url: string | undefined, almKey?: string) {
   return renderComponent(
@@ -40,7 +52,26 @@ it('names the platform the project is bound to', () => {
   expect(link).toHaveAttribute('href', 'https://git.example.com/pr/1');
   expect(screen.getByRole('img', { name: 'gitlab' })).toHaveAttribute(
     'src',
-    '/images/alm/gitlab.svg',
+    '/images/alm/light/gitlab.svg',
+  );
+});
+
+it('draws the icon for the dark theme when the page is dark', () => {
+  document.documentElement.dataset.echoesTheme = 'dark';
+  renderLink('https://github.com/o/r/pull/1', 'github');
+
+  expect(screen.getByRole('img', { name: 'github' })).toHaveAttribute(
+    'src',
+    '/images/alm/dark/github.svg',
+  );
+});
+
+it('draws the Bitbucket icon for a Bitbucket Cloud binding', () => {
+  renderLink('https://bitbucket.org/o/r/pull-requests/1', 'bitbucketcloud');
+
+  expect(screen.getByRole('img', { name: 'bitbucketcloud' })).toHaveAttribute(
+    'src',
+    '/images/alm/light/bitbucket.svg',
   );
 });
 
@@ -54,6 +85,24 @@ it.each([
   renderLink(url);
 
   expect(screen.getByRole('img', { name: almKey })).toBeInTheDocument();
+});
+
+it.each(['light', 'dark'])('draws icons the webapp serves in the %s theme', (theme) => {
+  document.documentElement.dataset.echoesTheme = theme;
+
+  for (const almKey of ['github', 'gitlab', 'bitbucket', 'bitbucketcloud', 'azure']) {
+    const { unmount } = renderLink('https://git.example.com/pr/1', almKey);
+
+    expect(servedFile(screen.getByRole('img', { name: almKey }).getAttribute('src'))).toBe(true);
+    unmount();
+  }
+});
+
+it('draws no icon for a binding the webapp has no icon for', () => {
+  renderLink('https://git.example.com/pr/1', 'gerrit');
+
+  expect(screen.getByRole('link', { name: /branches\.see_the_pr_on_x/ })).toBeInTheDocument();
+  expect(screen.queryByRole('img')).not.toBeInTheDocument();
 });
 
 it('links without a platform when the URL names none', () => {
