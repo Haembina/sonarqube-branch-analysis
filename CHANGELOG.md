@@ -6,6 +6,14 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.1.3 (2026-10-24)
+
+### Bug Fixes
+
+* draw the pull request button's platform icon the webapp serves
+* a cached webapp build rebuilds when the branch pages change and restores the webapp it built
+* update the libraries it is built on
+
 ## 27.1.2 (2026-10-14)
 
 ### Maintenance
