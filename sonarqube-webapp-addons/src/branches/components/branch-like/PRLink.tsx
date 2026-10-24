@@ -22,10 +22,19 @@
 import { Button, Tooltip, TooltipSide } from '@sonarsource/echoes-react';
 import { FormattedMessage } from 'react-intl';
 import { Image } from '~adapters/components/common/Image';
+import { useAlmIconSrc } from '~adapters/helpers/almIcons';
 import { isDefined, isStringDefined } from '~shared/helpers/types';
 import { PullRequest } from '~shared/types/branch-like';
+import { AlmIconKey } from '~shared/types/onboarding';
+import { almKeyToIconKey } from '~sq-server-commons/helpers/almIcons';
 import { AlmKeys } from '~sq-server-commons/types/alm-settings';
 import { Component } from '~sq-server-commons/types/types';
+
+const ICON_KEYS: AlmIconKey[] = ['azure', 'bitbucket', 'github', 'gitlab'];
+
+function iconKeyOf(almKey?: string) {
+  return ICON_KEYS.find((key) => isStringDefined(almKey) && key === almKeyToIconKey(almKey as AlmKeys));
+}
 
 function getPRUrlAlmKey(url = '') {
   const lowerCaseUrl = url.toLowerCase();
@@ -54,6 +63,7 @@ interface Props {
 
 export default function PRLink({ pullRequest, component }: Readonly<Props>) {
   const almKey = component.alm?.key || getPRUrlAlmKey(pullRequest.url);
+  const iconSrc = useAlmIconSrc(iconKeyOf(almKey));
 
   if (!isDefined(pullRequest.url)) {
     return null;
@@ -71,9 +81,8 @@ export default function PRLink({ pullRequest, component }: Readonly<Props>) {
     >
       <Button
         prefix={
-          isStringDefined(almKey) && (
-            <Image alt={almKey} height={16} src={`/images/alm/${almKey}.svg`} width={16} />
-          )
+          isStringDefined(almKey) &&
+          isDefined(iconSrc) && <Image alt={almKey} height={16} src={iconSrc} width={16} />
         }
         to={pullRequest.url}
       >
