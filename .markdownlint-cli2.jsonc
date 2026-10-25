@@ -38,5 +38,6 @@
     // fenced blocks cannot wrap, and a wrapped command is no longer
     // copy-pasteable.
     "MD013": { "line_length": 120, "tables": false, "code_blocks": false }
-  }
+  },
+  "gitignore": true
 }
