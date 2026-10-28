@@ -55,7 +55,7 @@ in build.gradle names. SonarSource neither makes nor supports this plugin.
 
 ## What this fork adds
 
-A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [81c7ae1](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/81c7ae1a860934f3d63df8279c73c6d29ea3c622).
+A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [e59bb80](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/e59bb80e563fe5224b361726889e0ea9b9bd7ee0).
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
@@ -68,9 +68,6 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 | Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
 | Java compiler | javac warnings | Error Prone and javac lint, every finding an error |
 | Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns from dialogs, controls carry names, uncaught errors show a toast |
-| Azure DevOps monorepos | One status per pull request, overwritten by each project | One status per project |
-| Bitbucket Cloud debug logs | Hold the OAuth secret and token | Hold neither |
-| GitLab summary comment | Piles up on every passed gate | Replaced on each analysis |
 
 ## How it works
 
