@@ -1,0 +1,28 @@
+{
+  "pullRequests": [
+    {
+      "key": "42",
+      "title": "Add the billing export",
+      "branch": "feature/billing-export",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK"
+      },
+      "analysisDate": "2026-10-28T07:06:28+0000",
+      "url": "https://github.com/example/billing/pull/42",
+      "target": "main"
+    },
+    {
+      "key": "17",
+      "title": "Retry failed refunds",
+      "branch": "fix/refund-retry",
+      "isOrphan": true,
+      "status": {
+        "qualityGateStatus": "ERROR"
+      },
+      "analysisDate": "2026-09-14T16:22:03+0000",
+      "url": "https://github.com/example/billing/pull/17",
+      "target": "release/3.x"
+    }
+  ]
+}
