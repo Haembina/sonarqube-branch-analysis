@@ -20,6 +20,7 @@
 plugins {
     id('java')
     id('jacoco')
+    id('codenarc')
     id('org.sonarqube') version('7.5.0.8588')
     id('info.solidsoft.pitest') version('1.19.0') apply(false)
     id('com.gradleup.shadow') version('9.6.1')
@@ -85,6 +86,22 @@ dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter')
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     errorprone('com.google.errorprone:error_prone_core:2.51.0')
+    codenarc('org.codenarc:CodeNarc:3.7.0-groovy-4.0')
+    codenarc(platform('org.apache.groovy:groovy-bom:4.0.33'))
+}
+
+tasks.register('codenarcBuildScripts', CodeNarc) {
+    source = files('build.gradle', 'settings.gradle')
+    configFile = file('config/codenarc/build-scripts.config.groovy')
+    compilationClasspath = files()
+    maxPriority1Violations = 0
+    maxPriority2Violations = 0
+    maxPriority3Violations = Integer.MAX_VALUE
+    reports {
+        text.required = true
+        html.required = false
+        xml.required = false
+    }
 }
 
 sourceSets.test.runtimeClasspath = configurations.customTestRuntime + sourceSets.test.runtimeClasspath
