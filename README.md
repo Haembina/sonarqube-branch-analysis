@@ -183,6 +183,8 @@ extraInitContainers:
 ├── .devcontainer/            The dev container, on the image CI builds in
 ├── .github/                  The workflows and Dependabot's settings
 ├── LICENSES/                 License texts, by SPDX identifier
+├── config/                   The CodeNarc rules the Gradle scripts are linted
+│                             with
 ├── deploy/                   Helm values for SonarSource's SonarQube chart
 ├── docker/                   The image's entrypoint, release push and
 │                             published-image check, each with its test
