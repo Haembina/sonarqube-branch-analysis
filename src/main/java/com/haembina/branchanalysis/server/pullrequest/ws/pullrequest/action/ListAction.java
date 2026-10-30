@@ -72,7 +72,7 @@ public class ListAction extends ProjectWsAction {
 
     @Override
     protected void configureAction(WebService.NewAction action) {
-        //no-op
+        action.setResponseExample(ListAction.class.getResource("list-example.json"));
     }
 
     @Override

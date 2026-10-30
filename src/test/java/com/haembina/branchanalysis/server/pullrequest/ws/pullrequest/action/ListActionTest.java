@@ -29,7 +29,12 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
+
+import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,6 +47,7 @@ import org.sonar.api.server.ws.Request;
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.WebService;
 import org.sonar.api.utils.DateUtils;
+import org.sonar.core.util.ProtobufJsonFormat;
 import org.sonar.db.DbClient;
 import org.sonar.db.component.BranchDao;
 import org.sonar.db.component.BranchDto;
@@ -79,11 +85,42 @@ class ListActionTest {
         verify(newController).createAction("list");
         verify(newAction).setHandler(underTest);
         verify(newAction).createParam("project");
+        verify(newAction).setResponseExample(ListAction.class.getResource("list-example.json"));
         verifyNoMoreInteractions(newAction);
         verify(projectParam).setRequired(true);
         verifyNoMoreInteractions(projectParam);
 
         verifyNoMoreInteractions(newController);
+    }
+
+    @Test
+    void shouldShowAResponseTheListWritesAsItsExample() throws IOException {
+        ProjectPullRequests.ListWsResponse response = ProjectPullRequests.ListWsResponse.newBuilder()
+            .addPullRequests(ProjectPullRequests.PullRequest.newBuilder()
+                .setKey("42")
+                .setTitle("Add the billing export")
+                .setBranch("feature/billing-export")
+                .setBase("main")
+                .setStatus(ProjectPullRequests.Status.newBuilder().setQualityGateStatus("OK"))
+                .setAnalysisDate("2026-10-28T07:06:28+0000")
+                .setUrl("https://github.com/example/billing/pull/42")
+                .setTarget("main"))
+            .addPullRequests(ProjectPullRequests.PullRequest.newBuilder()
+                .setKey("17")
+                .setTitle("Retry failed refunds")
+                .setBranch("fix/refund-retry")
+                .setIsOrphan(true)
+                .setStatus(ProjectPullRequests.Status.newBuilder().setQualityGateStatus("ERROR"))
+                .setAnalysisDate("2026-09-14T16:22:03+0000")
+                .setUrl("https://github.com/example/billing/pull/17")
+                .setTarget("release/3.x"))
+            .build();
+        String example;
+        try (InputStream stream = ListAction.class.getResourceAsStream("list-example.json")) {
+            example = new String(Objects.requireNonNull(stream).readAllBytes(), StandardCharsets.UTF_8);
+        }
+
+        assertThat(JsonParser.parseString(ProtobufJsonFormat.toJson(response))).isEqualTo(JsonParser.parseString(example));
     }
 
     @Test
