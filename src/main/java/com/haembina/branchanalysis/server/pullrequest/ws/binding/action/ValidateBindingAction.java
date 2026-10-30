@@ -48,7 +48,7 @@ public class ValidateBindingAction extends ProjectWsAction {
 
     @Override
     protected void configureAction(WebService.NewAction action) {
-        //no-op
+        action.setContentType(Response.ContentType.NO_CONTENT);
     }
 
     @Override
@@ -57,6 +57,7 @@ public class ValidateBindingAction extends ProjectWsAction {
         dbClient.projectAlmSettingDao()
                 .selectByProject(dbSession, project)
                 .ifPresent(projectAlmSettingDto -> validateProject(projectAlmSettingDto, dbSession, dbClient, validators));
+        response.noContent();
     }
 
     private static void validateProject(ProjectAlmSettingDto projectAlmSettingDto, DbSession dbSession, DbClient dbClient, List<Validator> validators) {
