@@ -6,6 +6,12 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.1.8 (2026-10-30)
+
+### Bug Fixes
+
+* validate_binding declares its empty answer, so SonarQube stops warning it has no response example
+
 ## 27.1.7 (2026-10-30)
 
 ### Maintenance
