@@ -42,6 +42,7 @@ import org.sonar.server.user.UserSession;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -49,7 +50,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class ValidateBindingActionTest {
@@ -59,11 +60,25 @@ class ValidateBindingActionTest {
     private final UserSession userSession = mock();
 
     @Test
-    void testConfigureActionNoOperation() {
+    void testConfigureActionDeclaresNoContent() {
         ValidateBindingAction underTest = new ValidateBindingAction(dbClient, componentFinder, userSession, Collections.emptyList());
         WebService.NewAction newAction = mock();
         underTest.configureAction(newAction);
-        verifyNoInteractions(newAction);
+        verify(newAction).setContentType(Response.ContentType.NO_CONTENT);
+        verifyNoMoreInteractions(newAction);
+    }
+
+    @Test
+    void testDefinedActionNeedsNoResponseExample() {
+        ValidateBindingAction underTest = new ValidateBindingAction(dbClient, componentFinder, userSession, Collections.emptyList());
+        WebService.Context context = new WebService.Context();
+        WebService.NewController controller = context.createController("api/alm_settings");
+        underTest.define(controller);
+        controller.done();
+
+        WebService.Action action = context.controller("api/alm_settings").action("validate_binding");
+        assertThat(action.contentType()).isEqualTo(Response.ContentType.NO_CONTENT);
+        assertThat(action.responseExample()).isNull();
     }
 
     @Test
@@ -88,6 +103,7 @@ class ValidateBindingActionTest {
 
         verify(projectAlmSettingDao).selectByProject(dbSession, projectDto);
         verify(dbClient, never()).almSettingDao();
+        verify(response).noContent();
     }
 
     @Test
@@ -209,5 +225,6 @@ class ValidateBindingActionTest {
 
         verify(validator).validate(projectAlmSettingDto, almSettingDto);
         verify(userSession).checkEntityPermission(ProjectPermission.USER, projectDto);
+        verify(response).noContent();
     }
 }
