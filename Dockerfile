@@ -8,10 +8,10 @@ ARG SONARQUBE_DIGEST="sha256:2e378f7852b67d43507d3d383ee8fb5a522b8b0f920be9803f7
 ARG PLUGIN_VERSION="27.1.8"
 ARG WORKDIR="/home/build/project"
 
-# The Gradle the wrapper pins, on the JDK the plugin targets, running the suite before it packages the jar.
+# The Gradle the wrapper pins, on the JDK gradle-daemon-jvm.properties names, running the suite before it packages the jar.
 # verifySonarqubeVersion compares .env, README.md and these Dockerfiles, none of which this stage copies;
 # CI's Gradle build runs it.
-FROM eclipse-temurin:21-jdk-noble@sha256:b468c3fc688b14450571494f588bd939378e7fd542ed5a73f8efc13f17872a87 AS builder
+FROM eclipse-temurin:25-jdk-noble@sha256:7247bd8d2aeec64efe908dc72396d88101417d24ce3642703728382d96afb965 AS builder
 ARG PLUGIN_VERSION
 ARG WORKDIR
 
