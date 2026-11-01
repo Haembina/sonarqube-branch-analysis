@@ -2,7 +2,7 @@
   "schema": 1,
   "package": {
     "name": "@haembina/accessibility",
-    "version": "0.19.1",
+    "version": "0.20.1",
     "supports": [
       "wcag-2.2-aa"
     ]
@@ -11,7 +11,7 @@
     "name": "axe-core",
     "version": "4.14.0"
   },
-  "commit": "3bd79db07c75d51936994a27361af260218e01c4",
+  "commit": "0fb973c3e8c572822ad52ead4e4100397d4c1e31",
   "target": "wcag-2.2-aa",
   "absences": [
     "no-media",
@@ -541,11 +541,11 @@
   "screenReader": null,
   "texts": [
     {
-      "key": "89bfd24f1a72d8c83ecbf99991f00f5312595f548c5b9b39e0586b14a591ce53",
+      "key": "2e35fd2f91470a726f1ed72eee3e5f14fabefd2c9a9104f5e81a09627c0cba8e",
       "kind": "heading",
       "text": "Set a specific setting for a branch",
       "route": "/project/baseline",
-      "crop": "accessibility-crops/89bfd24f1a72d8c83ecbf99991f00f5312595f548c5b9b39e0586b14a591ce53.png",
+      "crop": "accessibility-crops/2e35fd2f91470a726f1ed72eee3e5f14fabefd2c9a9104f5e81a09627c0cba8e.png",
       "verdict": "unjudged"
     },
     {
@@ -573,14 +573,6 @@
       "verdict": "unjudged"
     },
     {
-      "key": "8f24c027f999c50e926d6bbbc1b52d9cbcd02e6d0d6c9afe5572b80cebcf3953",
-      "kind": "heading",
-      "text": "Delete Pull Request",
-      "route": "/project/branches",
-      "crop": "accessibility-crops/8f24c027f999c50e926d6bbbc1b52d9cbcd02e6d0d6c9afe5572b80cebcf3953.png",
-      "verdict": "unjudged"
-    },
-    {
       "key": "9b948e7f524fd7d7729cd94e0431f70e1e1cdee464cab48c1b469d44cd73e530",
       "kind": "heading",
       "text": "Delete branch",
@@ -594,6 +586,14 @@
       "text": "Rename branch",
       "route": "/project/branches",
       "crop": "accessibility-crops/aee088f8308786e18c05d10bec402d432a2882f91b0058ba84560367802ac0dd.png",
+      "verdict": "unjudged"
+    },
+    {
+      "key": "b5f430ba6b683afe6f6781a29bfdb20716eae364a1c437688fa8f578c5fd8427",
+      "kind": "heading",
+      "text": "Delete Pull Request",
+      "route": "/project/branches",
+      "crop": "accessibility-crops/b5f430ba6b683afe6f6781a29bfdb20716eae364a1c437688fa8f578c5fd8427.png",
       "verdict": "unjudged"
     },
     {
@@ -629,11 +629,11 @@
       "verdict": "unjudged"
     },
     {
-      "key": "b06e200118950a164a42830547ee898305d34320fb438a05992077e93a728b61",
+      "key": "d55569c27f4e44b369f72e32ea78dc5d6b38e1e612a6b4b9fd7e0fe48eeacde5",
       "kind": "heading",
       "text": "Branches and pull requests",
       "route": "/summary/new_code",
-      "crop": "accessibility-crops/b06e200118950a164a42830547ee898305d34320fb438a05992077e93a728b61.png",
+      "crop": "accessibility-crops/d55569c27f4e44b369f72e32ea78dc5d6b38e1e612a6b4b9fd7e0fe48eeacde5.png",
       "verdict": "unjudged"
     },
     {
