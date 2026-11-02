@@ -1,0 +1,6 @@
+{
+  "sonarlint.connectedMode.project": {
+    "connectionId": "haembina",
+    "projectKey": "Haembina_haembina-branch-analysis"
+  }
+}
