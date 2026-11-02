@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    "davidanson.vscode-markdownlint",
+    "dbaeumer.vscode-eslint",
+    "exiasr.hadolint",
+    "github.vscode-github-actions",
+    "ms-azuretools.vscode-containers",
+    "ms-playwright.playwright",
+    "redhat.java",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml",
+    "sonarsource.sonarlint-vscode",
+    "tamasfe.even-better-toml",
+    "timonwong.shellcheck",
+    "vscjava.vscode-gradle"
+  ],
+  "unwantedRecommendations": [
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-next"
+  ]
+}

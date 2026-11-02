@@ -2,7 +2,7 @@
   "schema": 1,
   "package": {
     "name": "@haembina/accessibility",
-    "version": "0.20.1",
+    "version": "0.21.1",
     "supports": [
       "wcag-2.2-aa"
     ]
@@ -11,7 +11,7 @@
     "name": "axe-core",
     "version": "4.14.0"
   },
-  "commit": "0fb973c3e8c572822ad52ead4e4100397d4c1e31",
+  "commit": "9293367d3c3b964c4dc0ae0b931295c64ac9975a",
   "target": "wcag-2.2-aa",
   "absences": [
     "no-media",
@@ -546,7 +546,7 @@
       "text": "Set a specific setting for a branch",
       "route": "/project/baseline",
       "crop": "accessibility-crops/2e35fd2f91470a726f1ed72eee3e5f14fabefd2c9a9104f5e81a09627c0cba8e.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "af3e606e12f193e8d37193900936d469c2c1fc914fc94b9502264691aaba3a8e",
@@ -554,7 +554,7 @@
       "text": "New Code for feature/integration",
       "route": "/project/baseline",
       "crop": "accessibility-crops/af3e606e12f193e8d37193900936d469c2c1fc914fc94b9502264691aaba3a8e.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "80ae9b8a91233d6bf991652009f59e9cfd47d27dba53e1cb3096827253cfdddc",
@@ -562,7 +562,7 @@
       "text": "New code",
       "route": "/project/baseline",
       "crop": "accessibility-crops/80ae9b8a91233d6bf991652009f59e9cfd47d27dba53e1cb3096827253cfdddc.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "565b50930b814b048945aea1b635f7a817245f1ef9ed5a4f325712ff61b0ecc0",
@@ -570,7 +570,7 @@
       "text": "Set \"feature/integration\" as the main branch",
       "route": "/project/branches",
       "crop": "accessibility-crops/565b50930b814b048945aea1b635f7a817245f1ef9ed5a4f325712ff61b0ecc0.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "9b948e7f524fd7d7729cd94e0431f70e1e1cdee464cab48c1b469d44cd73e530",
@@ -578,7 +578,7 @@
       "text": "Delete branch",
       "route": "/project/branches",
       "crop": "accessibility-crops/9b948e7f524fd7d7729cd94e0431f70e1e1cdee464cab48c1b469d44cd73e530.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "aee088f8308786e18c05d10bec402d432a2882f91b0058ba84560367802ac0dd",
@@ -586,7 +586,7 @@
       "text": "Rename branch",
       "route": "/project/branches",
       "crop": "accessibility-crops/aee088f8308786e18c05d10bec402d432a2882f91b0058ba84560367802ac0dd.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "b5f430ba6b683afe6f6781a29bfdb20716eae364a1c437688fa8f578c5fd8427",
@@ -594,7 +594,7 @@
       "text": "Delete Pull Request",
       "route": "/project/branches",
       "crop": "accessibility-crops/b5f430ba6b683afe6f6781a29bfdb20716eae364a1c437688fa8f578c5fd8427.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "34ee00f82933a50a487f598bf25040ab2be4d196324aba592d45336426327669",
@@ -602,7 +602,7 @@
       "text": "This field is required",
       "route": "/project/branches",
       "crop": "accessibility-crops/34ee00f82933a50a487f598bf25040ab2be4d196324aba592d45336426327669.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "1de37e40e5e1ff45707978bc66587284d40d5b5f2332c955a12f7409c58050df",
@@ -610,7 +610,7 @@
       "text": "New name",
       "route": "/project/branches",
       "crop": "accessibility-crops/1de37e40e5e1ff45707978bc66587284d40d5b5f2332c955a12f7409c58050df.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "444d26c43dde088a6f6d4f256a1cdd2d7a10e7f7fdc37fc1e64f7103c228a645",
@@ -618,7 +618,7 @@
       "text": "documentation",
       "route": "/project/branches",
       "crop": "accessibility-crops/444d26c43dde088a6f6d4f256a1cdd2d7a10e7f7fdc37fc1e64f7103c228a645.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "80fdd0728166303343a8a8be246e530ac45e42f3e375b77856d87e6a40c43322",
@@ -626,7 +626,7 @@
       "text": "Branches & Pull Requests",
       "route": "/project/branches",
       "crop": "accessibility-crops/80fdd0728166303343a8a8be246e530ac45e42f3e375b77856d87e6a40c43322.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "d55569c27f4e44b369f72e32ea78dc5d6b38e1e612a6b4b9fd7e0fe48eeacde5",
@@ -634,7 +634,7 @@
       "text": "Branches and pull requests",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/d55569c27f4e44b369f72e32ea78dc5d6b38e1e612a6b4b9fd7e0fe48eeacde5.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "3086eff402ee24239c41e8d685d4de4df56ed809093e37c363a7b822b1cda912",
@@ -642,7 +642,7 @@
       "text": "Search branches or pull requests",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/3086eff402ee24239c41e8d685d4de4df56ed809093e37c363a7b822b1cda912.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "007255ad9696b8c219c55d574f067e11d94b6056f1e08c87ecc0560a012637c1",
@@ -650,7 +650,7 @@
       "text": "No measure value for Coverage on New Code",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/007255ad9696b8c219c55d574f067e11d94b6056f1e08c87ecc0560a012637c1.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "3cab794f622bad739595beb184a577a88b406a73272233cee132e7165b5fa95c",
@@ -658,7 +658,7 @@
       "text": "See details about the last analysis",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/3cab794f622bad739595beb184a577a88b406a73272233cee132e7165b5fa95c.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "599cdf3a80d5dc3fee02aeeed0214fde0504dcafa57431bc31e5a7a398b69ed8",
@@ -666,7 +666,7 @@
       "text": "See more details on 0 of New Issues",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/599cdf3a80d5dc3fee02aeeed0214fde0504dcafa57431bc31e5a7a398b69ed8.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "6960aeae6516c84302cfe4f0f57228b5d2c6f085dd4043a4ae309b64fe7876c0",
@@ -674,7 +674,7 @@
       "text": ")1 – feature/pull-requestQuality gate: PassedPassed",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/6960aeae6516c84302cfe4f0f57228b5d2c6f085dd4043a4ae309b64fe7876c0.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "77afdc446995ca4eed5efbed0ac5aa3a7db8803e46285221b1ef50033d4e5f9e",
@@ -682,7 +682,7 @@
       "text": "See more details on 0 of New Accepted Issues",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/77afdc446995ca4eed5efbed0ac5aa3a7db8803e46285221b1ef50033d4e5f9e.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "886b359becf35695ca52aee6533e1c715f018463552ac7ad52c0bd277b98a42e",
@@ -690,7 +690,7 @@
       "text": ")7 – feature/ciQuality gate: PassedPassed",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/886b359becf35695ca52aee6533e1c715f018463552ac7ad52c0bd277b98a42e.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "95908f5873d796a239a52559f8d4479903265b227219121c4bed9b29df64da4c",
@@ -698,7 +698,7 @@
       "text": "See more details on 0 of Pull request fixed issues",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/95908f5873d796a239a52559f8d4479903265b227219121c4bed9b29df64da4c.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "aa6a4d77339fc3caee8ff2dd9109c1627055b07b5a92241dd8575585be01cc52",
@@ -706,7 +706,7 @@
       "text": "No measure value for Duplicated Lines (%) on New Code",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/aa6a4d77339fc3caee8ff2dd9109c1627055b07b5a92241dd8575585be01cc52.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "c897695c8984089f252d68a94e8394d114de7aaeb597bb3f005c0f6d4075b2d3",
@@ -714,7 +714,7 @@
       "text": "See more details on 0 of New Security Hotspots",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/c897695c8984089f252d68a94e8394d114de7aaeb597bb3f005c0f6d4075b2d3.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "9c9b83644078f92828113b704bb01ba0d954640e2a5799103d45e723fbaa5d75",
@@ -722,7 +722,7 @@
       "text": "Summary",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/9c9b83644078f92828113b704bb01ba0d954640e2a5799103d45e723fbaa5d75.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     },
     {
       "key": "e73c7180ac284b6df593d3fa0890f35f52fe692eb807ec802440dd372d408de8",
@@ -730,7 +730,7 @@
       "text": "Overview",
       "route": "/summary/new_code",
       "crop": "accessibility-crops/e73c7180ac284b6df593d3fa0890f35f52fe692eb807ec802440dd372d408de8.png",
-      "verdict": "unjudged"
+      "verdict": "right"
     }
   ]
 }
