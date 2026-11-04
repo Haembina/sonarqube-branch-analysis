@@ -36,6 +36,8 @@ public class CloudCreateReportRequest extends CodeInsightsReport {
     private final String logoUrl;
     @JsonProperty("report_type")
     private final String reportType;
+    @JsonProperty("remote_link_enabled")
+    private final boolean remoteLinkEnabled;
 
     @JsonCreator
     public CloudCreateReportRequest(
@@ -52,6 +54,7 @@ public class CloudCreateReportRequest extends CodeInsightsReport {
         this.createdDate = createdDate;
         this.logoUrl = logoUrl;
         this.reportType = reportType;
+        this.remoteLinkEnabled = true;
     }
 
     public Instant getCreatedDate() {
@@ -66,8 +69,7 @@ public class CloudCreateReportRequest extends CodeInsightsReport {
         return reportType;
     }
 
-    @JsonProperty("remote_link_enabled")
-    public boolean isRemoteLinkEnabled() {
-        return true;
+    public Boolean getRemoteLinkEnabled() {
+        return remoteLinkEnabled;
     }
 }

@@ -14,11 +14,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
  */
-package com.haembina.branchanalysis.almclient.gitea.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import MemoizedMenuItem, { MenuItem } from './MenuItem';
 
-public record User(@JsonProperty("id") long id, @JsonProperty("login") String login) {
-}
+it('renders a branch switcher entry again only when its props change', () => {
+  expect(MemoizedMenuItem).toMatchObject({ type: MenuItem });
+});

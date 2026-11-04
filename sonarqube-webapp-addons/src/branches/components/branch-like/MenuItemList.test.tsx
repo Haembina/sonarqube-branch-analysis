@@ -14,15 +14,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
  */
-package com.haembina.branchanalysis.ce.pullrequest.github;
 
-import org.kohsuke.github.GHRepository;
-import org.sonar.db.alm.setting.ProjectAlmSettingDto;
+import MemoizedMenuItemList, { MenuItemList } from './MenuItemList';
 
-import com.haembina.branchanalysis.almclient.github.GithubConnection;
-
-public record GithubDecorationClient(GithubConnection connection, GHRepository repository,
-                                     ProjectAlmSettingDto projectAlmSettingDto) {
-}
+it('renders the branch switcher list again only when its props change', () => {
+  expect(MemoizedMenuItemList).toMatchObject({ type: MenuItemList });
+});

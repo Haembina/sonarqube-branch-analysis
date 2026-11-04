@@ -22,6 +22,7 @@ package com.haembina.branchanalysis.ce.pullrequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.ce.posttask.Analysis;
+import org.sonar.api.ce.posttask.Branch;
 import org.sonar.api.ce.posttask.PostProjectAnalysisTask;
 import org.sonar.api.ce.posttask.QualityGate;
 import org.sonar.db.DbClient;
@@ -33,11 +34,8 @@ import org.sonar.db.component.BranchDao;
 import org.sonar.db.component.BranchDto;
 import org.sonar.db.protobuf.DbProjectBranches;
 
-import com.haembina.branchanalysis.ce.pullrequest.gitea.GiteaPullRequestDecorator;
-
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
 
@@ -46,19 +44,13 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
     private final List<PullRequestBuildStatusDecorator> pullRequestDecorators;
     private final PostAnalysisIssueVisitor postAnalysisIssueVisitor;
     private final DbClient dbClient;
-    private final GiteaPullRequestDecorator giteaPullRequestDecorator;
-    private final DecorationSettings decorationSettings;
 
     public PullRequestPostAnalysisTask(List<PullRequestBuildStatusDecorator> pullRequestDecorators,
-                                       PostAnalysisIssueVisitor postAnalysisIssueVisitor, DbClient dbClient,
-                                       GiteaPullRequestDecorator giteaPullRequestDecorator,
-                                       DecorationSettings decorationSettings) {
+                                       PostAnalysisIssueVisitor postAnalysisIssueVisitor, DbClient dbClient) {
         super();
         this.pullRequestDecorators = pullRequestDecorators;
         this.postAnalysisIssueVisitor = postAnalysisIssueVisitor;
         this.dbClient = dbClient;
-        this.giteaPullRequestDecorator = giteaPullRequestDecorator;
-        this.decorationSettings = decorationSettings;
     }
 
     @Override
@@ -71,11 +63,18 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
         ProjectAnalysis projectAnalysis = context.getProjectAnalysis();
         LOGGER.atDebug().setMessage("Found {} pull request decorators").addArgument(pullRequestDecorators::size).log();
 
-        Optional<DecorationTarget> optionalTarget = DecorationTarget.find(projectAnalysis, decorationSettings);
-        if (optionalTarget.isEmpty()) {
+        Optional<Branch> optionalPullRequest =
+                projectAnalysis.getBranch().filter(branch -> Branch.Type.PULL_REQUEST == branch.getType());
+        if (optionalPullRequest.isEmpty()) {
+            LOGGER.trace("Current analysis is not for a Pull Request. Task being skipped");
             return;
         }
-        DecorationTarget target = optionalTarget.get();
+
+        Optional<String> optionalPullRequestId = optionalPullRequest.get().getName();
+        if (optionalPullRequestId.isEmpty()) {
+            LOGGER.warn("No pull request ID has been submitted with the Pull Request. Analysis will be skipped");
+            return;
+        }
 
         Optional<ProjectAlmSettingDto> optionalProjectAlmSettingDto;
         Optional<AlmSettingDto> optionalAlmSettingDto;
@@ -88,9 +87,6 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
 
         if (optionalProjectAlmSettingDto.isEmpty()) {
             LOGGER.debug("No ALM has been set on the current project");
-            if (!target.branch() && giteaPullRequestDecorator.isConfigured()) {
-                decorate(projectAnalysis, target.pullRequestId(), giteaPullRequestDecorator::decorateQualityGateStatus);
-            }
             return;
         }
         ProjectAlmSettingDto projectAlmSettingDto = optionalProjectAlmSettingDto.get();
@@ -109,26 +105,6 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
             return;
         }
 
-        PullRequestBuildStatusDecorator pullRequestDecorator = optionalPullRequestDecorator.get();
-        LOGGER.info("Using pull request decorator {}", pullRequestDecorator.getClass().getName());
-        decorate(projectAnalysis, target.pullRequestId(),
-                analysisDetails -> decorateOnAlm(pullRequestDecorator, target, analysisDetails, almSettingDto, projectAlmSettingDto));
-    }
-
-    private static DecorationResult decorateOnAlm(PullRequestBuildStatusDecorator pullRequestDecorator, DecorationTarget target,
-                                                  AnalysisDetails analysisDetails, AlmSettingDto almSettingDto,
-                                                  ProjectAlmSettingDto projectAlmSettingDto) {
-        if (!target.branch()) {
-            return pullRequestDecorator.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
-        }
-        if (!pullRequestDecorator.decorateBranchQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto)) {
-            LOGGER.info("{} does not decorate branch analyses", pullRequestDecorator.getClass().getName());
-        }
-        return DecorationResult.builder().build();
-    }
-
-    private void decorate(ProjectAnalysis projectAnalysis, String pullRequestId,
-                          Function<AnalysisDetails, DecorationResult> decorator) {
         Optional<Analysis> optionalAnalysis = projectAnalysis.getAnalysis();
         if (optionalAnalysis.isEmpty()) {
             LOGGER.warn(
@@ -153,12 +129,14 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
         String commitId = revision.get();
 
         AnalysisDetails analysisDetails =
-                new AnalysisDetails(pullRequestId, commitId,
+                new AnalysisDetails(optionalPullRequestId.get(), commitId,
                                     postAnalysisIssueVisitor.getIssues(), qualityGate, projectAnalysis);
 
-        DecorationResult decorationResult = decorator.apply(analysisDetails);
+        PullRequestBuildStatusDecorator pullRequestDecorator = optionalPullRequestDecorator.get();
+        LOGGER.info("Using pull request decorator {}", pullRequestDecorator.getClass().getName());
+        DecorationResult decorationResult = pullRequestDecorator.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
 
-        decorationResult.getPullRequestUrl().ifPresent(pullRequestUrl -> persistPullRequestUrl(pullRequestUrl, projectAnalysis, pullRequestId));
+        decorationResult.getPullRequestUrl().ifPresent(pullRequestUrl -> persistPullRequestUrl(pullRequestUrl, projectAnalysis, optionalPullRequestId.get()));
     }
 
 

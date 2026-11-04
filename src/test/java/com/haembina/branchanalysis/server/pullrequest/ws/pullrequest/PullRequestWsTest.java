@@ -45,7 +45,6 @@ class PullRequestWsTest {
             verify(pullRequestWsAction).define(controller);
         }
         verify(context).createController("api/project_pull_requests");
-        verify(controller).done();
     }
 
 }

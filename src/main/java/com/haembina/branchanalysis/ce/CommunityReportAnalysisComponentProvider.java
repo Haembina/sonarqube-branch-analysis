@@ -27,17 +27,14 @@ import org.sonar.ce.task.projectanalysis.container.ReportAnalysisComponentProvid
 import com.haembina.branchanalysis.almclient.azuredevops.DefaultAzureDevopsClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.DefaultBitbucketClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
-import com.haembina.branchanalysis.almclient.gitea.GiteaClientFactory;
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
-import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
 import com.haembina.branchanalysis.ce.pullrequest.PullRequestFixedIssuesIssueVisitor;
 import com.haembina.branchanalysis.ce.pullrequest.PullRequestPostAnalysisTask;
 import com.haembina.branchanalysis.ce.pullrequest.azuredevops.AzureDevOpsPullRequestDecorator;
 import com.haembina.branchanalysis.ce.pullrequest.bitbucket.BitbucketPullRequestDecorator;
-import com.haembina.branchanalysis.ce.pullrequest.gitea.GiteaPullRequestDecorator;
 import com.haembina.branchanalysis.ce.pullrequest.github.GithubPullRequestDecorator;
 import com.haembina.branchanalysis.ce.pullrequest.gitlab.GitlabMergeRequestDecorator;
 import com.haembina.branchanalysis.ce.pullrequest.markup.MarkdownFormatterFactory;
@@ -57,8 +54,7 @@ public class CommunityReportAnalysisComponentProvider implements ReportAnalysisC
                              HttpClientBuilderFactory.class, DefaultBitbucketClientFactory.class, BitbucketPullRequestDecorator.class,
                              DefaultGitlabClientFactory.class, GitlabMergeRequestDecorator.class,
                              DefaultAzureDevopsClientFactory.class, AzureDevOpsPullRequestDecorator.class,
-                             GiteaClientFactory.class, GiteaPullRequestDecorator.class,
-                             PullRequestFixedIssuesIssueVisitor.class, DecorationSettings.class);
+                             PullRequestFixedIssuesIssueVisitor.class);
     }
 
 }

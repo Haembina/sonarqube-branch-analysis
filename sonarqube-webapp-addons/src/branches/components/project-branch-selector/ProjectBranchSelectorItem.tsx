@@ -15,7 +15,7 @@ import {
     Link,
     useResolvedPath,
     useSearchParams,
-} from 'react-router-dom';
+} from 'react-router';
 import { QualityGateIndicator } from '~adapters/components/ui/QualityGateIndicator';
 import { BranchLikeIcon } from '~shared/components/icon-mappers/BranchLikeIcon';
 import {
@@ -77,7 +77,7 @@ export function ProjectBranchSelectorItem(props: Readonly<Props>) {
     );
 }
 
-export function useMergedPath(
+function useMergedPath(
     branchLike: BranchLikeBase,
     overridePath?: ProjectBranchSelectorProps['overridePath'],
 ) {

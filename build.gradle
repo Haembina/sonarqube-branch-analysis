@@ -17,8 +17,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-import org.gradle.api.GradleException
-
 plugins {
     id('java')
     id('jacoco')
@@ -44,7 +42,7 @@ repositories {
     }
 }
 
-def sonarqubeVersion = '26.10.0.133078'
+def sonarqubeVersion = '26.11.0.134175'
 def sonarqubeLibDir = "${projectDir}/sonarqube-lib"
 def sonarLibraries = "${sonarqubeLibDir}/sonarqube-${sonarqubeVersion}/lib"
 def sonarServerLibraries = fileTree(dir: sonarLibraries, include: 'sonar-application-*.jar')
@@ -95,7 +93,7 @@ dependencies {
 tasks.register('codenarcBuildScripts', CodeNarc) {
     source = files('build.gradle', 'settings.gradle')
     configFile = file('config/codenarc/build-scripts.config.groovy')
-    compilationClasspath = configurations.detachedConfiguration(dependencies.gradleApi())
+    compilationClasspath = files()
     maxPriority1Violations = 0
     maxPriority2Violations = 0
     maxPriority3Violations = Integer.MAX_VALUE

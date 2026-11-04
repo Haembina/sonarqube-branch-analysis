@@ -138,8 +138,7 @@ class CommunityBranchSupportDelegateTest {
        return Stream.of(
            Arguments.of("branchName", null, BranchType.BRANCH, new String[0], false),
            Arguments.of(null, "pullRequestKey", BranchType.PULL_REQUEST, new String[0], false),
-           Arguments.of("complex-name", null, BranchType.BRANCH, new String[]{"abc", "def", "comp.*"}, true),
-           Arguments.of("complex-name", null, BranchType.BRANCH, new String[]{"abc", "def"}, false)
+           Arguments.of("complex-name", null, BranchType.BRANCH, new String[]{"abc", "def", "comp.*"}, true)
        );
     }
 

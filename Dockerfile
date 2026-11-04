@@ -5,7 +5,7 @@
 # entrypoint copies it by that name.
 ARG SONARQUBE_VERSION="26.10.0.133078-community"
 ARG SONARQUBE_DIGEST="sha256:2e378f7852b67d43507d3d383ee8fb5a522b8b0f920be9803f74f72952fce8f1"
-ARG PLUGIN_VERSION="27.2.0"
+ARG PLUGIN_VERSION="27.1.8"
 ARG WORKDIR="/home/build/project"
 
 # The Gradle the wrapper pins, on the JDK gradle-daemon-jvm.properties names, running the suite before it packages the jar.
@@ -22,10 +22,8 @@ COPY src ./src
 RUN sh gradlew build -x verifySonarqubeVersion -Pversion="${PLUGIN_VERSION}" --no-daemon
 
 
-# bash, which setup.sh needs, ships in the Debian image. setup.sh names PLUGIN_VERSION, the jar's version, as the
-# webapp's release.
+# bash, which setup.sh needs, ships in the Debian image.
 FROM node:22.23-bookworm-slim@sha256:43ac6c60b8f89723f746e8a92ce91abd5017e627ce1ddfe4238355d3a30b772c AS webapp-builder
-ARG PLUGIN_VERSION
 
 WORKDIR /home/build
 COPY sonarqube-webapp ./sonarqube-webapp

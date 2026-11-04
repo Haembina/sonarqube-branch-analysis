@@ -31,7 +31,6 @@ import java.util.function.Supplier;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.kohsuke.github.GHApp;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
@@ -43,7 +42,6 @@ import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haembina.branchanalysis.InvalidConfigurationException;
 
 import io.jsonwebtoken.Jwts;
@@ -70,24 +68,16 @@ public class GithubClientFactory {
     }
 
     public GitHub createClient(AlmSettingDto almSettingDto, ProjectAlmSettingDto projectAlmSettingDto) throws IOException {
-        return connect(almSettingDto, projectAlmSettingDto).client();
+            GHAppInstallationToken repositoryAuthenticationToken = authenticate(projectAlmSettingDto, almSettingDto);
+
+            return gitHubBuilderSupplier.get()
+                .withConnector(new OkHttpGitHubConnector(new OkHttpClient()))
+                .withEndpoint(almSettingDto.getUrl())
+                .withAppInstallationToken(repositoryAuthenticationToken.getToken())
+                .build();
     }
 
-    public GithubConnection connect(AlmSettingDto almSettingDto, ProjectAlmSettingDto projectAlmSettingDto) throws IOException {
-        AppToken appToken = authenticate(projectAlmSettingDto, almSettingDto);
-
-        OkHttpClient httpClient = new OkHttpClient();
-        GitHub client = gitHubBuilderSupplier.get()
-            .withConnector(new OkHttpGitHubConnector(httpClient))
-            .withEndpoint(almSettingDto.getUrl())
-            .withAppInstallationToken(appToken.token().getToken())
-            .build();
-        GithubGraphqlClient graphql = new GithubGraphqlClient(httpClient, new ObjectMapper(), almSettingDto.getUrl(),
-            appToken.token().getToken());
-        return new GithubConnection(client, graphql, appToken.appSlug());
-    }
-
-    private AppToken authenticate(ProjectAlmSettingDto projectAlmSettingDto, AlmSettingDto almSettingDto) {
+    private GHAppInstallationToken authenticate(ProjectAlmSettingDto projectAlmSettingDto, AlmSettingDto almSettingDto) {
         String apiUrl = Optional.ofNullable(almSettingDto.getUrl()).orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.GLOBAL, "No URL has been set for Github connections"));
         String apiPrivateKey = Optional.ofNullable(almSettingDto.getDecryptedPrivateKey(settings.getEncryption())).orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.GLOBAL, "No private key has been set for Github connections"));
         String projectPath = Optional.ofNullable(projectAlmSettingDto.getAlmRepo()).orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.PROJECT, "No repository name has been set for Github connections"));
@@ -101,7 +91,7 @@ public class GithubClientFactory {
 
     }
 
-    private AppToken getInstallationToken(String apiUrl, String appId, String apiPrivateKey, String projectPath) throws IOException {
+    private GHAppInstallationToken getInstallationToken(String apiUrl, String appId, String apiPrivateKey, String projectPath) throws IOException {
         Instant issued = clock.instant().minus(10, ChronoUnit.SECONDS);
         Instant expiry = issued.plus(2, ChronoUnit.MINUTES);
         String jwtToken = new DefaultJwtBuilder().claim("iat", issued.getEpochSecond()).claim("exp", expiry.getEpochSecond())
@@ -119,11 +109,7 @@ public class GithubClientFactory {
             .withJwtToken(jwtToken)
             .build();
 
-        GHApp app = github.getApp();
-        return new AppToken(app.getInstallationByRepository(owner, repo).createToken().create(), app.getSlug());
-    }
-
-    private record AppToken(GHAppInstallationToken token, String appSlug) {
+        return github.getApp().getInstallationByRepository(owner, repo).createToken().create();
     }
 
     private static PrivateKey createPrivateKey(String apiPrivateKey) throws IOException {

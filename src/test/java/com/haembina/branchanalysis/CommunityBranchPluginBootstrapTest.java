@@ -23,7 +23,6 @@ import com.haembina.branchanalysis.classloader.ElevatedClassLoaderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 import org.sonar.api.Plugin;
@@ -31,12 +30,6 @@ import org.sonar.api.SonarQubeSide;
 import org.sonar.api.SonarRuntime;
 import org.sonar.api.config.Configuration;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
-import java.security.cert.Certificate;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,8 +42,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CommunityBranchPluginBootstrapTest {
-
-    private static final String AGENT_JAR = "haembina-branch-analysis-1.2.3.jar";
 
     @BeforeEach
     void setup() {
@@ -78,7 +69,7 @@ class CommunityBranchPluginBootstrapTest {
         when(elevatedClassLoaderFactory.createClassLoader(any())).thenReturn(classLoader);
 
         CommunityBranchPluginBootstrap testCase =
-                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true, AGENT_JAR);
+                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true);
         testCase.define(context);
 
         assertThat(MockPlugin.invokedContext).isSameAs(context);
@@ -105,7 +96,7 @@ class CommunityBranchPluginBootstrapTest {
         when(elevatedClassLoaderFactory.createClassLoader(any())).thenReturn(classLoader);
 
         CommunityBranchPluginBootstrap testCase =
-                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true, AGENT_JAR);
+                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true);
         testCase.define(context);
 
         assertThat(MockPlugin.invokedContext).isNull();
@@ -131,7 +122,7 @@ class CommunityBranchPluginBootstrapTest {
 
 
         CommunityBranchPluginBootstrap testCase =
-                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true, AGENT_JAR);
+                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true);
 
         assertThatThrownBy(() -> testCase.define(context))
             .isInstanceOf(IllegalStateException.class)
@@ -157,7 +148,7 @@ class CommunityBranchPluginBootstrapTest {
         when(elevatedClassLoaderFactory.createClassLoader(any())).thenReturn(classLoader);
 
         CommunityBranchPluginBootstrap testCase =
-                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true, AGENT_JAR);
+                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true);
 
         assertThatThrownBy(() -> testCase.define(context))
             .isInstanceOf(IllegalStateException.class)
@@ -165,26 +156,20 @@ class CommunityBranchPluginBootstrapTest {
             .hasCause(new ClassNotFoundException("Whoops"));
     }
 
-    @CsvSource({"SERVER, web, WEB", "COMPUTE_ENGINE, ce, CE"})
+    @EnumSource(value = SonarQubeSide.class, mode = EnumSource.Mode.EXCLUDE, names ="SCANNER")
     @ParameterizedTest
-    void shouldNameTheMissingJavaagentLineWhenPluginNotMarkedAsAvailableInScope(SonarQubeSide sonarQubeSide,
-                                                                                String process, String variable) {
+    void shouldThrowExceptionWhenPluginNotMarkedAsAvailableInScope(SonarQubeSide sonarQubeSide) {
         Plugin.Context context = mock();
         SonarRuntime sonarRuntime = mock();
         when(context.getRuntime()).thenReturn(sonarRuntime);
         when(sonarRuntime.getSonarQubeSide()).thenReturn(sonarQubeSide);
         ElevatedClassLoaderFactory elevatedClassLoaderFactory = mock();
 
-        CommunityBranchPluginBootstrap underTest =
-                new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, false, AGENT_JAR);
+        CommunityBranchPluginBootstrap underTest = new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, false);
 
         assertThatThrownBy(() -> underTest.define(context))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Branch analysis needs this plugin's Java agent in the " + process + " process, and SonarQube "
-                    + "was started without it. Add sonar." + process + ".javaAdditionalOpts=-javaagent:"
-                    + "./extensions/plugins/" + AGENT_JAR + "=" + process + " to conf/sonar.properties, or set SONAR_"
-                    + variable + "_JAVAADDITIONALOPTS to the same -javaagent value in Docker, then start SonarQube "
-                    + "again.")
+            .hasMessage("The plugin did not detect agent modifications so SonarQube is unlikely to work with Pull Requests or Branches. Please check the Java Agent has been correctly set for the " + sonarQubeSide + " component")
             .hasNoCause();
 
         verify(context).getRuntime();
@@ -204,7 +189,7 @@ class CommunityBranchPluginBootstrapTest {
         when(sonarRuntime.getSonarQubeSide()).thenReturn(sonarQubeSide);
         ElevatedClassLoaderFactory elevatedClassLoaderFactory = mock();
 
-        CommunityBranchPluginBootstrap underTest = new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true, AGENT_JAR);
+        CommunityBranchPluginBootstrap underTest = new CommunityBranchPluginBootstrap(elevatedClassLoaderFactory, true);
 
         underTest.define(context);
 
@@ -226,24 +211,7 @@ class CommunityBranchPluginBootstrapTest {
 
         assertThatThrownBy(() -> underTest.define(context))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageStartingWith("Branch analysis needs this plugin's Java agent in the web process");
-    }
-
-    @Test
-    void shouldNameTheJarAClassWasLoadedFrom() {
-        assertThat(CommunityBranchPluginBootstrap.jarName(Test.class.getProtectionDomain()))
-                .matches("junit-jupiter-api-.+\\.jar");
-    }
-
-    @Test
-    void shouldNameAPlaceholderJarWhenTheClassCameFromNoJar() throws MalformedURLException {
-        CodeSource directory = new CodeSource(URI.create("file:/opt/classes/").toURL(), (Certificate[]) null);
-
-        assertThat(List.of(new ProtectionDomain(null, null),
-                        new ProtectionDomain(new CodeSource(null, (Certificate[]) null), null),
-                        new ProtectionDomain(directory, null)))
-                .extracting(CommunityBranchPluginBootstrap::jarName)
-                .containsOnly("haembina-branch-analysis-<version>.jar");
+            .hasMessageStartingWith("The plugin did not detect agent modifications");
     }
 
     public static class MockPlugin implements Plugin {

@@ -134,9 +134,7 @@ class ValidateBindingActionTest {
 
     @Test
     void testHandleProjectRequestThrowsExceptionWhenNoValidatorExistsForAlm() {
-        Validator gitHubValidator = mock();
-        when(gitHubValidator.alm()).thenReturn(Collections.singletonList(ALM.GITHUB));
-        ValidateBindingAction underTest = new ValidateBindingAction(dbClient, componentFinder, userSession, Collections.singletonList(gitHubValidator));
+        ValidateBindingAction underTest = new ValidateBindingAction(dbClient, componentFinder, userSession, Collections.emptyList());
 
         ProjectDto projectDto = mock();
         Request request = mock();

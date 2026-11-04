@@ -22,10 +22,10 @@ import BranchesServiceMock from '~sq-server-commons/api/mocks/BranchesServiceMoc
 import SettingsServiceMock from '~sq-server-commons/api/mocks/SettingsServiceMock';
 import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
 import { mockAppState } from '~sq-server-commons/helpers/testMocks';
-import { renderAppWithComponentContext } from '~sq-server-commons/helpers/testReactTestingUtils';
+import { renderAppWithComponentContext, renderComponent } from '~sq-server-commons/helpers/testReactTestingUtils';
 import { Feature } from '~sq-server-commons/types/features';
 import { SettingsKey } from '~sq-server-commons/types/settings';
-import './ProjectBranchesApp';
+import { ProjectBranchesApp } from './ProjectBranchesApp';
 import routes from './ProjectBranchesRoutes';
 
 const branchesHandler = new BranchesServiceMock();
@@ -107,6 +107,15 @@ describe('capability list-branches: see every branch and pull request of a proje
       '/admin/settings?category=housekeeping#sonar.dbcleaner.daysBeforeDeletingInactiveBranchesAndPRs',
     );
   });
+});
+
+it('draws the branches of the project it is handed, without the component context', async () => {
+  renderComponent(<ProjectBranchesApp component={mockComponent()} fetchComponent={jest.fn()} />, '/', {
+    featureList: [Feature.BranchSupport],
+  });
+
+  expect(await screen.findByText('delete-branch')).toBeInTheDocument();
+  expect(screen.getByRole('tablist')).toBeInTheDocument();
 });
 
 describe('capability delete-branch: delete a branch or pull request of a project', () => {

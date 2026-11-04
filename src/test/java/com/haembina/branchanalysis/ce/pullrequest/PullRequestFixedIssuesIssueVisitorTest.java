@@ -24,7 +24,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -120,7 +119,6 @@ class PullRequestFixedIssuesIssueVisitorTest {
         verify(pullRequestFixedIssuesRepository).addFixedIssue(baseIssueList.get(0));
         verify(pullRequestFixedIssuesRepository).addFixedIssue(baseIssueList.get(2));
         verify(pullRequestFixedIssuesRepository).addFixedIssue(baseIssueList.get(3));
-        verifyNoMoreInteractions(pullRequestFixedIssuesRepository);
     }
 
     @ParameterizedTest

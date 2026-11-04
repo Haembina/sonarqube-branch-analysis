@@ -30,10 +30,5 @@ public interface PullRequestBuildStatusDecorator {
     DecorationResult decorateQualityGateStatus(AnalysisDetails analysisDetails, AlmSettingDto almSettingDto,
                                    ProjectAlmSettingDto projectAlmSettingDto);
 
-    default boolean decorateBranchQualityGateStatus(AnalysisDetails analysisDetails, AlmSettingDto almSettingDto,
-                                                    ProjectAlmSettingDto projectAlmSettingDto) {
-        return false;
-    }
-
     List<ALM> alm();
 }

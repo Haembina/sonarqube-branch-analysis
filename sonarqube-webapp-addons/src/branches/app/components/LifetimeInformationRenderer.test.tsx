@@ -14,17 +14,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
  */
-package com.haembina.branchanalysis.almclient.gitea.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import MemoizedLifetimeInformationRenderer, { LifetimeInformationRenderer } from './LifetimeInformationRenderer';
 
-public record CommitStatus(@JsonProperty("state") State state, @JsonProperty("target_url") String targetUrl,
-                           @JsonProperty("description") String description, @JsonProperty("context") String context) {
-
-    public enum State {
-        @JsonProperty("success") SUCCESS,
-        @JsonProperty("failure") FAILURE
-    }
-}
+it('renders the lifetime line again only when its props change', () => {
+  expect(MemoizedLifetimeInformationRenderer).toMatchObject({ type: LifetimeInformationRenderer });
+});

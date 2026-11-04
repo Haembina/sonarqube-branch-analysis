@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
  */
-package com.haembina.branchanalysis.almclient.github.model;
 
-public record ReviewThreadComment(String id, String body, String authorLogin) {
-}
+import MemoizedBranchLikeTable, { BranchLikeTable } from './BranchLikeTable';
+
+it('renders the table again only when its props change', () => {
+  expect(MemoizedBranchLikeTable).toMatchObject({ type: BranchLikeTable });
+});

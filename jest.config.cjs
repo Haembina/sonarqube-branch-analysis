@@ -20,36 +20,32 @@ const path = require('node:path');
 
 const webapp = path.join(__dirname, 'sonarqube-webapp');
 const addons = path.join(__dirname, 'sonarqube-webapp-addons', 'src');
-const common = require('./sonarqube-webapp/apps/sq-server/jest.config.common.js');
+const common = JSON.parse(
+  JSON.stringify(require('./sonarqube-webapp/apps/sq-server/jest.config.common.js')).replaceAll(
+    '<rootDir>',
+    webapp.replaceAll('\\', '/'),
+  ),
+);
 
 const FLOOR = 100;
 
+process.chdir(webapp);
+
 module.exports = {
   ...common,
-  globals: { ...common.globals, BRANCH_ANALYSIS_RELEASE: 'test-release' },
-  rootDir: webapp,
+  rootDir: __dirname,
   roots: [addons, path.join(webapp, 'apps', 'sq-server', '__mocks__')],
   modulePaths: [path.join(webapp, 'node_modules')],
+  snapshotSerializers: common.snapshotSerializers.map((serializer) => require.resolve(serializer, { paths: [webapp] })),
   moduleNameMapper: {
     ...common.moduleNameMapper,
     '~sq-server-addons/(.+)': `${addons}/$1`,
   },
-  transform: {
-    '^.+\\.(mjs|[jt]sx?)$': [
-      'babel-jest',
-      {
-        cwd: webapp,
-        rootMode: 'upward',
-        presets: ['@babel/preset-env'],
-        plugins: ['babel-plugin-twin', 'babel-plugin-macros'],
-      },
-    ],
-  },
   testRegex: String.raw`\.test\.tsx?$`,
   collectCoverage: true,
   collectCoverageFrom: [
-    '../sonarqube-webapp-addons/src/**/*.{ts,tsx}',
-    '!../sonarqube-webapp-addons/src/**/*.test.{ts,tsx}',
+    'sonarqube-webapp-addons/src/**/*.{ts,tsx}',
+    '!sonarqube-webapp-addons/src/**/*.test.{ts,tsx}',
   ],
   coverageDirectory: path.join(__dirname, 'coverage', 'addons'),
   coverageReporters: [['lcovonly', { projectRoot: __dirname }], 'text-summary'],
