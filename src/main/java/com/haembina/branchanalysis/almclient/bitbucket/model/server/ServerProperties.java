@@ -41,25 +41,24 @@ public class ServerProperties implements Serializable {
     }
 
     public boolean hasCodeInsightsApi() {
-        return compareTo(CODE_INSIGHT_VERSION) >= 0;
+        return isAtLeast(CODE_INSIGHT_VERSION);
     }
 
-    private int compareTo(String other) {
+    private boolean isAtLeast(String minimumVersion) {
         String[] current = semver(version);
-        String[] minimum = semver(other);
+        String[] minimum = semver(minimumVersion);
 
-        int length = Math.max(current.length, minimum.length);
-        for (int i = 0; i < length; i++) {
-            int thisPart = i < current.length ?
-                    Integer.parseInt(current[i]) : 0;
-            int thatPart = i < minimum.length ?
-                    Integer.parseInt(minimum[i]) : 0;
-            if (thisPart < thatPart)
-                return -1;
-            if (thisPart > thatPart)
-                return 1;
+        for (int i = 0; i < minimum.length; i++) {
+            int thisPart = i < current.length ? Integer.parseInt(current[i]) : 0;
+            int thatPart = Integer.parseInt(minimum[i]);
+            if (thisPart > thatPart) {
+                return true;
+            }
+            if (thisPart < thatPart) {
+                return false;
+            }
         }
-        return 0;
+        return true;
     }
 
     private String[] semver(String v) {
