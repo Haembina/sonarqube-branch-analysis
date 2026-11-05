@@ -38,6 +38,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -191,11 +192,38 @@ class BitbucketPullRequestDecoratorTest {
         assertFalse(result);
     }
 
+    @ParameterizedTest(name = "{arguments}")
+    @CsvSource({"10, 15, 2",
+            "100, 1000, 11"})
+    void testExceedsMaximumNumberOfAnnotationsOncePastTheTotal(int annotationBatchSize, int totalAllowedAnnotations, int counter) {
+        AnnotationUploadLimit uploadLimit = new AnnotationUploadLimit(annotationBatchSize, totalAllowedAnnotations);
+
+        assertThat(BitbucketPullRequestDecorator.exceedsMaximumNumberOfAnnotations(counter, uploadLimit)).isTrue();
+    }
+
+    @Test
+    void shouldUploadAnnotationsInBatchesOfTheUploadLimit() throws IOException {
+        mockDecoratableAnalysis(List.of(componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH)),
+                componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH)),
+                componentIssue(Map.of(SoftwareQuality.RELIABILITY, Severity.HIGH))));
+        when(client.getAnnotationUploadLimit()).thenReturn(new AnnotationUploadLimit(2, 1000));
+        CodeInsightsAnnotation first = mock();
+        CodeInsightsAnnotation second = mock();
+        CodeInsightsAnnotation third = mock();
+        when(client.createCodeInsightsAnnotation(any(), anyInt(), any(), any(), any(), any(), any())).thenReturn(first, second, third);
+
+        underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(client).uploadAnnotations(COMMIT, Set.of(first, second), "reportKey");
+        verify(client).uploadAnnotations(COMMIT, Set.of(third), "reportKey");
+        verify(client, times(2)).uploadAnnotations(any(), any(), any());
+    }
+
     @Test
     void shouldSkipDecorationWhenCodeInsightsAreUnsupported() throws IOException {
         when(client.supportsCodeInsights()).thenReturn(false);
 
-        underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+        assertThat(underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto).getPullRequestUrl()).isEmpty();
 
         verify(client, never()).uploadReport(any(), any(), any());
         verify(reportGenerator, never()).createAnalysisSummary(any());

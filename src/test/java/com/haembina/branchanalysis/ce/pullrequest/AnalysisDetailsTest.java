@@ -164,7 +164,7 @@ class AnalysisDetailsTest {
                 Arrays.asList(componentIssue1, componentIssue2, componentIssue3, componentIssue4, componentIssue5),
                 mock(), mock());
         
-        assertThat(underTest.getScmReportableIssues()).usingRecursiveFieldByFieldElementComparator().containsOnly(componentIssue1);
+        assertThat(underTest.getScmReportableIssues()).containsExactly(componentIssue1);
     }
 
     @Test
