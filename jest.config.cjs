@@ -26,6 +26,7 @@ const FLOOR = 100;
 
 module.exports = {
   ...common,
+  globals: { ...common.globals, BRANCH_ANALYSIS_RELEASE: 'test-release' },
   rootDir: webapp,
   roots: [addons, path.join(webapp, 'apps', 'sq-server', '__mocks__')],
   modulePaths: [path.join(webapp, 'node_modules')],

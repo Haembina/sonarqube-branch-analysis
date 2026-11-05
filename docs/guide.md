@@ -21,7 +21,8 @@ configure it. Docker and Kubernetes installs are in the [README](../README.md).
 ## Install
 
 Take the jar and `sonarqube-webapp.zip` from one release. A jar and a webapp
-from different releases load, and the branch pages then fail at runtime.
+from different releases load, the branch pages can then fail at runtime, and a
+banner names both releases to every signed-in user.
 
 1. Copy the jar into `extensions/plugins/`.
 2. In `conf/sonar.properties`, set

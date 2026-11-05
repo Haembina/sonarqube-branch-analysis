@@ -21,10 +21,11 @@ import type { OtherEditionAddons } from './other-edition-addons.model';
 import branches from './branches';
 import { installErrorBoundary } from './install-error-boundary.adapter';
 import * as entitlements from './feature-license/use-entitlement-check-query.hook';
+import ReleaseMismatchAlert from './release-check/ReleaseMismatchAlert';
 
 installErrorBoundary();
 
-const registry = { branches, entitlements };
+const registry = { branches, entitlements, monitoringAlerts: { MonitoringAlerts: ReleaseMismatchAlert } };
 
 export type AddonsType = OtherEditionAddons & typeof registry;
 
