@@ -52,6 +52,14 @@ class CommunityBranchTest {
     }
 
     @Test
+    void testMainBranchIsMainAndSupportsCrossProjectCpd() {
+        CommunityBranch testCase = new CommunityBranch("main", BranchType.BRANCH, true, null, null, null);
+
+        assertThat(testCase.isMain()).isTrue();
+        assertThat(testCase.supportsCrossProjectCpd()).isTrue();
+    }
+
+    @Test
     void testGetPulRequestKey() {
         assertThat(new CommunityBranch("name", BranchType.PULL_REQUEST, false, null, "prKey", null)
                 .getPullRequestKey()).isEqualTo("prKey");

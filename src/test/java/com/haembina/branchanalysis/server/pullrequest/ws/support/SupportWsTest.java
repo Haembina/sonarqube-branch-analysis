@@ -43,6 +43,7 @@ class SupportWsTest {
             verify(supportWsAction).define(controller);
         }
         verify(context).createController("api/support");
+        verify(controller).done();
     }
 
 }

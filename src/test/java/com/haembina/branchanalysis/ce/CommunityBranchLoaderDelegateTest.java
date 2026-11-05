@@ -254,7 +254,7 @@ class CommunityBranchLoaderDelegateTest {
                 ScannerReport.Metadata.getDefaultInstance().toBuilder().setBranchName("sourceBranch")
                         .setReferenceBranchName("branch").setBranchType(ScannerReport.Metadata.BranchType.PULL_REQUEST)
                         .setPullRequestKey("pullRequestKey")
-                        .setTargetBranchName("branch")
+                        .setTargetBranchName("targetBranch")
                         .build();
 
         when(dbClient.branchDao()).thenReturn(branchDao);
@@ -271,7 +271,7 @@ class CommunityBranchLoaderDelegateTest {
         assertThat(branchArgumentCaptor.getValue().getName()).isEqualTo("sourceBranch");
         assertThat(branchArgumentCaptor.getValue().isMain()).isFalse();
         assertThat(branchArgumentCaptor.getValue().supportsCrossProjectCpd()).isFalse();
-        assertThat(branchArgumentCaptor.getValue().getTargetBranchName()).isEqualTo("branch");
+        assertThat(branchArgumentCaptor.getValue().getTargetBranchName()).isEqualTo("targetBranch");
 
 
         verify(metadataHolder).getProject();
