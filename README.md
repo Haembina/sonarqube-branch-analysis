@@ -34,9 +34,8 @@ Insights reports, and Azure DevOps threads with a quality gate status.
 <tr>
 <td valign="top">
 <img src="icons/readme/bolt.svg" width="20" alt=""> <b>CI detection</b><br>
-Reads branch and pull request parameters from Azure Pipelines, Bitbucket
-Pipelines, Cirrus CI, Codemagic, GitHub Actions, GitLab CI and Jenkins. One
-setting switches it off.
+Detects the branch or pull request in GitHub Actions, GitLab CI, Jenkins and
+every other CI system docs/guide.md lists. One setting switches it off.
 </td>
 <td valign="top">
 <img src="icons/readme/device-desktop.svg" width="20" alt=""> <b>Branch pages</b><br>

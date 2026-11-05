@@ -85,6 +85,18 @@ SonarQube serves the images decorations show from this plugin. When the ALM
 cannot reach SonarQube, copy `src/main/resources/static` somewhere it can, and
 set `Images base URL` under General, Pull Request.
 
+### Branch detection from CI
+
+A scan naming no branch or pull request reads them from the CI it runs in:
+
+- Azure Pipelines, Bitbucket Pipelines, Buildkite, CircleCI, Cirrus CI,
+  Codemagic, Drone, GitHub Actions, GitLab CI, Jenkins, TeamCity and
+  Woodpecker.
+- CircleCI names no target branch, so its pull requests compare against the
+  main branch.
+- TeamCity's branch and pull request come from the build parameter files
+  `TEAMCITY_BUILD_PROPERTIES_FILE` names.
+
 ### Switch off branch detection from CI
 
 - With detection on, a CI scan of a pull request lands on that pull request,

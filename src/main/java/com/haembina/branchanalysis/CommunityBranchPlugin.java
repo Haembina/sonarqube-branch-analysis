@@ -38,6 +38,11 @@ import com.haembina.branchanalysis.scanner.autoconfiguration.CodeMagicAutoConfig
 import com.haembina.branchanalysis.scanner.autoconfiguration.GithubActionsAutoConfigurer;
 import com.haembina.branchanalysis.scanner.autoconfiguration.GitlabCiAutoConfigurer;
 import com.haembina.branchanalysis.scanner.autoconfiguration.JenkinsAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.BuildkiteAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.CircleCiAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.DroneAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.TeamCityAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.WoodpeckerAutoConfigurer;
 import com.haembina.branchanalysis.server.CommunityBranchFeatureExtension;
 import com.haembina.branchanalysis.server.CommunityBranchSupportDelegate;
 import com.haembina.branchanalysis.server.MonoRepoFeature;
@@ -185,7 +190,9 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                                   AzureDevopsAutoConfigurer.class, BitbucketPipelinesAutoConfigurer.class,
                                   CirrusCiAutoConfigurer.class, CodeMagicAutoConfigurer.class,
                                   GithubActionsAutoConfigurer.class, GitlabCiAutoConfigurer.class,
-                                  JenkinsAutoConfigurer.class);
+                                  JenkinsAutoConfigurer.class, WoodpeckerAutoConfigurer.class,
+                                  BuildkiteAutoConfigurer.class, CircleCiAutoConfigurer.class,
+                                  TeamCityAutoConfigurer.class, DroneAutoConfigurer.class);
         }
     }
 }
