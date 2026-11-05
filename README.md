@@ -7,13 +7,52 @@
 **Branch analysis and pull request decoration for SonarQube Community Build: a
 plugin, and the branch pages its webapp dropped.**
 
-[Fork](#what-this-fork-adds) · [How it works](#how-it-works) ·
-[Setup](#setup-and-use) · [Docker](#docker) · [Kubernetes](#kubernetes) ·
-[Commands](#commands) · [Layout](#layout) · [Documents](#documents)
+[What it does](#what-it-does) · [Fork](#what-this-fork-adds) · [How it
+works](#how-it-works) · [Setup](#setup-and-use) · [Docker](#docker) ·
+[Kubernetes](#kubernetes) · [Commands](#commands) · [Layout](#layout) ·
+[Documents](#documents)
 
 </div>
 
 ---
+
+## What it does
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<img src="icons/readme/git-branch.svg" width="20" alt=""> <b>Branch analysis</b><br>
+Every branch and pull request gets its own quality gate, issues and new code,
+with pages to list, rename, delete and set the main branch.
+</td>
+<td width="50%" valign="top">
+<img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
+GitHub check runs and summary comments, GitLab discussions, Bitbucket Code
+Insights reports, Azure DevOps threads, and Gitea or Forgejo commit statuses and
+comments.
+</td>
+</tr>
+<tr>
+<td valign="top">
+<img src="icons/readme/bolt.svg" width="20" alt=""> <b>CI detection</b><br>
+Reads branch and pull request parameters from Azure Pipelines, Bitbucket
+Pipelines, Cirrus CI, Codemagic, GitHub Actions, GitLab CI and Jenkins. One
+setting switches it off.
+</td>
+<td valign="top">
+<img src="icons/readme/device-desktop.svg" width="20" alt=""> <b>Branch pages</b><br>
+Restores the branch and pull request pages the Community Build's webapp dropped,
+as a webapp that replaces SonarQube's own.
+</td>
+</tr>
+<tr>
+<td valign="top">
+<img src="icons/readme/alert-triangle.svg" width="20" alt=""> <b>One supported build</b><br>
+Each release supports only the SonarQube Community Build that sonarqubeVersion
+in build.gradle names. SonarSource neither makes nor supports this plugin.
+</td>
+</tr>
+</table>
 
 ## What this fork adds
 

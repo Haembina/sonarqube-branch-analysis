@@ -72,8 +72,6 @@ flowchart LR
 - A pull request decoration builds `AnalysisDetails` from the finished
   analysis, then hands them to the decorator for the project's ALM binding. It
   posts a summary, inline comments and a status.
-- A project with no ALM binding and a Gitea repository setting goes to
-  `GiteaPullRequestDecorator` instead, since SonarQube's ALM list has no Gitea.
 
 | Package | Runs in | Does |
 | --- | --- | --- |
