@@ -72,13 +72,15 @@ flowchart LR
 - A pull request decoration builds `AnalysisDetails` from the finished
   analysis, then hands them to the decorator for the project's ALM binding. It
   posts a summary, inline comments and a status.
+- A project with no ALM binding and a Gitea repository setting goes to
+  `GiteaPullRequestDecorator` instead, since SonarQube's ALM list has no Gitea.
 
 | Package | Runs in | Does |
 | --- | --- | --- |
 | `scanner` | The scanner | Reads `sonar.branch.*` and `sonar.pullrequest.*`, or detects them from CI (`scanner/autoconfiguration`), and loads the project's branches |
 | `server` | The web server | The branch feature, component keys per branch, and the web services the pull request settings call |
 | `ce` | The compute engine | Loads the branch an analysis belongs to, and decorates a pull request after its analysis (`ce/pullrequest`) |
-| `almclient` | The compute engine and web server | One HTTP client per ALM: Azure DevOps, Bitbucket, GitHub and GitLab |
+| `almclient` | The compute engine and web server | One HTTP client per ALM: Azure DevOps, Bitbucket, Gitea, GitHub and GitLab |
 
 - The plugin's package is `com.haembina.branchanalysis`, its key
   `haembinabranchanalysis`, and its setting keys start

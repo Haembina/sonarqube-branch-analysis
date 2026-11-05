@@ -22,6 +22,7 @@ package com.haembina.branchanalysis;
 import com.haembina.branchanalysis.almclient.azuredevops.DefaultAzureDevopsClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.DefaultBitbucketClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
+import com.haembina.branchanalysis.almclient.gitea.GiteaSettings;
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
@@ -172,6 +173,7 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                                           .defaultValue("true")
                                           .build(),
                 MonoRepoFeature.class);
+            context.addExtensions(GiteaSettings.definitions());
 
         }
     }

@@ -57,7 +57,10 @@ import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.Dele
 import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.ListAction;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.SupportWs;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.action.InfoWsAction;
+import com.haembina.branchanalysis.almclient.gitea.GiteaSettings;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.sonar.api.Plugin;
 import org.sonar.api.SonarQubeSide;
@@ -118,6 +121,14 @@ class CommunityBranchPluginTest {
 
         verify(context).addExtensions(CommunityReportAnalysisComponentProvider.class);
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
+        verifyGiteaSettingsAdded(context);
+    }
+
+    private static void verifyGiteaSettingsAdded(CoreExtension.Context context) {
+        ArgumentCaptor<List<PropertyDefinition>> definitions = ArgumentCaptor.captor();
+        verify(context).addExtensions(definitions.capture());
+        assertThat(definitions.getValue()).extracting(PropertyDefinition::key)
+                .containsExactly(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY);
     }
 
 
@@ -159,6 +170,7 @@ class CommunityBranchPluginTest {
                 any(PropertyDefinition.class));
 
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
+        verifyGiteaSettingsAdded(context);
     }
 
     @Test
