@@ -22,15 +22,24 @@ package com.haembina.branchanalysis.almclient.bitbucket;
 import com.haembina.branchanalysis.InvalidConfigurationException;
 
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.config.internal.Encryption;
 import org.sonar.api.config.internal.Settings;
 import org.sonar.db.alm.setting.ALM;
@@ -38,6 +47,8 @@ import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -147,6 +158,60 @@ class DefaultBitbucketClientFactoryUnitTest {
                 .isExactlyInstanceOf(InvalidConfigurationException.class)
                 .hasMessage(message)
                 .extracting("scope").isEqualTo(scope);
+    }
+
+    @Test
+    void shouldAuthoriseEveryRequestAndRedactTheTokenFromTheRequestLog() throws IOException {
+        AlmSettingDto almSettingDto = new AlmSettingDto().setAlm(ALM.BITBUCKET)
+                .setUrl("url")
+                .setPersonalAccessToken("personalAccessToken");
+        ProjectAlmSettingDto projectAlmSettingDto = new ProjectAlmSettingDto()
+                .setAlmRepo("almRepo")
+                .setAlmSlug("almSlug");
+        OkHttpClient.Builder builder = mock();
+        when(builder.addInterceptor(any())).thenReturn(builder);
+        OkHttpClient authorisingClient = mock();
+        when(builder.build()).thenReturn(authorisingClient);
+        Settings settings = mock();
+        Encryption encryption = mock();
+        when(settings.getEncryption()).thenReturn(encryption);
+        HttpClientBuilderFactory httpClientBuilderFactory = mock();
+        when(httpClientBuilderFactory.createClientBuilder()).thenReturn(builder);
+
+        BitbucketClient client = new DefaultBitbucketClientFactory(settings, httpClientBuilderFactory).createClient(projectAlmSettingDto, almSettingDto);
+
+        assertThat(client).extracting("okHttpClient").isSameAs(authorisingClient);
+        ArgumentCaptor<Interceptor> interceptorArgumentCaptor = ArgumentCaptor.captor();
+        verify(builder, times(2)).addInterceptor(interceptorArgumentCaptor.capture());
+        List<Request> sent = new ArrayList<>();
+        OkHttpClient offline = new OkHttpClient.Builder()
+                .addInterceptor(interceptorArgumentCaptor.getAllValues().get(1))
+                .addInterceptor(interceptorArgumentCaptor.getAllValues().get(0))
+                .addInterceptor(chain -> {
+                    sent.add(chain.request());
+                    return new Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(204).message("No Content")
+                            .body(ResponseBody.create("", MediaType.get("text/plain"))).build();
+                })
+                .build();
+        Logger factoryLogger = (Logger) LoggerFactory.getLogger(DefaultBitbucketClientFactory.class);
+        Level previousLevel = factoryLogger.getLevel();
+        ListAppender<ILoggingEvent> logged = new ListAppender<>();
+        logged.start();
+        factoryLogger.addAppender(logged);
+        factoryLogger.setLevel(Level.DEBUG);
+        int status;
+        try (Response response = offline.newCall(new Request.Builder().url("https://bitbucket.test/rest").build()).execute()) {
+            status = response.code();
+        } finally {
+            factoryLogger.detachAppender(logged);
+            factoryLogger.setLevel(previousLevel);
+        }
+
+        assertThat(status).isEqualTo(204);
+        assertThat(sent).singleElement().extracting(request -> request.header("Authorization")).isEqualTo("Bearer personalAccessToken");
+        assertThat(logged.list).extracting(ILoggingEvent::getFormattedMessage)
+                .contains("Authorization: ██")
+                .noneMatch(message -> message.contains("personalAccessToken"));
     }
 
 }

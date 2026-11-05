@@ -42,15 +42,24 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.LoggerFactory;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -415,6 +424,7 @@ class BitbucketServerClientUnitTest {
     }
 
     @CsvSource({"shortReportKey, shortReportKey", "fiftyCharactersLongReportKey123456789012, fiftyCharactersLongReportKey123456789012",
+            "exactlyFiftyCharactersLongReportKey123456789012345, exactlyFiftyCharactersLongReportKey123456789012345",
             "moreThanFiftyCharactersLongReportKey12345678901234567890, t-FiftyCharactersLongReportKey12345678901234567890"})
     @ParameterizedTest
    void shouldNormaliseReportKeyToFiftyCharacters(String input, String expected) {
@@ -456,5 +466,78 @@ class BitbucketServerClientUnitTest {
         assertEquals("https://my-server.org/rest/api/1.0/projects/project/repos/repository", request.url().toString());
         assertEquals("repo-slug", result.getSlug());
         assertEquals("no-check", request.header("x-atlassian-token"));
+    }
+
+    static Stream<Arguments> requestsRejectedByTheServer() {
+        return Stream.of(
+                Arguments.of("deleteAnnotations", (ServerCall) client -> client.deleteAnnotations("commit", "reportKey")),
+                Arguments.of("uploadAnnotations", (ServerCall) client -> client.uploadAnnotations("commit",
+                        Set.of(client.createCodeInsightsAnnotation("issueKey", 12, "https://sonar/issue", "Failed", "/path", "MAJOR", "BUG")), "reportKey")),
+                Arguments.of("retrieveRepository", (ServerCall) BitbucketServerClient::retrieveRepository),
+                Arguments.of("submitBuildStatus", (ServerCall) client -> client.submitBuildStatus("commit",
+                        new BuildStatus(BuildStatus.State.FAILED, "key", "name", "url"))),
+                Arguments.of("getServerProperties", (ServerCall) BitbucketServerClient::getServerProperties));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("requestsRejectedByTheServer")
+    void shouldThrowTheServerErrorWhenARequestIsRejected(String name, ServerCall serverCall) throws IOException {
+        Call call = mock();
+        Response response = mock();
+        ResponseBody responseBody = mock();
+        ObjectReader reader = mock();
+        when(client.newCall(any())).thenReturn(call);
+        when(call.execute()).thenReturn(response);
+        when(response.isSuccessful()).thenReturn(false);
+        when(response.code()).thenReturn(500);
+        when(response.body()).thenReturn(responseBody);
+        when(responseBody.string()).thenReturn("{}");
+        when(mapper.reader()).thenReturn(reader);
+        when(reader.forType(ErrorResponse.class)).thenReturn(reader);
+        when(reader.readValue(any(String.class))).thenReturn(new ErrorResponse(Sets.newHashSet(new ErrorResponse.ErrorMessage("rejected"))));
+
+        assertThatThrownBy(() -> serverCall.call(underTest))
+                .isInstanceOf(BitbucketException.class)
+                .hasMessage("rejected");
+    }
+
+    @CsvSource({"5.0, DEBUG, Your Bitbucket Server installation is version 5.0",
+            "5.0, INFO, Bitbucket Server version is too old. 5.15 is the minimum version that supports Code Insights",
+            "5.15, DEBUG, Your Bitbucket Server installation is version 5.15"})
+    @ParameterizedTest
+    void shouldLogTheServerVersionWhenCheckingForCodeInsights(String version, String level, String message) throws IOException {
+        Call call = mock();
+        Response response = mock();
+        ObjectReader reader = mock();
+        ResponseBody responseBody = mock();
+        when(client.newCall(any())).thenReturn(call);
+        when(call.execute()).thenReturn(response);
+        when(response.isSuccessful()).thenReturn(true);
+        when(response.body()).thenReturn(responseBody);
+        when(responseBody.string()).thenReturn("{}");
+        when(mapper.reader()).thenReturn(reader);
+        when(reader.forType(ServerProperties.class)).thenReturn(reader);
+        when(reader.readValue(any(String.class))).thenReturn(new ServerProperties(version));
+        Logger clientLogger = (Logger) LoggerFactory.getLogger(BitbucketServerClient.class);
+        Level previousLevel = clientLogger.getLevel();
+        ListAppender<ILoggingEvent> logged = new ListAppender<>();
+        logged.start();
+        clientLogger.addAppender(logged);
+        clientLogger.setLevel(Level.DEBUG);
+        try {
+            underTest.supportsCodeInsights();
+        } finally {
+            clientLogger.detachAppender(logged);
+            clientLogger.setLevel(previousLevel);
+        }
+
+        assertThat(logged.list).filteredOn(event -> event.getLevel() == Level.toLevel(level))
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .containsExactly(message);
+    }
+
+    @FunctionalInterface
+    interface ServerCall {
+        void call(BitbucketServerClient client) throws IOException;
     }
 }
