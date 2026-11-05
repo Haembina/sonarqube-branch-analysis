@@ -82,7 +82,7 @@ A GitHub pull request also needs `sonar.scm.revision`, for example with
 ### Decorate a Gitea or Forgejo pull request
 
 SonarQube has no Gitea binding, so the plugin's own settings stand in for one.
-Each analysed pull request gets a commit status linking SonarQube and one
+Each analyzed pull request gets a commit status linking SonarQube and one
 summary comment, edited on every later analysis.
 
 1. Under Administration, Configuration, Gitea, set the server URL, such as
