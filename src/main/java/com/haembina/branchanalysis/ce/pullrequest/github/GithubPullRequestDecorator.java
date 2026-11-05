@@ -92,17 +92,52 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
     }
 
     @Override
+    public boolean decorateBranchQualityGateStatus(AnalysisDetails analysisDetails, AlmSettingDto almSettingDto,
+                                                   ProjectAlmSettingDto projectAlmSettingDto) {
+        try {
+            GithubConnection connection = githubClientFactory.connect(almSettingDto, projectAlmSettingDto);
+            GHRepository repository = connection.client().getRepository(projectAlmSettingDto.getAlmRepo());
+            String dashboardUrl = reportGenerator.createBranchDashboardUrl(analysisDetails);
+            GHCheckRunBuilder.Output output = new GHCheckRunBuilder.Output(checkRunTitle(analysisDetails),
+                String.format("[View in SonarQube](%s)", dashboardUrl));
+            submitCheckRun(repository, analysisDetails, projectAlmSettingDto.getMonorepo(), dashboardUrl, output);
+            return true;
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not decorate branch on Github", ex);
+        }
+    }
+
+    @Override
     public List<ALM> alm() {
         return List.of(ALM.GITHUB);
     }
 
+    private static String checkRunTitle(AnalysisDetails analysisDetails) {
+        return "Quality Gate " + (analysisDetails.getQualityGateStatus() == QualityGate.Status.OK ? "success" : "failed");
+    }
+
+    private void submitCheckRun(GHRepository repository, AnalysisDetails analysisDetails, boolean isMonorepo,
+                                String detailsUrl, GHCheckRunBuilder.Output output) throws IOException {
+        String checkRunName = isMonorepo
+            ? String.format("[%s] %s", analysisDetails.getAnalysisProjectName(), DEFAULT_CHECK_RUN_NAME)
+            : DEFAULT_CHECK_RUN_NAME;
+        repository.createCheckRun(checkRunName, analysisDetails.getCommitSha())
+            .withStartedAt(Date.from(analysisDetails.getAnalysisDate()))
+            .withCompletedAt(Date.from(clock.instant()))
+            .withStatus(GHCheckRun.Status.COMPLETED)
+            .withConclusion(analysisDetails.getQualityGateStatus() == QualityGate.Status.OK ? GHCheckRun.Conclusion.SUCCESS : GHCheckRun.Conclusion.FAILURE)
+            .withDetailsURL(detailsUrl)
+            .withExternalID(analysisDetails.getAnalysisId())
+            .add(output)
+            .create();
+    }
 
     private GHPullRequest createCheckRun(GithubConnection connection, GHRepository repository, AnalysisDetails analysisDetails,
             boolean isMonorepo, boolean postSummaryComment) throws IOException {
         AnalysisSummary analysisSummary = reportGenerator.createAnalysisSummary(analysisDetails);
         String summary = analysisSummary.format(markdownFormatterFactory);
 
-        GHCheckRunBuilder.Output output = new GHCheckRunBuilder.Output("Quality Gate " + (analysisDetails.getQualityGateStatus() == QualityGate.Status.OK ? "success" : "failed"), summary);
+        GHCheckRunBuilder.Output output = new GHCheckRunBuilder.Output(checkRunTitle(analysisDetails), summary);
         if (decorationSettings.isGithubAnnotationsEnabled()) {
             for (PostAnalysisIssueVisitor.ComponentIssue componentIssue : analysisDetails.getScmReportableIssues()) {
                 output.add(new GHCheckRunBuilder.Annotation(
@@ -114,18 +149,7 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
             }
         }
 
-        String checkRunName = isMonorepo
-            ? String.format("[%s] %s", analysisDetails.getAnalysisProjectName(), DEFAULT_CHECK_RUN_NAME)
-            : DEFAULT_CHECK_RUN_NAME;
-        repository.createCheckRun(checkRunName, analysisDetails.getCommitSha())
-            .withStartedAt(Date.from(analysisDetails.getAnalysisDate()))
-            .withCompletedAt(Date.from(clock.instant()))
-            .withStatus(GHCheckRun.Status.COMPLETED)
-            .withConclusion(analysisDetails.getQualityGateStatus() == QualityGate.Status.OK ? GHCheckRun.Conclusion.SUCCESS : GHCheckRun.Conclusion.FAILURE)
-            .withDetailsURL(analysisSummary.getDashboardUrl())
-            .withExternalID(analysisDetails.getAnalysisId())
-            .add(output)
-            .create();
+        submitCheckRun(repository, analysisDetails, isMonorepo, analysisSummary.getDashboardUrl(), output);
 
         GHPullRequest pullRequest = repository.getPullRequest(Integer.parseInt(analysisDetails.getPullRequestId()));
         if (postSummaryComment) {

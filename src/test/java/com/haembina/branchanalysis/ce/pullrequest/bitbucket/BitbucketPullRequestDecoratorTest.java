@@ -99,6 +99,12 @@ class BitbucketPullRequestDecoratorTest {
     }
 
     @Test
+    void shouldNotDecorateBranchAnalyses() {
+        assertThat(underTest.decorateBranchQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto)).isFalse();
+        verify(bitbucketClientFactory, never()).createClient(any(), any());
+    }
+
+    @Test
     void testValidAnalysis() throws IOException {
         when(client.supportsCodeInsights()).thenReturn(true);
         AnnotationUploadLimit uploadLimit = new AnnotationUploadLimit(1000, 1000);

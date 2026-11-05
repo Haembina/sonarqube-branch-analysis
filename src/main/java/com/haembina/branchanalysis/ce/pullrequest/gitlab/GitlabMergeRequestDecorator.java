@@ -43,6 +43,7 @@ import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -123,23 +124,42 @@ public class GitlabMergeRequestDecorator extends DiscussionAwarePullRequestDecor
     @Override
     protected void submitPipelineStatus(GitlabClient gitlabClient, MergeRequest mergeRequest, AnalysisDetails analysis,
                                         AnalysisSummary analysisSummary, ProjectAlmSettingDto projectAlmSettingDto) {
-        Long pipelineId = analysis.getScannerProperty(PULLREQUEST_GITLAB_PIPELINE_ID)
-                .map(Long::parseLong)
-                .orElse(null);
-
         try {
-            boolean isMonorepo = Boolean.TRUE.equals(projectAlmSettingDto.getMonorepo());
-            PipelineStatus pipelineStatus = new PipelineStatus("SonarQube" + (isMonorepo ? " - " + analysis.getAnalysisProjectKey() : ""),
-                    "SonarQube Status" + (isMonorepo ? " - " + analysis.getAnalysisProjectName() : ""),
-                    analysis.getQualityGateStatus() == QualityGate.Status.OK ? PipelineStatus.State.SUCCESS : PipelineStatus.State.FAILED,
-                    analysisSummary.getDashboardUrl(),
-                    analysisSummary.getNewCoverage(),
-                    pipelineId);
-
+            PipelineStatus pipelineStatus = createPipelineStatus(analysis, analysisSummary.getDashboardUrl(),
+                    analysisSummary.getNewCoverage(), projectAlmSettingDto);
             gitlabClient.setMergeRequestPipelineStatus(mergeRequest.getTargetProjectId(), analysis.getCommitSha(), pipelineStatus);
         } catch (IOException ex) {
             throw new IllegalStateException("Could not update pipeline status in Gitlab", ex);
         }
+    }
+
+    @Override
+    public boolean decorateBranchQualityGateStatus(AnalysisDetails analysis, AlmSettingDto almSettingDto,
+                                                   ProjectAlmSettingDto projectAlmSettingDto) {
+        GitlabClient gitlabClient = createClient(almSettingDto, projectAlmSettingDto);
+        try {
+            long projectId = gitlabClient.getProject(projectAlmSettingDto.getAlmRepo()).getId();
+            PipelineStatus pipelineStatus = createPipelineStatus(analysis, getReportGenerator().createBranchDashboardUrl(analysis),
+                    null, projectAlmSettingDto);
+            gitlabClient.setMergeRequestPipelineStatus(projectId, analysis.getCommitSha(), pipelineStatus);
+            return true;
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not set the branch commit status in Gitlab", ex);
+        }
+    }
+
+    private static PipelineStatus createPipelineStatus(AnalysisDetails analysis, String targetUrl, BigDecimal coverage,
+                                                       ProjectAlmSettingDto projectAlmSettingDto) {
+        Long pipelineId = analysis.getScannerProperty(PULLREQUEST_GITLAB_PIPELINE_ID)
+                .map(Long::parseLong)
+                .orElse(null);
+        boolean isMonorepo = Boolean.TRUE.equals(projectAlmSettingDto.getMonorepo());
+        return new PipelineStatus("SonarQube" + (isMonorepo ? " - " + analysis.getAnalysisProjectKey() : ""),
+                "SonarQube Status" + (isMonorepo ? " - " + analysis.getAnalysisProjectName() : ""),
+                analysis.getQualityGateStatus() == QualityGate.Status.OK ? PipelineStatus.State.SUCCESS : PipelineStatus.State.FAILED,
+                targetUrl,
+                coverage,
+                pipelineId);
     }
 
     @Override

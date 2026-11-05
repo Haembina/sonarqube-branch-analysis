@@ -48,15 +48,18 @@ class DecorationSettingsTest {
     void shouldKeepTodaysDecorationWhenNothingIsSet() {
         assertThat(decorationSettings.isSummaryCommentSkippedWhenClean()).isFalse();
         assertThat(decorationSettings.isGithubAnnotationsEnabled()).isTrue();
+        assertThat(decorationSettings.isBranchDecorationEnabled()).isFalse();
     }
 
     @Test
     void shouldReadEachSettingFromTheProject() {
         when(configuration.getBoolean(DecorationSettings.SUMMARY_COMMENT_SKIPPED_WHEN_CLEAN)).thenReturn(Optional.of(true));
         when(configuration.getBoolean(DecorationSettings.GITHUB_ANNOTATIONS_ENABLED)).thenReturn(Optional.of(false));
+        when(configuration.getBoolean(DecorationSettings.BRANCH_DECORATION_ENABLED)).thenReturn(Optional.of(true));
 
         assertThat(decorationSettings.isSummaryCommentSkippedWhenClean()).isTrue();
         assertThat(decorationSettings.isGithubAnnotationsEnabled()).isFalse();
+        assertThat(decorationSettings.isBranchDecorationEnabled()).isTrue();
     }
 
     @Test
@@ -65,6 +68,7 @@ class DecorationSettingsTest {
             .extracting(PropertyDefinition::key, PropertyDefinition::defaultValue)
             .containsExactly(
                 tuple(DecorationSettings.SUMMARY_COMMENT_SKIPPED_WHEN_CLEAN, "false"),
-                tuple(DecorationSettings.GITHUB_ANNOTATIONS_ENABLED, "true"));
+                tuple(DecorationSettings.GITHUB_ANNOTATIONS_ENABLED, "true"),
+                tuple(DecorationSettings.BRANCH_DECORATION_ENABLED, "false"));
     }
 }

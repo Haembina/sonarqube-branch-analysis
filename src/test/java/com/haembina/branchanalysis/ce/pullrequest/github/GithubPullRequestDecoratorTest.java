@@ -92,6 +92,7 @@ class GithubPullRequestDecoratorTest {
     private final AlmSettingDto almSettingDto = mock();
     private final AnalysisSummary analysisSummary = mock();
     private final GitHub gitHub = mock();
+    private final GHCheckRunBuilder stubbedCheckRunBuilder = mock(InvocationOnMock::getMock);
 
     @BeforeEach
     void setUp() throws IOException {
@@ -237,9 +238,9 @@ class GithubPullRequestDecoratorTest {
 
         testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
 
-        GHCheckRunBuilder checkRunBuilder = repository.createCheckRun("SonarQube Code Analysis", "commit-sha");
+        verify(repository).createCheckRun("SonarQube Code Analysis", "commit-sha");
         ArgumentCaptor<GHCheckRunBuilder.Output> outputCaptor = ArgumentCaptor.captor();
-        verify(checkRunBuilder).add(outputCaptor.capture());
+        verify(stubbedCheckRunBuilder).add(outputCaptor.capture());
         assertThat(outputCaptor.getValue()).usingRecursiveComparison()
             .isEqualTo(new GHCheckRunBuilder.Output("Quality Gate success", "report summary"));
     }
@@ -295,6 +296,48 @@ class GithubPullRequestDecoratorTest {
         verify(pullRequest).comment("report summary");
     }
 
+    @Test
+    void shouldCreateACompletedCheckRunForAPassingBranch() throws IOException {
+        when(reportGenerator.createBranchDashboardUrl(analysisDetails)).thenReturn("branch-dashboard-url");
+        GHRepository repository = stubRepository();
+
+        assertThat(testCase.decorateBranchQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto)).isTrue();
+
+        verify(repository).createCheckRun("SonarQube Code Analysis", "commit-sha");
+        ArgumentCaptor<GHCheckRunBuilder.Output> outputCaptor = ArgumentCaptor.captor();
+        verify(stubbedCheckRunBuilder).add(outputCaptor.capture());
+        verify(stubbedCheckRunBuilder).withStatus(GHCheckRun.Status.COMPLETED);
+        verify(stubbedCheckRunBuilder).withConclusion(GHCheckRun.Conclusion.SUCCESS);
+        verify(stubbedCheckRunBuilder).withDetailsURL("branch-dashboard-url");
+        verify(stubbedCheckRunBuilder).create();
+        assertThat(outputCaptor.getValue()).usingRecursiveComparison()
+            .isEqualTo(new GHCheckRunBuilder.Output("Quality Gate success", "[View in SonarQube](branch-dashboard-url)"));
+        verify(repository, never()).getPullRequest(anyInt());
+    }
+
+    @Test
+    void shouldCreateAFailedCheckRunForAFailingBranch() throws IOException {
+        when(analysisDetails.getQualityGateStatus()).thenReturn(QualityGate.Status.ERROR);
+        when(projectAlmSettingDto.getMonorepo()).thenReturn(true);
+        GHRepository repository = stubRepository();
+
+        testCase.decorateBranchQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(repository).createCheckRun("[Project Name] SonarQube Code Analysis", "commit-sha");
+        verify(stubbedCheckRunBuilder).withConclusion(GHCheckRun.Conclusion.FAILURE);
+    }
+
+    @Test
+    void shouldReportABranchCheckRunGithubRefused() throws IOException {
+        IOException refusal = new IOException("refused");
+        when(githubClientFactory.connect(any(), any())).thenThrow(refusal);
+
+        assertThatThrownBy(() -> testCase.decorateBranchQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto))
+            .isExactlyInstanceOf(IllegalStateException.class)
+            .hasMessage("Could not decorate branch on Github")
+            .hasCause(refusal);
+    }
+
     private static PostAnalysisIssueVisitor.ComponentIssue issueWithStatus(IssueStatus status) {
         PostAnalysisIssueVisitor.LightIssue lightIssue = mock();
         when(lightIssue.issueStatus()).thenReturn(status);
@@ -306,9 +349,8 @@ class GithubPullRequestDecoratorTest {
     private GHRepository stubRepository() throws IOException {
         GHRepository repository = mock();
         when(gitHub.getRepository(any())).thenReturn(repository);
-        GHCheckRunBuilder checkRunBuilder = mock(InvocationOnMock::getMock);
-        doReturn(null).when(checkRunBuilder).create();
-        when(repository.createCheckRun(any(), any())).thenReturn(checkRunBuilder);
+        doReturn(null).when(stubbedCheckRunBuilder).create();
+        when(repository.createCheckRun(any(), any())).thenReturn(stubbedCheckRunBuilder);
         return repository;
     }
 

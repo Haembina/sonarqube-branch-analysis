@@ -89,6 +89,13 @@ Each is a project setting under General, Branches and Pull Requests:
 - `com.haembina.branchanalysis.pullrequest.github.annotations.enabled`: set it
   to `false` to leave issues off the check run. On by default.
 
+### Decorate branch analyses
+
+With `com.haembina.branchanalysis.branch-decoration.enabled` on, a branch
+analysis such as main shows its quality gate on the analysed commit: a check
+run on GitHub, a commit status on GitLab. Off by default; Bitbucket and Azure
+DevOps decorate no branches.
+
 ### Decoration images
 
 SonarQube serves the images decorations show from this plugin. When the ALM

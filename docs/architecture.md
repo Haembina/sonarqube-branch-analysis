@@ -40,7 +40,7 @@ flowchart LR
 | `src/main/java/com/haembina/branchanalysis/CommunityBranchAgent.java` | The jar's `Premain-Class`: retransforms core classes with Javassist |
 | `src/main/java/com/haembina/branchanalysis/CommunityBranchPluginBootstrap.java` | The `Plugin-Class`: checks the agent ran, and loads the scanner side |
 | `src/main/java/com/haembina/branchanalysis/classloader/ElevatedClassLoaderFactory.java` | A class loader whose parent is SonarQube's core loader |
-| `src/main/java/com/haembina/branchanalysis/ce/pullrequest/PullRequestPostAnalysisTask.java` | Decorates a pull request after its analysis |
+| `src/main/java/com/haembina/branchanalysis/ce/pullrequest/PullRequestPostAnalysisTask.java` | Decorates a pull request, or a branch where a project switches it on, after its analysis |
 | `sonarqube-webapp-addons/setup.sh` | Copies the branch pages into the `sonarqube-webapp` submodule |
 | `sonarqube-webapp-addons/src/install-error-boundary.adapter.ts` | Shows an uncaught error as SonarQube's error toast |
 | `build.gradle` | The shaded jar, the coverage floor, and `sonarqubeVersion`, the supported build |

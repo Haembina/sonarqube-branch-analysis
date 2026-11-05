@@ -38,6 +38,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 import org.sonar.api.ce.posttask.Analysis;
+import org.sonar.api.ce.posttask.Branch;
 import org.sonar.api.ce.posttask.PostProjectAnalysisTask;
 import org.sonar.api.ce.posttask.Project;
 import org.sonar.api.ce.posttask.QualityGate;
@@ -234,5 +235,31 @@ class AnalysisDetailsTest {
         AnalysisDetails underTest = new AnalysisDetails("pull-request-id", "commit-id", List.of(), mock(), mock());
 
         assertThat(underTest.getCommitSha()).isEqualTo("commit-id");
+    }
+
+    @Test
+    void shouldNameABranchOtherThanMain() {
+        assertThat(analysisOf(Optional.of(branch(Branch.Type.BRANCH, false))).getBranchName()).contains("develop");
+    }
+
+    @Test
+    void shouldNameNoBranchForMainAPullRequestOrNoBranch() {
+        assertThat(analysisOf(Optional.of(branch(Branch.Type.BRANCH, true))).getBranchName()).isEmpty();
+        assertThat(analysisOf(Optional.of(branch(Branch.Type.PULL_REQUEST, false))).getBranchName()).isEmpty();
+        assertThat(analysisOf(Optional.empty()).getBranchName()).isEmpty();
+    }
+
+    private static AnalysisDetails analysisOf(Optional<Branch> optionalBranch) {
+        PostProjectAnalysisTask.ProjectAnalysis projectAnalysis = mock();
+        when(projectAnalysis.getBranch()).thenReturn(optionalBranch);
+        return new AnalysisDetails(null, "commit-id", List.of(), mock(), projectAnalysis);
+    }
+
+    private static Branch branch(Branch.Type type, boolean main) {
+        Branch branch = mock();
+        when(branch.getType()).thenReturn(type);
+        when(branch.isMain()).thenReturn(main);
+        when(branch.getName()).thenReturn(Optional.of("develop"));
+        return branch;
     }
 }

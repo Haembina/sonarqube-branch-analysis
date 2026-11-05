@@ -22,7 +22,6 @@ package com.haembina.branchanalysis.ce.pullrequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.ce.posttask.Analysis;
-import org.sonar.api.ce.posttask.Branch;
 import org.sonar.api.ce.posttask.PostProjectAnalysisTask;
 import org.sonar.api.ce.posttask.QualityGate;
 import org.sonar.db.DbClient;
@@ -44,13 +43,16 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
     private final List<PullRequestBuildStatusDecorator> pullRequestDecorators;
     private final PostAnalysisIssueVisitor postAnalysisIssueVisitor;
     private final DbClient dbClient;
+    private final DecorationSettings decorationSettings;
 
     public PullRequestPostAnalysisTask(List<PullRequestBuildStatusDecorator> pullRequestDecorators,
-                                       PostAnalysisIssueVisitor postAnalysisIssueVisitor, DbClient dbClient) {
+                                       PostAnalysisIssueVisitor postAnalysisIssueVisitor, DbClient dbClient,
+                                       DecorationSettings decorationSettings) {
         super();
         this.pullRequestDecorators = pullRequestDecorators;
         this.postAnalysisIssueVisitor = postAnalysisIssueVisitor;
         this.dbClient = dbClient;
+        this.decorationSettings = decorationSettings;
     }
 
     @Override
@@ -63,18 +65,11 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
         ProjectAnalysis projectAnalysis = context.getProjectAnalysis();
         LOGGER.atDebug().setMessage("Found {} pull request decorators").addArgument(pullRequestDecorators::size).log();
 
-        Optional<Branch> optionalPullRequest =
-                projectAnalysis.getBranch().filter(branch -> Branch.Type.PULL_REQUEST == branch.getType());
-        if (optionalPullRequest.isEmpty()) {
-            LOGGER.trace("Current analysis is not for a Pull Request. Task being skipped");
+        Optional<DecorationTarget> optionalTarget = DecorationTarget.find(projectAnalysis, decorationSettings);
+        if (optionalTarget.isEmpty()) {
             return;
         }
-
-        Optional<String> optionalPullRequestId = optionalPullRequest.get().getName();
-        if (optionalPullRequestId.isEmpty()) {
-            LOGGER.warn("No pull request ID has been submitted with the Pull Request. Analysis will be skipped");
-            return;
-        }
+        DecorationTarget target = optionalTarget.get();
 
         Optional<ProjectAlmSettingDto> optionalProjectAlmSettingDto;
         Optional<AlmSettingDto> optionalAlmSettingDto;
@@ -129,14 +124,20 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
         String commitId = revision.get();
 
         AnalysisDetails analysisDetails =
-                new AnalysisDetails(optionalPullRequestId.get(), commitId,
+                new AnalysisDetails(target.pullRequestId(), commitId,
                                     postAnalysisIssueVisitor.getIssues(), qualityGate, projectAnalysis);
 
         PullRequestBuildStatusDecorator pullRequestDecorator = optionalPullRequestDecorator.get();
         LOGGER.info("Using pull request decorator {}", pullRequestDecorator.getClass().getName());
+        if (target.branch()) {
+            if (!pullRequestDecorator.decorateBranchQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto)) {
+                LOGGER.info("{} does not decorate branch analyses", pullRequestDecorator.getClass().getName());
+            }
+            return;
+        }
         DecorationResult decorationResult = pullRequestDecorator.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
 
-        decorationResult.getPullRequestUrl().ifPresent(pullRequestUrl -> persistPullRequestUrl(pullRequestUrl, projectAnalysis, optionalPullRequestId.get()));
+        decorationResult.getPullRequestUrl().ifPresent(pullRequestUrl -> persistPullRequestUrl(pullRequestUrl, projectAnalysis, target.pullRequestId()));
     }
 
 

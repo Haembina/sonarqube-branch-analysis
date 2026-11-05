@@ -20,6 +20,7 @@
 package com.haembina.branchanalysis.ce.pullrequest;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.sonar.api.ce.posttask.Analysis;
@@ -73,9 +74,12 @@ class PullRequestPostAnalysisTaskTest {
     private final PostAnalysisIssueVisitor.ComponentIssue componentIssue = mock();
     private final List<PostAnalysisIssueVisitor.ComponentIssue> componentIssues = List.of(componentIssue);
 
+    private final DecorationSettings decorationSettings = mock();
+    private final QualityGate branchQualityGate = mock();
+
     private final PullRequestPostAnalysisTask testCase =
             new PullRequestPostAnalysisTask(pullRequestBuildStatusDecorators,
-                    postAnalysisIssueVisitor, dbClient);
+                    postAnalysisIssueVisitor, dbClient, decorationSettings);
 
     @BeforeEach
     void init() {
@@ -532,6 +536,81 @@ class PullRequestPostAnalysisTaskTest {
 
         verify(decorator, never()).alm();
         verify(projectAnalysis, never()).getAnalysis();
+    }
+
+    @Test
+    void testFinishedNoBranch() {
+        doReturn(Optional.empty()).when(projectAnalysis).getBranch();
+
+        testCase.finished(context);
+
+        verify(dbClient, never()).openSession(anyBoolean());
+    }
+
+    @Test
+    void testFinishedBranchNotDecoratedWhenSettingOff() {
+        doReturn(Branch.Type.BRANCH).when(branch).getType();
+        when(decorationSettings.isBranchDecorationEnabled()).thenReturn(false);
+
+        testCase.finished(context);
+
+        verify(decorationSettings).isBranchDecorationEnabled();
+        verify(dbClient, never()).openSession(anyBoolean());
+    }
+
+    @Test
+    @DisplayName("capability branch-decoration: see the quality gate of a branch analysis as a check on its commit")
+    void shouldHandABranchAnalysisToTheDecoratorWhenBranchDecorationIsOn() {
+        PullRequestBuildStatusDecorator decorator = stubDecoratedBranchAnalysis();
+        doReturn(true).when(decorator).decorateBranchQualityGateStatus(any(), any(), any());
+
+        testCase.finished(context);
+
+        ArgumentCaptor<AnalysisDetails> analysisDetailsArgumentCaptor = ArgumentCaptor.captor();
+        verify(decorator).decorateBranchQualityGateStatus(analysisDetailsArgumentCaptor.capture(), any(), any());
+        verify(decorator, never()).decorateQualityGateStatus(any(), any(), any());
+        verify(dbClient, never()).branchDao();
+        assertThat(analysisDetailsArgumentCaptor.getValue()).usingRecursiveComparison()
+            .isEqualTo(new AnalysisDetails(null, "revision", componentIssues, branchQualityGate, projectAnalysis));
+    }
+
+    @Test
+    void testFinishedBranchWithADecoratorThatDecoratesNoBranches() {
+        PullRequestBuildStatusDecorator decorator = stubDecoratedBranchAnalysis();
+        doReturn(false).when(decorator).decorateBranchQualityGateStatus(any(), any(), any());
+
+        testCase.finished(context);
+
+        verify(decorator).decorateBranchQualityGateStatus(any(), any(), any());
+        verify(decorator, never()).decorateQualityGateStatus(any(), any(), any());
+    }
+
+    private PullRequestBuildStatusDecorator stubDecoratedBranchAnalysis() {
+        doReturn(Branch.Type.BRANCH).when(branch).getType();
+        when(decorationSettings.isBranchDecorationEnabled()).thenReturn(true);
+
+        Analysis analysis = mock();
+        doReturn(Optional.of("revision")).when(analysis).getRevision();
+        doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
+        doReturn(branchQualityGate).when(projectAnalysis).getQualityGate();
+
+        PullRequestBuildStatusDecorator decorator = mock();
+        doReturn(List.of(ALM.GITHUB)).when(decorator).alm();
+        pullRequestBuildStatusDecorators.add(decorator);
+
+        ProjectAlmSettingDto projectAlmSettingDto = mock();
+        doReturn("setting-uuid").when(projectAlmSettingDto).getAlmSettingUuid();
+        AlmSettingDto almSettingDto = mock();
+        doReturn(ALM.GITHUB).when(almSettingDto).getAlm();
+        DbSession dbSession = mock();
+        doReturn(dbSession).when(dbClient).openSession(anyBoolean());
+        ProjectAlmSettingDao projectAlmSettingDao = mock();
+        doReturn(Optional.of(projectAlmSettingDto)).when(projectAlmSettingDao).selectByProject(dbSession, "uuid");
+        doReturn(projectAlmSettingDao).when(dbClient).projectAlmSettingDao();
+        AlmSettingDao almSettingDao = mock();
+        doReturn(Optional.of(almSettingDto)).when(almSettingDao).selectByUuid(dbSession, "setting-uuid");
+        doReturn(almSettingDao).when(dbClient).almSettingDao();
+        return decorator;
     }
 
     @Test

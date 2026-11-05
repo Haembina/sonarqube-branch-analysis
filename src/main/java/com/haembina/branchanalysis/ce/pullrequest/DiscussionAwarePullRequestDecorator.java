@@ -116,6 +116,10 @@ public abstract class DiscussionAwarePullRequestDecorator<C, P, U, D, N> impleme
         return builder.build();
     }
 
+    protected ReportGenerator getReportGenerator() {
+        return reportGenerator;
+    }
+
     protected abstract boolean isInlineCommentsEnabled(ProjectAlmSettingDto projectAlmSettingDto);
 
     protected abstract C createClient(AlmSettingDto almSettingDto, ProjectAlmSettingDto projectAlmSettingDto);

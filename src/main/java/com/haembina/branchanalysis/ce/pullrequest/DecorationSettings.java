@@ -30,6 +30,7 @@ public class DecorationSettings {
 
     public static final String SUMMARY_COMMENT_SKIPPED_WHEN_CLEAN = "com.haembina.branchanalysis.pullrequest.summary-comment.skip-when-clean";
     public static final String GITHUB_ANNOTATIONS_ENABLED = "com.haembina.branchanalysis.pullrequest.github.annotations.enabled";
+    public static final String BRANCH_DECORATION_ENABLED = "com.haembina.branchanalysis.branch-decoration.enabled";
 
     private final ConfigurationRepository configurationRepository;
 
@@ -48,7 +49,16 @@ public class DecorationSettings {
                 .name("Annotate GitHub check runs")
                 .description("Add each new issue as an annotation on the GitHub check run. "
                     + "When disabled, the check run carries only the quality gate and the summary.")
+                .build(),
+            booleanSetting(BRANCH_DECORATION_ENABLED, false)
+                .name("Decorate branch analyses")
+                .description("Show the quality gate of a branch analysis, such as main, on its commit: "
+                    + "a check run on GitHub and a commit status on GitLab.")
                 .build());
+    }
+
+    public boolean isBranchDecorationEnabled() {
+        return isEnabled(BRANCH_DECORATION_ENABLED, false);
     }
 
     public boolean isSummaryCommentSkippedWhenClean() {
