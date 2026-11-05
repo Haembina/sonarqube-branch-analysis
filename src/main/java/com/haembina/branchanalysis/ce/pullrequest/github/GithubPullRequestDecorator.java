@@ -33,6 +33,7 @@ import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.sonar.api.ce.posttask.QualityGate;
+import org.sonar.api.issue.IssueStatus;
 import org.sonar.api.issue.impact.Severity;
 import org.sonar.db.alm.setting.ALM;
 import org.sonar.db.alm.setting.AlmSettingDto;
@@ -42,6 +43,7 @@ import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.github.GithubConnection;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationResult;
+import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
 import com.haembina.branchanalysis.ce.pullrequest.PullRequestBuildStatusDecorator;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Bold;
@@ -58,13 +60,16 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
     private final ReportGenerator reportGenerator;
     private final MarkdownFormatterFactory markdownFormatterFactory;
     private final Clock clock;
+    private final DecorationSettings decorationSettings;
 
     public GithubPullRequestDecorator(GithubClientFactory githubClientFactory, ReportGenerator reportGenerator,
-                                      MarkdownFormatterFactory markdownFormatterFactory, Clock clock) {
+                                      MarkdownFormatterFactory markdownFormatterFactory, Clock clock,
+                                      DecorationSettings decorationSettings) {
         this.githubClientFactory = githubClientFactory;
         this.reportGenerator = reportGenerator;
         this.markdownFormatterFactory = markdownFormatterFactory;
         this.clock = clock;
+        this.decorationSettings = decorationSettings;
     }
 
     @Override
@@ -98,13 +103,15 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
         String summary = analysisSummary.format(markdownFormatterFactory);
 
         GHCheckRunBuilder.Output output = new GHCheckRunBuilder.Output("Quality Gate " + (analysisDetails.getQualityGateStatus() == QualityGate.Status.OK ? "success" : "failed"), summary);
-        for (PostAnalysisIssueVisitor.ComponentIssue componentIssue : analysisDetails.getScmReportableIssues()) {
-            output.add(new GHCheckRunBuilder.Annotation(
-                componentIssue.getScmPath().orElseThrow(),
-                Optional.ofNullable(componentIssue.getIssue().getLine()).orElse(0),
-                mapToGithubAnnotationLevel(componentIssue.getIssue().impacts().values()),
-                Optional.ofNullable(componentIssue.getIssue().getMessage()).orElseThrow())
-            );
+        if (decorationSettings.isGithubAnnotationsEnabled()) {
+            for (PostAnalysisIssueVisitor.ComponentIssue componentIssue : analysisDetails.getScmReportableIssues()) {
+                output.add(new GHCheckRunBuilder.Annotation(
+                    componentIssue.getScmPath().orElseThrow(),
+                    Optional.ofNullable(componentIssue.getIssue().getLine()).orElse(0),
+                    mapToGithubAnnotationLevel(componentIssue.getIssue().impacts().values()),
+                    Optional.ofNullable(componentIssue.getIssue().getMessage()).orElseThrow())
+                );
+            }
         }
 
         String checkRunName = isMonorepo
@@ -122,12 +129,19 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
 
         GHPullRequest pullRequest = repository.getPullRequest(Integer.parseInt(analysisDetails.getPullRequestId()));
         if (postSummaryComment) {
-            postSummaryComment(connection, pullRequest, summary, analysisDetails.getAnalysisProjectKey());
+            boolean createIfMissing = !(decorationSettings.isSummaryCommentSkippedWhenClean() && isCleanPass(analysisDetails));
+            postSummaryComment(connection, pullRequest, summary, analysisDetails.getAnalysisProjectKey(), createIfMissing);
         }
         return pullRequest;
     }
 
-    private void postSummaryComment(GithubConnection connection, GHPullRequest pullRequest, String summary, String projectId) throws IOException {
+    private static boolean isCleanPass(AnalysisDetails analysisDetails) {
+        return analysisDetails.getQualityGateStatus() == QualityGate.Status.OK
+            && analysisDetails.getIssues().stream().noneMatch(issue -> issue.getIssue().issueStatus() == IssueStatus.OPEN);
+    }
+
+    private void postSummaryComment(GithubConnection connection, GHPullRequest pullRequest, String summary, String projectId,
+                                    boolean createIfMissing) throws IOException {
         String projectCommentMarker = markdownFormatterFactory.documentFormatter().format(new Document(new Bold(new Text("Project ID:")), new Text(" " + projectId)));
 
         List<GHIssueComment> summaryComments = new ArrayList<>();
@@ -139,7 +153,9 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
         }
 
         if (summaryComments.isEmpty()) {
-            pullRequest.comment(summary);
+            if (createIfMissing) {
+                pullRequest.comment(summary);
+            }
             return;
         }
 

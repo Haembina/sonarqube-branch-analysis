@@ -53,6 +53,7 @@ import org.kohsuke.github.GitHub;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.sonar.api.ce.posttask.QualityGate;
+import org.sonar.api.issue.IssueStatus;
 import org.sonar.api.issue.impact.Severity;
 import org.sonar.api.issue.impact.SoftwareQuality;
 import org.sonar.ce.task.projectanalysis.component.Component;
@@ -64,6 +65,7 @@ import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.github.GithubConnection;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationResult;
+import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Document;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Formatter;
@@ -84,7 +86,8 @@ class GithubPullRequestDecoratorTest {
     private final ReportGenerator reportGenerator = mock();
     private final MarkdownFormatterFactory markdownFormatterFactory = mock();
     private final Clock clock = Clock.fixed(Instant.ofEpochSecond(102030405), ZoneId.of("UTC"));
-    private final GithubPullRequestDecorator testCase = new GithubPullRequestDecorator(githubClientFactory, reportGenerator, markdownFormatterFactory, clock);
+    private final DecorationSettings decorationSettings = mock();
+    private final GithubPullRequestDecorator testCase = new GithubPullRequestDecorator(githubClientFactory, reportGenerator, markdownFormatterFactory, clock, decorationSettings);
     private final ProjectAlmSettingDto projectAlmSettingDto = mock();
     private final AlmSettingDto almSettingDto = mock();
     private final AnalysisSummary analysisSummary = mock();
@@ -119,6 +122,7 @@ class GithubPullRequestDecoratorTest {
         when(analysisSummary.getDashboardUrl()).thenReturn("dashboard-url");
         when(analysisSummary.format(any())).thenReturn("report summary");
         when(githubClientFactory.connect(any(), any())).thenReturn(new GithubConnection(gitHub, APP_SLUG));
+        when(decorationSettings.isGithubAnnotationsEnabled()).thenReturn(true);
     }
 
     @Test
@@ -223,6 +227,80 @@ class GithubPullRequestDecoratorTest {
         verify(summaryComment, never()).delete();
         verify(duplicate).delete();
         verify(pullRequest, never()).comment(any(String.class));
+    }
+
+    @Test
+    void shouldLeaveAnnotationsOffTheCheckRunWhenDisabled() throws IOException {
+        when(decorationSettings.isGithubAnnotationsEnabled()).thenReturn(false);
+        GHRepository repository = stubRepository();
+        stubPullRequest(repository, List.of());
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        GHCheckRunBuilder checkRunBuilder = repository.createCheckRun("SonarQube Code Analysis", "commit-sha");
+        ArgumentCaptor<GHCheckRunBuilder.Output> outputCaptor = ArgumentCaptor.captor();
+        verify(checkRunBuilder).add(outputCaptor.capture());
+        assertThat(outputCaptor.getValue()).usingRecursiveComparison()
+            .isEqualTo(new GHCheckRunBuilder.Output("Quality Gate success", "report summary"));
+    }
+
+    @Test
+    void shouldPostNoSummaryCommentOnACleanPassWhenSkipped() throws IOException {
+        when(projectAlmSettingDto.getSummaryCommentEnabled()).thenReturn(true);
+        when(decorationSettings.isSummaryCommentSkippedWhenClean()).thenReturn(true);
+        PostAnalysisIssueVisitor.ComponentIssue acceptedIssue = issueWithStatus(IssueStatus.ACCEPTED);
+        when(analysisDetails.getIssues()).thenReturn(List.of(acceptedIssue));
+        GHPullRequest pullRequest = stubPullRequest(stubRepository(), List.of());
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(pullRequest, never()).comment(any(String.class));
+    }
+
+    @Test
+    void shouldStillUpdateAnExistingSummaryOnACleanPassWhenSkipped() throws IOException {
+        when(projectAlmSettingDto.getSummaryCommentEnabled()).thenReturn(true);
+        when(decorationSettings.isSummaryCommentSkippedWhenClean()).thenReturn(true);
+        GHIssueComment summaryComment = createComment(MARKED_SUMMARY, APP_LOGIN);
+        GHPullRequest pullRequest = stubPullRequest(stubRepository(), List.of(summaryComment));
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(summaryComment).update("report summary");
+        verify(pullRequest, never()).comment(any(String.class));
+    }
+
+    @Test
+    void shouldPostTheSummaryWhenSkippedButTheGateFails() throws IOException {
+        when(projectAlmSettingDto.getSummaryCommentEnabled()).thenReturn(true);
+        when(decorationSettings.isSummaryCommentSkippedWhenClean()).thenReturn(true);
+        when(analysisDetails.getQualityGateStatus()).thenReturn(QualityGate.Status.ERROR);
+        GHPullRequest pullRequest = stubPullRequest(stubRepository(), List.of());
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(pullRequest).comment("report summary");
+    }
+
+    @Test
+    void shouldPostTheSummaryWhenSkippedButANewIssueIsOpen() throws IOException {
+        when(projectAlmSettingDto.getSummaryCommentEnabled()).thenReturn(true);
+        when(decorationSettings.isSummaryCommentSkippedWhenClean()).thenReturn(true);
+        PostAnalysisIssueVisitor.ComponentIssue openIssue = issueWithStatus(IssueStatus.OPEN);
+        when(analysisDetails.getIssues()).thenReturn(List.of(openIssue));
+        GHPullRequest pullRequest = stubPullRequest(stubRepository(), List.of());
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(pullRequest).comment("report summary");
+    }
+
+    private static PostAnalysisIssueVisitor.ComponentIssue issueWithStatus(IssueStatus status) {
+        PostAnalysisIssueVisitor.LightIssue lightIssue = mock();
+        when(lightIssue.issueStatus()).thenReturn(status);
+        PostAnalysisIssueVisitor.ComponentIssue componentIssue = mock();
+        when(componentIssue.getIssue()).thenReturn(lightIssue);
+        return componentIssue;
     }
 
     private GHRepository stubRepository() throws IOException {

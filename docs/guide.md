@@ -79,6 +79,16 @@ A GitHub pull request also needs `sonar.scm.revision`, for example with
     SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 ```
 
+### Quieter GitHub decoration
+
+Each is a project setting under General, Branches and Pull Requests:
+
+- `com.haembina.branchanalysis.pullrequest.summary-comment.skip-when-clean`:
+  posts no summary comment when the gate passes with no new issues; one
+  already posted is still updated. Off by default.
+- `com.haembina.branchanalysis.pullrequest.github.annotations.enabled`: set it
+  to `false` to leave issues off the check run. On by default.
+
 ### Decoration images
 
 SonarQube serves the images decorations show from this plugin. When the ALM

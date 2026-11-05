@@ -26,6 +26,7 @@ import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
 import com.haembina.branchanalysis.ce.CommunityReportAnalysisComponentProvider;
+import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.scanner.BranchConfigurationFactory;
 import com.haembina.branchanalysis.scanner.CommunityBranchConfigurationLoader;
 import com.haembina.branchanalysis.scanner.CommunityBranchParamsValidator;
@@ -172,7 +173,7 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                                           .defaultValue("true")
                                           .build(),
                 MonoRepoFeature.class);
-
+            context.addExtensions(DecorationSettings.definitions());
         }
     }
 

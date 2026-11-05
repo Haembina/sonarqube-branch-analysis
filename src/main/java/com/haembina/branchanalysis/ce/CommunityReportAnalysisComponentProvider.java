@@ -30,6 +30,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
+import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
 import com.haembina.branchanalysis.ce.pullrequest.PullRequestFixedIssuesIssueVisitor;
 import com.haembina.branchanalysis.ce.pullrequest.PullRequestPostAnalysisTask;
@@ -54,7 +55,7 @@ public class CommunityReportAnalysisComponentProvider implements ReportAnalysisC
                              HttpClientBuilderFactory.class, DefaultBitbucketClientFactory.class, BitbucketPullRequestDecorator.class,
                              DefaultGitlabClientFactory.class, GitlabMergeRequestDecorator.class,
                              DefaultAzureDevopsClientFactory.class, AzureDevOpsPullRequestDecorator.class,
-                             PullRequestFixedIssuesIssueVisitor.class);
+                             PullRequestFixedIssuesIssueVisitor.class, DecorationSettings.class);
     }
 
 }

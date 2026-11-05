@@ -26,6 +26,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.ce.CommunityReportAnalysisComponentProvider;
+import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.scanner.BranchConfigurationFactory;
 import com.haembina.branchanalysis.scanner.CommunityBranchConfigurationLoader;
 import com.haembina.branchanalysis.scanner.CommunityBranchParamsValidator;
@@ -57,7 +58,10 @@ import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.Dele
 import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.ListAction;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.SupportWs;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.action.InfoWsAction;
+import java.util.Collection;
+
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.sonar.api.Plugin;
 import org.sonar.api.SonarQubeSide;
@@ -118,6 +122,7 @@ class CommunityBranchPluginTest {
 
         verify(context).addExtensions(CommunityReportAnalysisComponentProvider.class);
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
+        verifyDecorationSettingsAdded(context);
     }
 
 
@@ -159,6 +164,7 @@ class CommunityBranchPluginTest {
                 any(PropertyDefinition.class));
 
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
+        verifyDecorationSettingsAdded(context);
     }
 
     @Test
@@ -176,5 +182,13 @@ class CommunityBranchPluginTest {
     @Test
     void shouldReturnPluginNameForGetName() {
         assertThat(new CommunityBranchPlugin().getName()).isEqualTo("Haembina Branch Analysis");
+    }
+
+    private static void verifyDecorationSettingsAdded(CoreExtension.Context context) {
+        ArgumentCaptor<Collection<PropertyDefinition>> definitionsCaptor = ArgumentCaptor.captor();
+        verify(context).addExtensions(definitionsCaptor.capture());
+        assertThat(definitionsCaptor.getValue())
+            .extracting(PropertyDefinition::key)
+            .containsExactlyElementsOf(DecorationSettings.definitions().stream().map(PropertyDefinition::key).toList());
     }
 }
