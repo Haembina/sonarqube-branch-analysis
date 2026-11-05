@@ -21,6 +21,7 @@ package com.haembina.branchanalysis.ce.pullrequest.github;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -31,7 +32,6 @@ import org.kohsuke.github.GHCheckRunBuilder;
 import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
 import org.sonar.api.ce.posttask.QualityGate;
 import org.sonar.api.issue.impact.Severity;
 import org.sonar.db.alm.setting.ALM;
@@ -39,6 +39,7 @@ import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
+import com.haembina.branchanalysis.almclient.github.GithubConnection;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationResult;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
@@ -70,10 +71,10 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
     public DecorationResult decorateQualityGateStatus(AnalysisDetails analysisDetails, AlmSettingDto almSettingDto,
                                           ProjectAlmSettingDto projectAlmSettingDto) {
         try {
-            GitHub github = githubClientFactory.createClient(almSettingDto, projectAlmSettingDto);
-            GHRepository repository = github.getRepository(projectAlmSettingDto.getAlmRepo());
+            GithubConnection connection = githubClientFactory.connect(almSettingDto, projectAlmSettingDto);
+            GHRepository repository = connection.client().getRepository(projectAlmSettingDto.getAlmRepo());
 
-            GHPullRequest pullRequest = createCheckRun(repository, analysisDetails, projectAlmSettingDto.getMonorepo(),
+            GHPullRequest pullRequest = createCheckRun(connection, repository, analysisDetails, projectAlmSettingDto.getMonorepo(),
                     Optional.ofNullable(projectAlmSettingDto.getSummaryCommentEnabled()).orElse(false));
 
             return DecorationResult.builder()
@@ -91,7 +92,7 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
     }
 
 
-    private GHPullRequest createCheckRun(GHRepository repository, AnalysisDetails analysisDetails,
+    private GHPullRequest createCheckRun(GithubConnection connection, GHRepository repository, AnalysisDetails analysisDetails,
             boolean isMonorepo, boolean postSummaryComment) throws IOException {
         AnalysisSummary analysisSummary = reportGenerator.createAnalysisSummary(analysisDetails);
         String summary = analysisSummary.format(markdownFormatterFactory);
@@ -121,25 +122,34 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
 
         GHPullRequest pullRequest = repository.getPullRequest(Integer.parseInt(analysisDetails.getPullRequestId()));
         if (postSummaryComment) {
-            postSummaryComment(pullRequest, summary, analysisDetails.getAnalysisProjectKey());
+            postSummaryComment(connection, pullRequest, summary, analysisDetails.getAnalysisProjectKey());
         }
         return pullRequest;
     }
 
-    private void postSummaryComment(GHPullRequest pullRequest, String summary, String projectId) throws IOException {
+    private void postSummaryComment(GithubConnection connection, GHPullRequest pullRequest, String summary, String projectId) throws IOException {
         String projectCommentMarker = markdownFormatterFactory.documentFormatter().format(new Document(new Bold(new Text("Project ID:")), new Text(" " + projectId)));
 
-        GHIssueComment summaryComment = pullRequest.comment(summary);
-
+        List<GHIssueComment> summaryComments = new ArrayList<>();
         for (GHIssueComment comment : pullRequest.getComments()) {
-            if ("Bot".equalsIgnoreCase(comment.getUser().getType())
-                && summaryComment.getUser().getId() == comment.getUser().getId()
-                && (comment.getBody().contains(projectCommentMarker + "\n") || comment.getBody().contains(projectCommentMarker + "\r"))
-                && comment.getId() != summaryComment.getId()) {
-                comment.delete();
+            if (connection.isAppLogin(comment.getUser().getLogin())
+                && (comment.getBody().contains(projectCommentMarker + "\n") || comment.getBody().contains(projectCommentMarker + "\r"))) {
+                summaryComments.add(comment);
             }
         }
 
+        if (summaryComments.isEmpty()) {
+            pullRequest.comment(summary);
+            return;
+        }
+
+        GHIssueComment summaryComment = summaryComments.get(0);
+        if (!summary.equals(summaryComment.getBody())) {
+            summaryComment.update(summary);
+        }
+        for (GHIssueComment duplicate : summaryComments.subList(1, summaryComments.size())) {
+            duplicate.delete();
+        }
     }
 
     private static GHCheckRun.AnnotationLevel mapToGithubAnnotationLevel(Collection<Severity> sonarqubeSeverity) {

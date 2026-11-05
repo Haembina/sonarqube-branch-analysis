@@ -61,6 +61,7 @@ import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
+import com.haembina.branchanalysis.almclient.github.GithubConnection;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationResult;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
@@ -74,6 +75,9 @@ class GithubPullRequestDecoratorTest {
 
     private static final List<SoftwareQuality> QUALITIES = List.of(SoftwareQuality.MAINTAINABILITY, SoftwareQuality.RELIABILITY, SoftwareQuality.SECURITY);
     private static final List<Severity> SEVERITIES = List.of(Severity.INFO, Severity.LOW, Severity.MEDIUM, Severity.HIGH, Severity.BLOCKER);
+    private static final String APP_SLUG = "sonarqube-app";
+    private static final String APP_LOGIN = APP_SLUG + "[bot]";
+    private static final String MARKED_SUMMARY = "old summary. **Project ID:** project-key\n";
 
     private final AnalysisDetails analysisDetails = mock();
     private final GithubClientFactory githubClientFactory = mock();
@@ -114,7 +118,7 @@ class GithubPullRequestDecoratorTest {
         when(reportGenerator.createAnalysisSummary(any())).thenReturn(analysisSummary);
         when(analysisSummary.getDashboardUrl()).thenReturn("dashboard-url");
         when(analysisSummary.format(any())).thenReturn("report summary");
-        when(githubClientFactory.createClient(any(), any())).thenReturn(gitHub);
+        when(githubClientFactory.connect(any(), any())).thenReturn(new GithubConnection(gitHub, APP_SLUG));
     }
 
     @Test
@@ -125,7 +129,7 @@ class GithubPullRequestDecoratorTest {
     @Test
     void shouldThrowExceptionIfClientCreationFails() throws IOException {
         Exception dummyException = new IOException("Dummy Exception");
-        when(githubClientFactory.createClient(any(), any())).thenThrow(dummyException);
+        when(githubClientFactory.connect(any(), any())).thenThrow(dummyException);
 
         assertThatThrownBy(() -> testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto))
                 .hasMessage("Could not decorate Pull Request on Github")
@@ -140,20 +144,12 @@ class GithubPullRequestDecoratorTest {
         GHCheckRunBuilder checkRunBuilder = mock(InvocationOnMock::getMock);
         doReturn(null).when(checkRunBuilder).create();
         when(repository.createCheckRun(any(), any())).thenReturn(checkRunBuilder);
-        GHPullRequest pullRequest = mock();
-        GHIssueComment comment1 = createComment("summary comment from current bot user, no project ID", "Bot", 123, 1);
-        GHIssueComment comment2 = createComment("summary comment from non bot user with no project ID", "User", 321, 2);
-        GHIssueComment comment3 = createComment("summary comment from current bot user, with project ID. **Project ID:** project-key\n", "Bot", 123, 3);
-        GHIssueComment comment4 = createComment("summary comment from other bot user, with project ID. **Project ID:** project-key\n", "Bot", 999, 4);
-        GHIssueComment comment5 = createComment("summary comment from other bot user, with project ID. **Project ID:** project-key\n", "User", 111, 5);
-        GHIssueComment summaryComment = createComment("summary comment from current bot user, with project ID. **Project ID:** project-key\r", "Bot", 123, 6);
-        when(pullRequest.getComments()).thenReturn(List.of(comment1, comment2, comment3, comment4, comment5, summaryComment));
-        when(pullRequest.comment(any(String.class))).thenReturn(summaryComment);
-        when(repository.getPullRequest(anyInt())).thenReturn(pullRequest);
-        when(pullRequest.getHtmlUrl()).thenReturn(URI.create("http://url.of/pull/request").toURL());
-        Formatter<Document> documentFormatter = mock();
-        when(documentFormatter.format(any())).thenReturn("**Project ID:** project-key");
-        when(markdownFormatterFactory.documentFormatter()).thenReturn(documentFormatter);
+        GHIssueComment comment1 = createComment("summary comment from current bot user, no project ID", APP_LOGIN);
+        GHIssueComment comment2 = createComment("summary comment from non bot user with no project ID", "someone");
+        GHIssueComment comment3 = createComment(MARKED_SUMMARY, APP_LOGIN);
+        GHIssueComment comment4 = createComment(MARKED_SUMMARY, "other-app[bot]");
+        GHIssueComment comment5 = createComment(MARKED_SUMMARY, "someone");
+        GHPullRequest pullRequest = stubPullRequest(repository, List.of(comment1, comment2, comment3, comment4, comment5));
         DecorationResult decorationResult = testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
 
         verify(gitHub).getRepository("alm-repo");
@@ -186,17 +182,67 @@ class GithubPullRequestDecoratorTest {
         DecorationResult expectedResult = DecorationResult.builder().withPullRequestUrl("http://url.of/pull/request").build();
         assertThat(decorationResult).usingRecursiveComparison().isEqualTo(expectedResult);
 
-        verify(comment1, never()).delete();
-        verify(comment2, never()).delete();
-        verify(comment3).delete();
-        verify(comment4, never()).delete();
-        verify(comment5, never()).delete();
-        verify(summaryComment, never()).delete();
+        verify(comment3).update("report summary");
+        verify(comment3, never()).delete();
+        for (GHIssueComment otherComment : List.of(comment1, comment2, comment4, comment5)) {
+            verify(otherComment, never()).update(any());
+            verify(otherComment, never()).delete();
+        }
 
-        verify(pullRequest).comment("report summary");
+        verify(pullRequest, never()).comment(any(String.class));
         verify(pullRequest).getHtmlUrl();
         verify(pullRequest).getComments();
         verifyNoMoreInteractions(pullRequest, gitHub);
+    }
+
+    @Test
+    void shouldPostSummaryCommentWhenNoneExists() throws IOException {
+        when(projectAlmSettingDto.getSummaryCommentEnabled()).thenReturn(true);
+        GHRepository repository = stubRepository();
+        GHIssueComment userComment = createComment(MARKED_SUMMARY, "someone");
+        GHPullRequest pullRequest = stubPullRequest(repository, List.of(userComment));
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(pullRequest).comment("report summary");
+        verify(userComment, never()).update(any());
+    }
+
+    @Test
+    void shouldLeaveAnUnchangedSummaryAloneAndDeleteDuplicates() throws IOException {
+        when(projectAlmSettingDto.getSummaryCommentEnabled()).thenReturn(true);
+        when(analysisSummary.format(any())).thenReturn(MARKED_SUMMARY);
+        GHRepository repository = stubRepository();
+        GHIssueComment summaryComment = createComment(MARKED_SUMMARY, APP_SLUG);
+        GHIssueComment duplicate = createComment("older summary. **Project ID:** project-key\r", APP_LOGIN);
+        GHPullRequest pullRequest = stubPullRequest(repository, List.of(summaryComment, duplicate));
+
+        testCase.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+
+        verify(summaryComment, never()).update(any());
+        verify(summaryComment, never()).delete();
+        verify(duplicate).delete();
+        verify(pullRequest, never()).comment(any(String.class));
+    }
+
+    private GHRepository stubRepository() throws IOException {
+        GHRepository repository = mock();
+        when(gitHub.getRepository(any())).thenReturn(repository);
+        GHCheckRunBuilder checkRunBuilder = mock(InvocationOnMock::getMock);
+        doReturn(null).when(checkRunBuilder).create();
+        when(repository.createCheckRun(any(), any())).thenReturn(checkRunBuilder);
+        return repository;
+    }
+
+    private GHPullRequest stubPullRequest(GHRepository repository, List<GHIssueComment> comments) throws IOException {
+        GHPullRequest pullRequest = mock();
+        when(pullRequest.getComments()).thenReturn(comments);
+        when(repository.getPullRequest(anyInt())).thenReturn(pullRequest);
+        when(pullRequest.getHtmlUrl()).thenReturn(URI.create("http://url.of/pull/request").toURL());
+        Formatter<Document> documentFormatter = mock();
+        when(documentFormatter.format(any())).thenReturn("**Project ID:** project-key");
+        when(markdownFormatterFactory.documentFormatter()).thenReturn(documentFormatter);
+        return pullRequest;
     }
 
 
@@ -268,13 +314,11 @@ class GithubPullRequestDecoratorTest {
         verify(repository).createCheckRun("[Project Name] SonarQube Code Analysis", "commit-sha");
     }
 
-    private static GHIssueComment createComment(String body, String userType, long userId, long commentId) throws IOException {
+    private static GHIssueComment createComment(String body, String login) throws IOException {
         GHIssueComment comment = mock();
         when(comment.getBody()).thenReturn(body);
-        when(comment.getId()).thenReturn(commentId);
         GHUser user = mock();
-        when(user.getId()).thenReturn(userId);
-        when(user.getType()).thenReturn(userType);
+        when(user.getLogin()).thenReturn(login);
         when(comment.getUser()).thenReturn(user);
         return comment;
     }

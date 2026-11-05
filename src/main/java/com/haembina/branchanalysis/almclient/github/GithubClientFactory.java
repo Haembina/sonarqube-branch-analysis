@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.kohsuke.github.GHApp;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
@@ -68,16 +69,21 @@ public class GithubClientFactory {
     }
 
     public GitHub createClient(AlmSettingDto almSettingDto, ProjectAlmSettingDto projectAlmSettingDto) throws IOException {
-            GHAppInstallationToken repositoryAuthenticationToken = authenticate(projectAlmSettingDto, almSettingDto);
-
-            return gitHubBuilderSupplier.get()
-                .withConnector(new OkHttpGitHubConnector(new OkHttpClient()))
-                .withEndpoint(almSettingDto.getUrl())
-                .withAppInstallationToken(repositoryAuthenticationToken.getToken())
-                .build();
+        return connect(almSettingDto, projectAlmSettingDto).client();
     }
 
-    private GHAppInstallationToken authenticate(ProjectAlmSettingDto projectAlmSettingDto, AlmSettingDto almSettingDto) {
+    public GithubConnection connect(AlmSettingDto almSettingDto, ProjectAlmSettingDto projectAlmSettingDto) throws IOException {
+        AppToken appToken = authenticate(projectAlmSettingDto, almSettingDto);
+
+        GitHub client = gitHubBuilderSupplier.get()
+            .withConnector(new OkHttpGitHubConnector(new OkHttpClient()))
+            .withEndpoint(almSettingDto.getUrl())
+            .withAppInstallationToken(appToken.token().getToken())
+            .build();
+        return new GithubConnection(client, appToken.appSlug());
+    }
+
+    private AppToken authenticate(ProjectAlmSettingDto projectAlmSettingDto, AlmSettingDto almSettingDto) {
         String apiUrl = Optional.ofNullable(almSettingDto.getUrl()).orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.GLOBAL, "No URL has been set for Github connections"));
         String apiPrivateKey = Optional.ofNullable(almSettingDto.getDecryptedPrivateKey(settings.getEncryption())).orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.GLOBAL, "No private key has been set for Github connections"));
         String projectPath = Optional.ofNullable(projectAlmSettingDto.getAlmRepo()).orElseThrow(() -> new InvalidConfigurationException(InvalidConfigurationException.Scope.PROJECT, "No repository name has been set for Github connections"));
@@ -91,7 +97,7 @@ public class GithubClientFactory {
 
     }
 
-    private GHAppInstallationToken getInstallationToken(String apiUrl, String appId, String apiPrivateKey, String projectPath) throws IOException {
+    private AppToken getInstallationToken(String apiUrl, String appId, String apiPrivateKey, String projectPath) throws IOException {
         Instant issued = clock.instant().minus(10, ChronoUnit.SECONDS);
         Instant expiry = issued.plus(2, ChronoUnit.MINUTES);
         String jwtToken = new DefaultJwtBuilder().claim("iat", issued.getEpochSecond()).claim("exp", expiry.getEpochSecond())
@@ -109,7 +115,11 @@ public class GithubClientFactory {
             .withJwtToken(jwtToken)
             .build();
 
-        return github.getApp().getInstallationByRepository(owner, repo).createToken().create();
+        GHApp app = github.getApp();
+        return new AppToken(app.getInstallationByRepository(owner, repo).createToken().create(), app.getSlug());
+    }
+
+    private record AppToken(GHAppInstallationToken token, String appSlug) {
     }
 
     private static PrivateKey createPrivateKey(String apiPrivateKey) throws IOException {

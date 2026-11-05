@@ -203,7 +203,11 @@ class GithubClientFactoryTest {
         when(tokenBuilder.create()).thenReturn(ghAppInstallationToken);
         when(tokenBuilder.repositories(any())).thenReturn(tokenBuilder);
 
-        assertThat(underTest.createClient(almSettingDto, projectAlmSettingDto)).isSameAs(github);
+        when(ghApp.getSlug()).thenReturn("app-slug");
+
+        GithubConnection connection = underTest.connect(almSettingDto, projectAlmSettingDto);
+        assertThat(connection.client()).isSameAs(github);
+        assertThat(connection.appSlug()).isEqualTo("app-slug");
         verify(tokenBuilder).create();
         verify(githubBuilder, times(2)).withEndpoint("url");
         verify(githubBuilder).withJwtToken("eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjEyMzQ1Njc4OTExMywiZXhwIjoxMjM0NTY3ODkyMzMsImlzcyI6ImFwcElkIn0.Ut0Cf_eKvDNHLIzFx1q-8yweUKOPhA1eSKALpUVtmlY7LHK3G_btuRUnIH4sfKsjEIS-3urq0FxXW7EcmGSxz8ARUNFe26mhnVtY7odMEJip2GhbC397WkIgf-_HV0M8JnMRQ0InFiGMiXKpMM08w02QgHdIV0kPa41HfMiZLYS3VdmbYU4NX8gvVN0mrAHV1brqcdUGJLwSYJBsz3yd8vTtb_M0Kl4TY9jH5Wvh4wRbSpjGmo2vTID3ioHL9JVSBi6El0gKL3AGk5n5BXfVlYvPEIwbtQp0GB-E2azEnQYxyshNid9K1d2Y032AtF_AQ0cXCssoLClUUcke6yiW8Q");
