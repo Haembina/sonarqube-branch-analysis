@@ -32,8 +32,8 @@ banner names both releases to every signed-in user.
 4. Replace the contents of SonarQube's `web` directory with the webapp zip's.
 5. Start SonarQube and accept the third-party plugin warning.
 
-Without both `javaagent` lines, SonarQube starts with the plugin listed and no
-branch support. This shows whether they are there:
+Without either `javaagent` line, SonarQube stops at startup, and `logs/web.log`
+or `logs/ce.log` names the line to add. This shows whether they are there:
 
 ```bash
 grep javaAdditionalOpts conf/sonar.properties

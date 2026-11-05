@@ -111,7 +111,8 @@ flowchart TD
 4. Or pull a release image,
    `ghcr.io/haembina/haembina-branch-analysis:<version>`, which a tag publishes.
 5. An override of SONAR_WEB_JAVAADDITIONALOPTS or SONAR_CE_JAVAADDITIONALOPTS
-   must repeat the javaagent settings, or the plugin starts without its agent.
+   must repeat the javaagent settings, or SonarQube stops at startup, naming the
+   line it lacks.
 
 | Command | What it does |
 | --- | --- |

@@ -28,6 +28,12 @@ import org.sonar.api.Plugin;
 import org.sonar.api.SonarQubeSide;
 import org.sonar.api.rule.Severity;
 
+import java.net.URL;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
+import java.util.Locale;
+import java.util.Optional;
+
 
 /**
  * The entry-point class used by SonarQube to launch this plugin. Since SonarQube runs all its plugin in isolated
@@ -45,17 +51,41 @@ public class CommunityBranchPluginBootstrap implements Plugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommunityBranchPluginBootstrap.class);
 
+    private static final String UNKNOWN_AGENT_JAR = "haembina-branch-analysis-<version>.jar";
+
     private final ElevatedClassLoaderFactory elevatedClassLoaderFactory;
     private final boolean available;
+    private final String agentJar;
 
     public CommunityBranchPluginBootstrap() {
-        this(new ClassReferenceElevatedClassLoaderFactory(Severity.class.getName()), false);
+        this(new ClassReferenceElevatedClassLoaderFactory(Severity.class.getName()), false,
+                jarName(CommunityBranchPluginBootstrap.class.getProtectionDomain()));
     }
 
-    /*package*/ CommunityBranchPluginBootstrap(ElevatedClassLoaderFactory elevatedClassLoaderFactory, boolean available) {
+    /*package*/ CommunityBranchPluginBootstrap(ElevatedClassLoaderFactory elevatedClassLoaderFactory, boolean available,
+                                               String agentJar) {
         super();
         this.elevatedClassLoaderFactory = elevatedClassLoaderFactory;
         this.available = available;
+        this.agentJar = agentJar;
+    }
+
+    /*package*/ static String jarName(ProtectionDomain protectionDomain) {
+        return Optional.ofNullable(protectionDomain.getCodeSource())
+                .map(CodeSource::getLocation)
+                .map(URL::getPath)
+                .map(path -> path.substring(path.lastIndexOf('/') + 1))
+                .filter(name -> name.endsWith(".jar"))
+                .orElse(UNKNOWN_AGENT_JAR);
+    }
+
+    private String missingAgentMessage(SonarQubeSide sonarQubeSide) {
+        String process = SonarQubeSide.SERVER == sonarQubeSide ? "web" : "ce";
+        return String.format("Branch analysis needs this plugin's Java agent in the %s process, and SonarQube was "
+                        + "started without it. Add sonar.%s.javaAdditionalOpts=-javaagent:./extensions/plugins/%s=%s to "
+                        + "conf/sonar.properties, or set SONAR_%s_JAVAADDITIONALOPTS to the same -javaagent value in "
+                        + "Docker, then start SonarQube again.",
+                process, process, agentJar, process, process.toUpperCase(Locale.ROOT));
     }
 
     @Override
@@ -65,7 +95,7 @@ public class CommunityBranchPluginBootstrap implements Plugin {
             if (isAvailable()) {
                 LOGGER.info("Expected agent runtime modifications detected for component: {}", sonarQubeSide);
             } else {
-                throw new IllegalStateException(String.format("The plugin did not detect agent modifications so SonarQube is unlikely to work with Pull Requests or Branches. Please check the Java Agent has been correctly set for the %s component", sonarQubeSide));
+                throw new IllegalStateException(missingAgentMessage(sonarQubeSide));
             }
         }
         if (SonarQubeSide.SCANNER != sonarQubeSide) {
