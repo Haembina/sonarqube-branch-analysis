@@ -43,6 +43,7 @@ import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haembina.branchanalysis.InvalidConfigurationException;
 
 import io.jsonwebtoken.Jwts;
@@ -75,12 +76,15 @@ public class GithubClientFactory {
     public GithubConnection connect(AlmSettingDto almSettingDto, ProjectAlmSettingDto projectAlmSettingDto) throws IOException {
         AppToken appToken = authenticate(projectAlmSettingDto, almSettingDto);
 
+        OkHttpClient httpClient = new OkHttpClient();
         GitHub client = gitHubBuilderSupplier.get()
-            .withConnector(new OkHttpGitHubConnector(new OkHttpClient()))
+            .withConnector(new OkHttpGitHubConnector(httpClient))
             .withEndpoint(almSettingDto.getUrl())
             .withAppInstallationToken(appToken.token().getToken())
             .build();
-        return new GithubConnection(client, appToken.appSlug());
+        GithubGraphqlClient graphql = new GithubGraphqlClient(httpClient, new ObjectMapper(), almSettingDto.getUrl(),
+            appToken.token().getToken());
+        return new GithubConnection(client, graphql, appToken.appSlug());
     }
 
     private AppToken authenticate(ProjectAlmSettingDto projectAlmSettingDto, AlmSettingDto almSettingDto) {

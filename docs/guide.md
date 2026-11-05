@@ -88,6 +88,9 @@ Each is a project setting under General, Branches and Pull Requests:
   already posted is still updated. Off by default.
 - `com.haembina.branchanalysis.pullrequest.github.annotations.enabled`: set it
   to `false` to leave issues off the check run. On by default.
+- `com.haembina.branchanalysis.pullrequest.github.inline-comments.enabled`:
+  posts each new issue as a review comment on its line, once, and resolves its
+  thread when the issue is fixed. Off by default.
 
 ### Decorate branch analyses
 

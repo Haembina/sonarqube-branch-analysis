@@ -31,64 +31,51 @@ import org.kohsuke.github.GHCheckRun;
 import org.kohsuke.github.GHCheckRunBuilder;
 import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHPullRequest;
+import org.kohsuke.github.GHPullRequestCommitDetail;
 import org.kohsuke.github.GHRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.ce.posttask.QualityGate;
 import org.sonar.api.issue.IssueStatus;
 import org.sonar.api.issue.impact.Severity;
+import org.sonar.ce.task.projectanalysis.scm.ScmInfoRepository;
 import org.sonar.db.alm.setting.ALM;
 import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.github.GithubConnection;
+import com.haembina.branchanalysis.almclient.github.model.ReviewThread;
+import com.haembina.branchanalysis.almclient.github.model.ReviewThreadComment;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
-import com.haembina.branchanalysis.ce.pullrequest.DecorationResult;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
+import com.haembina.branchanalysis.ce.pullrequest.DiscussionAwarePullRequestDecorator;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
-import com.haembina.branchanalysis.ce.pullrequest.PullRequestBuildStatusDecorator;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Bold;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Document;
 import com.haembina.branchanalysis.ce.pullrequest.markup.MarkdownFormatterFactory;
 import com.haembina.branchanalysis.ce.pullrequest.markup.Text;
+import com.haembina.branchanalysis.ce.pullrequest.report.AnalysisIssueSummary;
 import com.haembina.branchanalysis.ce.pullrequest.report.AnalysisSummary;
 import com.haembina.branchanalysis.ce.pullrequest.report.ReportGenerator;
 
-public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorator {
+public class GithubPullRequestDecorator extends DiscussionAwarePullRequestDecorator<GithubDecorationClient, GHPullRequest, GithubConnection, ReviewThread, ReviewThreadComment> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(GithubPullRequestDecorator.class);
     private static final String DEFAULT_CHECK_RUN_NAME = "SonarQube Code Analysis";
     private final GithubClientFactory githubClientFactory;
-    private final ReportGenerator reportGenerator;
     private final MarkdownFormatterFactory markdownFormatterFactory;
     private final Clock clock;
     private final DecorationSettings decorationSettings;
 
-    public GithubPullRequestDecorator(GithubClientFactory githubClientFactory, ReportGenerator reportGenerator,
-                                      MarkdownFormatterFactory markdownFormatterFactory, Clock clock,
-                                      DecorationSettings decorationSettings) {
+    public GithubPullRequestDecorator(ScmInfoRepository scmInfoRepository, GithubClientFactory githubClientFactory,
+                                      ReportGenerator reportGenerator, MarkdownFormatterFactory markdownFormatterFactory,
+                                      Clock clock, DecorationSettings decorationSettings) {
+        super(scmInfoRepository, reportGenerator);
         this.githubClientFactory = githubClientFactory;
-        this.reportGenerator = reportGenerator;
         this.markdownFormatterFactory = markdownFormatterFactory;
         this.clock = clock;
         this.decorationSettings = decorationSettings;
-    }
-
-    @Override
-    public DecorationResult decorateQualityGateStatus(AnalysisDetails analysisDetails, AlmSettingDto almSettingDto,
-                                          ProjectAlmSettingDto projectAlmSettingDto) {
-        try {
-            GithubConnection connection = githubClientFactory.connect(almSettingDto, projectAlmSettingDto);
-            GHRepository repository = connection.client().getRepository(projectAlmSettingDto.getAlmRepo());
-
-            GHPullRequest pullRequest = createCheckRun(connection, repository, analysisDetails, projectAlmSettingDto.getMonorepo(),
-                    Optional.ofNullable(projectAlmSettingDto.getSummaryCommentEnabled()).orElse(false));
-
-            return DecorationResult.builder()
-                    .withPullRequestUrl(pullRequest.getHtmlUrl().toExternalForm())
-                    .build();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Could not decorate Pull Request on Github", ex);
-        }
-
     }
 
     @Override
@@ -97,7 +84,7 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
         try {
             GithubConnection connection = githubClientFactory.connect(almSettingDto, projectAlmSettingDto);
             GHRepository repository = connection.client().getRepository(projectAlmSettingDto.getAlmRepo());
-            String dashboardUrl = reportGenerator.createBranchDashboardUrl(analysisDetails);
+            String dashboardUrl = getReportGenerator().createBranchDashboardUrl(analysisDetails);
             GHCheckRunBuilder.Output output = new GHCheckRunBuilder.Output(checkRunTitle(analysisDetails),
                 String.format("[View in SonarQube](%s)", dashboardUrl));
             submitCheckRun(repository, analysisDetails, projectAlmSettingDto.getMonorepo(), dashboardUrl, output);
@@ -110,6 +97,168 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
     @Override
     public List<ALM> alm() {
         return List.of(ALM.GITHUB);
+    }
+
+    @Override
+    protected boolean isInlineCommentsEnabled(ProjectAlmSettingDto projectAlmSettingDto) {
+        return decorationSettings.isGithubInlineCommentsEnabled();
+    }
+
+    @Override
+    protected GithubDecorationClient createClient(AlmSettingDto almSettingDto, ProjectAlmSettingDto projectAlmSettingDto) {
+        try {
+            GithubConnection connection = githubClientFactory.connect(almSettingDto, projectAlmSettingDto);
+            GHRepository repository = connection.client().getRepository(projectAlmSettingDto.getAlmRepo());
+            return new GithubDecorationClient(connection, repository, projectAlmSettingDto);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not decorate Pull Request on Github", ex);
+        }
+    }
+
+    @Override
+    protected Optional<String> createFrontEndUrl(GHPullRequest pullRequest, AnalysisDetails analysisDetails) {
+        return Optional.of(pullRequest.getHtmlUrl().toExternalForm());
+    }
+
+    @Override
+    protected GHPullRequest getPullRequest(GithubDecorationClient client, AlmSettingDto almSettingDto,
+                                           ProjectAlmSettingDto projectAlmSettingDto, AnalysisDetails analysis) {
+        try {
+            return client.repository().getPullRequest(Integer.parseInt(analysis.getPullRequestId()));
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not retrieve Pull Request details from Github", ex);
+        }
+    }
+
+    @Override
+    protected GithubConnection getCurrentUser(GithubDecorationClient client) {
+        return client.connection();
+    }
+
+    @Override
+    protected List<String> getCommitIdsForPullRequest(GithubDecorationClient client, GHPullRequest pullRequest) {
+        try {
+            return pullRequest.listCommits().toList().stream().map(GHPullRequestCommitDetail::getSha).toList();
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not retrieve commits for Pull Request from Github", ex);
+        }
+    }
+
+    @Override
+    protected void submitPipelineStatus(GithubDecorationClient client, GHPullRequest pullRequest, AnalysisDetails analysis,
+                                        AnalysisSummary analysisSummary, ProjectAlmSettingDto projectAlmSettingDto) {
+        GHCheckRunBuilder.Output output = new GHCheckRunBuilder.Output(checkRunTitle(analysis), analysisSummary.format(markdownFormatterFactory));
+        if (decorationSettings.isGithubAnnotationsEnabled()) {
+            for (PostAnalysisIssueVisitor.ComponentIssue componentIssue : analysis.getScmReportableIssues()) {
+                output.add(new GHCheckRunBuilder.Annotation(
+                    componentIssue.getScmPath().orElseThrow(),
+                    Optional.ofNullable(componentIssue.getIssue().getLine()).orElse(0),
+                    mapToGithubAnnotationLevel(componentIssue.getIssue().impacts().values()),
+                    Optional.ofNullable(componentIssue.getIssue().getMessage()).orElseThrow())
+                );
+            }
+        }
+        try {
+            submitCheckRun(client.repository(), analysis, projectAlmSettingDto.getMonorepo(), analysisSummary.getDashboardUrl(), output);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not create check run on Github", ex);
+        }
+    }
+
+    @Override
+    protected void submitCommitNoteForIssue(GithubDecorationClient client, GHPullRequest pullRequest,
+                                            PostAnalysisIssueVisitor.ComponentIssue issue, String filePath,
+                                            AnalysisDetails analysis, AnalysisIssueSummary analysisIssueSummary) {
+        int line = issue.getIssue().getLine();
+        try {
+            pullRequest.createReviewComment()
+                .commitId(analysis.getCommitSha())
+                .path(filePath)
+                .line(line)
+                .body(analysisIssueSummary.format(markdownFormatterFactory))
+                .create();
+        } catch (IOException ex) {
+            LOGGER.warn("Github refused a review comment on {} line {}", filePath, line, ex);
+        }
+    }
+
+    @Override
+    protected void submitSummaryNote(GithubDecorationClient client, GHPullRequest pullRequest, AnalysisDetails analysis,
+                                     AnalysisSummary analysisSummary) {
+        if (!Optional.ofNullable(client.projectAlmSettingDto().getSummaryCommentEnabled()).orElse(false)) {
+            return;
+        }
+        boolean createIfMissing = !(decorationSettings.isSummaryCommentSkippedWhenClean() && isCleanPass(analysis));
+        try {
+            postSummaryComment(client.connection(), pullRequest, analysisSummary.format(markdownFormatterFactory),
+                analysis.getAnalysisProjectKey(), createIfMissing);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not submit summary comment to Github", ex);
+        }
+    }
+
+    @Override
+    protected List<ReviewThread> getDiscussions(GithubDecorationClient client, GHPullRequest pullRequest) {
+        try {
+            return client.connection().graphql().getReviewThreads(client.projectAlmSettingDto().getAlmRepo(), pullRequest.getNumber());
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not retrieve review threads from Github", ex);
+        }
+    }
+
+    @Override
+    protected boolean isNoteFromCurrentUser(ReviewThreadComment note, GithubConnection user) {
+        return user.isAppLogin(note.authorLogin());
+    }
+
+    @Override
+    protected String getNoteContent(GithubDecorationClient client, ReviewThreadComment note) {
+        return note.body();
+    }
+
+    @Override
+    protected List<ReviewThreadComment> getNotesForDiscussion(GithubDecorationClient client, ReviewThread discussion) {
+        return discussion.comments();
+    }
+
+    @Override
+    protected boolean isClosed(ReviewThread discussion, List<ReviewThreadComment> notesInDiscussion) {
+        return discussion.resolved();
+    }
+
+    @Override
+    protected boolean isUserNote(ReviewThreadComment note) {
+        return true;
+    }
+
+    @Override
+    protected void addNoteToDiscussion(GithubDecorationClient client, ReviewThread discussion, GHPullRequest pullRequest, String note) {
+        try {
+            client.connection().graphql().replyToReviewThread(discussion.id(), note);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not reply to review thread on Github", ex);
+        }
+    }
+
+    @Override
+    protected void resolveDiscussion(GithubDecorationClient client, ReviewThread discussion, GHPullRequest pullRequest) {
+        try {
+            client.connection().graphql().resolveReviewThread(discussion.id());
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not resolve review thread on Github", ex);
+        }
+    }
+
+    @Override
+    protected void deleteDiscussion(GithubDecorationClient client, ReviewThread discussion, GHPullRequest pullRequest,
+                                    List<ReviewThreadComment> notesForDiscussion) {
+        try {
+            for (ReviewThreadComment note : notesForDiscussion) {
+                client.connection().graphql().deleteReviewComment(note.id());
+            }
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not delete review thread on Github", ex);
+        }
     }
 
     private static String checkRunTitle(AnalysisDetails analysisDetails) {
@@ -130,33 +279,6 @@ public class GithubPullRequestDecorator implements PullRequestBuildStatusDecorat
             .withExternalID(analysisDetails.getAnalysisId())
             .add(output)
             .create();
-    }
-
-    private GHPullRequest createCheckRun(GithubConnection connection, GHRepository repository, AnalysisDetails analysisDetails,
-            boolean isMonorepo, boolean postSummaryComment) throws IOException {
-        AnalysisSummary analysisSummary = reportGenerator.createAnalysisSummary(analysisDetails);
-        String summary = analysisSummary.format(markdownFormatterFactory);
-
-        GHCheckRunBuilder.Output output = new GHCheckRunBuilder.Output(checkRunTitle(analysisDetails), summary);
-        if (decorationSettings.isGithubAnnotationsEnabled()) {
-            for (PostAnalysisIssueVisitor.ComponentIssue componentIssue : analysisDetails.getScmReportableIssues()) {
-                output.add(new GHCheckRunBuilder.Annotation(
-                    componentIssue.getScmPath().orElseThrow(),
-                    Optional.ofNullable(componentIssue.getIssue().getLine()).orElse(0),
-                    mapToGithubAnnotationLevel(componentIssue.getIssue().impacts().values()),
-                    Optional.ofNullable(componentIssue.getIssue().getMessage()).orElseThrow())
-                );
-            }
-        }
-
-        submitCheckRun(repository, analysisDetails, isMonorepo, analysisSummary.getDashboardUrl(), output);
-
-        GHPullRequest pullRequest = repository.getPullRequest(Integer.parseInt(analysisDetails.getPullRequestId()));
-        if (postSummaryComment) {
-            boolean createIfMissing = !(decorationSettings.isSummaryCommentSkippedWhenClean() && isCleanPass(analysisDetails));
-            postSummaryComment(connection, pullRequest, summary, analysisDetails.getAnalysisProjectKey(), createIfMissing);
-        }
-        return pullRequest;
     }
 
     private static boolean isCleanPass(AnalysisDetails analysisDetails) {

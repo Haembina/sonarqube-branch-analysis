@@ -31,6 +31,7 @@ public class DecorationSettings {
     public static final String SUMMARY_COMMENT_SKIPPED_WHEN_CLEAN = "com.haembina.branchanalysis.pullrequest.summary-comment.skip-when-clean";
     public static final String GITHUB_ANNOTATIONS_ENABLED = "com.haembina.branchanalysis.pullrequest.github.annotations.enabled";
     public static final String BRANCH_DECORATION_ENABLED = "com.haembina.branchanalysis.branch-decoration.enabled";
+    public static final String GITHUB_INLINE_COMMENTS_ENABLED = "com.haembina.branchanalysis.pullrequest.github.inline-comments.enabled";
 
     private final ConfigurationRepository configurationRepository;
 
@@ -54,7 +55,16 @@ public class DecorationSettings {
                 .name("Decorate branch analyses")
                 .description("Show the quality gate of a branch analysis, such as main, on its commit: "
                     + "a check run on GitHub and a commit status on GitLab.")
+                .build(),
+            booleanSetting(GITHUB_INLINE_COMMENTS_ENABLED, false)
+                .name("Comment GitHub issues inline")
+                .description("Post each new issue as a review comment on its line of a GitHub pull request, "
+                    + "and resolve its thread once the issue is fixed.")
                 .build());
+    }
+
+    public boolean isGithubInlineCommentsEnabled() {
+        return isEnabled(GITHUB_INLINE_COMMENTS_ENABLED, false);
     }
 
     public boolean isBranchDecorationEnabled() {

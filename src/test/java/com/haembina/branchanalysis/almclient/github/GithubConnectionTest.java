@@ -26,7 +26,7 @@ import org.kohsuke.github.GitHub;
 
 class GithubConnectionTest {
 
-    private final GithubConnection connection = new GithubConnection(mock(GitHub.class), "sonarqube-app");
+    private final GithubConnection connection = new GithubConnection(mock(GitHub.class), mock(GithubGraphqlClient.class), "sonarqube-app");
 
     @Test
     void shouldRecognizeTheAppByItsRestAndGraphqlLogins() {

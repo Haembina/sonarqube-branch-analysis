@@ -49,6 +49,7 @@ class DecorationSettingsTest {
         assertThat(decorationSettings.isSummaryCommentSkippedWhenClean()).isFalse();
         assertThat(decorationSettings.isGithubAnnotationsEnabled()).isTrue();
         assertThat(decorationSettings.isBranchDecorationEnabled()).isFalse();
+        assertThat(decorationSettings.isGithubInlineCommentsEnabled()).isFalse();
     }
 
     @Test
@@ -56,10 +57,12 @@ class DecorationSettingsTest {
         when(configuration.getBoolean(DecorationSettings.SUMMARY_COMMENT_SKIPPED_WHEN_CLEAN)).thenReturn(Optional.of(true));
         when(configuration.getBoolean(DecorationSettings.GITHUB_ANNOTATIONS_ENABLED)).thenReturn(Optional.of(false));
         when(configuration.getBoolean(DecorationSettings.BRANCH_DECORATION_ENABLED)).thenReturn(Optional.of(true));
+        when(configuration.getBoolean(DecorationSettings.GITHUB_INLINE_COMMENTS_ENABLED)).thenReturn(Optional.of(true));
 
         assertThat(decorationSettings.isSummaryCommentSkippedWhenClean()).isTrue();
         assertThat(decorationSettings.isGithubAnnotationsEnabled()).isFalse();
         assertThat(decorationSettings.isBranchDecorationEnabled()).isTrue();
+        assertThat(decorationSettings.isGithubInlineCommentsEnabled()).isTrue();
     }
 
     @Test
@@ -69,6 +72,7 @@ class DecorationSettingsTest {
             .containsExactly(
                 tuple(DecorationSettings.SUMMARY_COMMENT_SKIPPED_WHEN_CLEAN, "false"),
                 tuple(DecorationSettings.GITHUB_ANNOTATIONS_ENABLED, "true"),
-                tuple(DecorationSettings.BRANCH_DECORATION_ENABLED, "false"));
+                tuple(DecorationSettings.BRANCH_DECORATION_ENABLED, "false"),
+                tuple(DecorationSettings.GITHUB_INLINE_COMMENTS_ENABLED, "false"));
     }
 }

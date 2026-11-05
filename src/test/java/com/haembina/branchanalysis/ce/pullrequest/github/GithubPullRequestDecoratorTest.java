@@ -57,12 +57,14 @@ import org.sonar.api.issue.IssueStatus;
 import org.sonar.api.issue.impact.Severity;
 import org.sonar.api.issue.impact.SoftwareQuality;
 import org.sonar.ce.task.projectanalysis.component.Component;
+import org.sonar.ce.task.projectanalysis.scm.ScmInfoRepository;
 import org.sonar.db.alm.setting.ALM;
 import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.github.GithubConnection;
+import com.haembina.branchanalysis.almclient.github.GithubGraphqlClient;
 import com.haembina.branchanalysis.ce.pullrequest.AnalysisDetails;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationResult;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
@@ -87,7 +89,7 @@ class GithubPullRequestDecoratorTest {
     private final MarkdownFormatterFactory markdownFormatterFactory = mock();
     private final Clock clock = Clock.fixed(Instant.ofEpochSecond(102030405), ZoneId.of("UTC"));
     private final DecorationSettings decorationSettings = mock();
-    private final GithubPullRequestDecorator testCase = new GithubPullRequestDecorator(githubClientFactory, reportGenerator, markdownFormatterFactory, clock, decorationSettings);
+    private final GithubPullRequestDecorator testCase = new GithubPullRequestDecorator(mock(ScmInfoRepository.class), githubClientFactory, reportGenerator, markdownFormatterFactory, clock, decorationSettings);
     private final ProjectAlmSettingDto projectAlmSettingDto = mock();
     private final AlmSettingDto almSettingDto = mock();
     private final AnalysisSummary analysisSummary = mock();
@@ -122,7 +124,7 @@ class GithubPullRequestDecoratorTest {
         when(reportGenerator.createAnalysisSummary(any())).thenReturn(analysisSummary);
         when(analysisSummary.getDashboardUrl()).thenReturn("dashboard-url");
         when(analysisSummary.format(any())).thenReturn("report summary");
-        when(githubClientFactory.connect(any(), any())).thenReturn(new GithubConnection(gitHub, APP_SLUG));
+        when(githubClientFactory.connect(any(), any())).thenReturn(new GithubConnection(gitHub, mock(GithubGraphqlClient.class), APP_SLUG));
         when(decorationSettings.isGithubAnnotationsEnabled()).thenReturn(true);
     }
 

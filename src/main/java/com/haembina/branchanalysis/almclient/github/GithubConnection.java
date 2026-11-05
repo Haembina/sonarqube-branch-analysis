@@ -20,7 +20,7 @@ package com.haembina.branchanalysis.almclient.github;
 
 import org.kohsuke.github.GitHub;
 
-public record GithubConnection(GitHub client, String appSlug) {
+public record GithubConnection(GitHub client, GithubGraphqlClient graphql, String appSlug) {
 
     private static final String BOT_SUFFIX = "[bot]";
 
