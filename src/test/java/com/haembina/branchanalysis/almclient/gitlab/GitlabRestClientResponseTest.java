@@ -20,6 +20,7 @@ package com.haembina.branchanalysis.almclient.gitlab;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -32,6 +33,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -41,14 +43,21 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haembina.branchanalysis.almclient.gitlab.model.Commit;
+import com.haembina.branchanalysis.almclient.gitlab.model.Discussion;
+import com.haembina.branchanalysis.almclient.gitlab.model.MergeRequestNote;
+import com.haembina.branchanalysis.almclient.gitlab.model.Note;
 import com.haembina.branchanalysis.almclient.gitlab.model.PipelineStatus;
 
 import ch.qos.logback.classic.Level;
@@ -129,6 +138,64 @@ class GitlabRestClientResponseTest {
         assertThat(request.getValue().getURI()).hasToString("http://gitlab.test/api/v4/projects/1/statuses/sha?state=success");
         assertThat(((HttpEntityEnclosingRequest) request.getValue()).getEntity().getContent())
                 .hasContent("name=SonarQube&target_url=http%3A%2F%2Fsonar&description=Quality+Gate+passed&pipeline_id=77&coverage=10");
+        assertThat(request.getValue().getFirstHeader("Content-type").getValue()).isEqualTo("application/x-www-form-urlencoded");
+    }
+
+    @Test
+    void shouldReadMergeRequestDiscussionsWithTheirNotesSendingTheToken() throws IOException {
+        CloseableHttpResponse response = json("""
+                [{"id": "discussion", "notes": [
+                    {"id": 5, "system": false, "author": {"username": "sonar"}, "body": "Resolved issue", "resolved": true, "resolvable": true},
+                    {"id": 6, "system": true, "author": {"username": "sonar"}, "body": "Summary", "resolved": false, "resolvable": false}]}]
+                """);
+        when(httpClient.execute(any())).thenReturn(response);
+
+        List<Discussion> discussions = underTest.getMergeRequestDiscussions(1, 2);
+
+        assertThat(discussions).singleElement().extracting(Discussion::getNotes).asInstanceOf(InstanceOfAssertFactories.list(Note.class))
+                .extracting(Note::getId, Note::getBody, Note::isResolved, Note::isResolvable)
+                .containsExactly(tuple(5L, "Resolved issue", true, true), tuple(6L, "Summary", false, false));
+        ArgumentCaptor<HttpUriRequest> request = ArgumentCaptor.captor();
+        verify(httpClient).execute(request.capture());
+        assertThat(request.getValue().getURI()).hasToString("http://gitlab.test/api/v4/projects/1/merge_requests/2/discussions");
+        assertThat(request.getValue().getFirstHeader("PRIVATE-TOKEN").getValue()).isEqualTo("token");
+    }
+
+    @Test
+    void shouldPostADiscussionAsAForm() throws IOException {
+        CloseableHttpResponse response = response(201, new StringEntity("{\"id\": \"discussion\", \"notes\": []}", StandardCharsets.UTF_8));
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThat(underTest.addMergeRequestDiscussion(1, 2, new MergeRequestNote("Issue")).getId()).isEqualTo("discussion");
+
+        ArgumentCaptor<HttpUriRequest> request = ArgumentCaptor.captor();
+        verify(httpClient).execute(request.capture());
+        assertThat(request.getValue().getFirstHeader("Content-type").getValue()).isEqualTo("application/x-www-form-urlencoded");
+        assertThat(((HttpEntityEnclosingRequest) request.getValue()).getEntity().getContent()).hasContent("body=Issue");
+    }
+
+    static Stream<Arguments> callsGitlabRefuses() {
+        return Stream.of(
+                Arguments.of("note", 201, (GitlabCall) client -> client.addMergeRequestDiscussionNote(1, 2, "discussion", "note")),
+                Arguments.of("pipeline status", 201, (GitlabCall) client -> client.setMergeRequestPipelineStatus(1, "sha",
+                        new PipelineStatus("SonarQube", "Quality Gate passed", PipelineStatus.State.SUCCESS, "http://sonar", null, null))),
+                Arguments.of("commits", 200, (GitlabCall) client -> client.getMergeRequestCommits(1, 2)));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("callsGitlabRefuses")
+    void shouldThrowWhenGitlabRefusesTheCall(String name, int expectedStatus, GitlabCall gitlabCall) throws IOException {
+        CloseableHttpResponse response = response(500, new StringEntity("[]", StandardCharsets.UTF_8));
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThatThrownBy(() -> gitlabCall.call(underTest))
+                .isExactlyInstanceOf(IllegalStateException.class)
+                .hasMessage("An unexpected response code was returned from the Gitlab API - Expected: " + expectedStatus + ", Got: 500");
+    }
+
+    @FunctionalInterface
+    interface GitlabCall {
+        void call(GitlabRestClient client) throws IOException;
     }
 
     @Test
