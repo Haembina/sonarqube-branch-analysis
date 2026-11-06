@@ -22,14 +22,14 @@ works](#how-it-works) · [Setup](#setup-and-use) · [Docker](#docker) ·
 <tr>
 <td width="50%" valign="top">
 <img src="icons/readme/git-branch.svg" width="20" alt=""> <b>Branch analysis</b><br>
-Every branch and pull request gets its own quality gate, issues and new code,
-with pages to list, rename, delete and set the main branch.
+Each branch and pull request gets its own quality gate, issues and new code;
+pages filter, rename, delete in bulk and set the main branch.
 </td>
 <td width="50%" valign="top">
 <img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
-GitHub check runs and summary comments, GitLab discussions, Bitbucket Code
-Insights reports, Azure DevOps threads, and Gitea or Forgejo commit statuses and
-comments.
+GitHub check runs, line comments and summary comments, GitLab discussions,
+Bitbucket Code Insights reports, Azure DevOps threads, and Gitea or Forgejo
+statuses and comments.
 </td>
 </tr>
 <tr>
@@ -60,14 +60,19 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
 | Compatible SonarQube Community Build | 26.5.0.122743 | 26.10.0.133078 |
-| CI branch detection | Always on | An off switch: com.haembina.branchanalysis.auto-configuration.enabled |
+| CI detection | Seven CI systems, always on | Twelve, adding Woodpecker, Buildkite, CircleCI, TeamCity and Drone; com.haembina.branchanalysis.auto-configuration.enabled switches it off |
+| GitHub issues | Check run annotations | Optionally a comment on each new issue's line, resolved once fixed |
+| Summary comment | Reposted each analysis | Edited in place, optionally skipped on a clean pass |
+| Branch quality gate | Pull requests only | Optionally a GitHub check or GitLab status per branch |
+| Gitea and Forgejo | Unsupported | A commit status and a summary comment |
+| Install mistakes | Unexplained | The log names a missing javaagent line; a banner names mismatched jar and webapp releases |
 | Java coverage | Reported | The build fails under its floor, in lines and branches |
 | Branch page tests | None | Jest under the same floor, Playwright against a running SonarQube |
-| Accessibility | Unchecked | An audit of every page and dialog, keyboard-only specs, and a spec per criterion no audit measures |
-| Release gate | The build | Jar and webapp publish only after a real SonarQube analyses main, a branch and a pull request with them |
+| Accessibility | Unchecked | Audits of every page and dialog, keyboard specs, a spec per unaudited criterion |
+| Release gate | The build | Publishes only after a real SonarQube analyses main, a branch and a pull request |
 | Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
 | Java compiler | javac warnings | Error Prone and javac lint, every finding an error |
-| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns from dialogs, controls carry names, uncaught errors show a toast |
+| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns from dialogs, controls carry names, errors show a toast; a name filter and bulk delete |
 
 ## How it works
 
@@ -109,7 +114,7 @@ flowchart TD
    which downloads the release PLUGIN_VERSION names.
 3. Start SonarQube and its PostgreSQL database with docker-compose.yml.
 4. Or pull a release image,
-   `ghcr.io/haembina/haembina-branch-analysis:<version>`, which a tag publishes.
+   `ghcr.io/haembina/haembina-branch-analysis:<version>`.
 5. An override of SONAR_WEB_JAVAADDITIONALOPTS or SONAR_CE_JAVAADDITIONALOPTS
    must repeat the javaagent settings, or SonarQube stops at startup, naming the
    line it lacks.
@@ -168,11 +173,11 @@ extraInitContainers:
 
 | Command | What it does |
 | --- | --- |
-| `./gradlew build` | Compiles with Error Prone and javac lint as errors, runs the Java suite under its coverage floor, and builds the jar in build/libs |
-| `./sonarqube-webapp-addons/setup.sh` | Copies the branch pages into the sonarqube-webapp submodule; rerun after changing them |
-| `yarn nx run sq-server:build` | Builds the webapp, from inside sonarqube-webapp, into apps/sq-server/build/webapp |
-| `bash scripts/integration-test.sh <jar> <webapp dir>` | Boots SonarQube in Docker with both and runs a main, branch and pull request analysis |
-| `./gradlew pitest` | PIT mutation run over the Java suite; the report is in build/reports/pitest |
+| `./gradlew build` | Compiles, tests under the coverage floor and builds the jar in build/libs |
+| `./sonarqube-webapp-addons/setup.sh` | Copies the branch pages into the sonarqube-webapp submodule |
+| `yarn nx run sq-server:build` | Builds the webapp into apps/sq-server/build/webapp, from sonarqube-webapp |
+| `bash scripts/integration-test.sh <jar> <webapp dir>` | Runs a main, branch and pull request analysis in Docker |
+| `./gradlew pitest` | PIT mutation run; the report is in build/reports/pitest |
 
 ## Layout
 
@@ -182,27 +187,23 @@ extraInitContainers:
 ```text
 .
 ├── .devcontainer/            The dev container, on the image CI builds in
-├── .github/                  The workflows and Dependabot's settings
-├── .vscode/                  The editor settings and extensions
-│                             conventions-init writes
+├── .github/                  The workflows and Renovate settings
+├── .vscode/                  Editor settings and extensions
 ├── LICENSES/                 License texts, by SPDX identifier
-├── config/                   The CodeNarc rules the Gradle scripts are linted
-│                             with
+├── config/                   CodeNarc rules for the Gradle scripts
 ├── deploy/                   Helm values for SonarSource's SonarQube chart
-├── docker/                   The image's entrypoint, release push and
-│                             published-image check, each with its test
-├── docs/                     The guide, and how the plugin is built, tested,
-│                             secured and contributed to
-├── e2e/                      The Playwright suite over the branch pages, with
-│                             its accessibility specs
+├── docker/                   The image's entrypoint and release scripts, each
+│                             tested
+├── docs/                     The guide and the project documents
+├── e2e/                      Playwright and accessibility specs over the branch
+│                             pages
 ├── gradle/                   The Gradle wrapper
-├── icons/                    The project icon and the icons the documents show
-├── scripts/                  The integration test, the coverage run and an
-│                             install script
-├── sonarqube-webapp-addons/  The branch and pull request pages, linked into the
-│                             sonarqube-webapp submodule at build time
-└── src/                      The Java agent, the plugin extensions, one client
-                              per ALM, and their JUnit suite
+├── icons/                    The icons the documents show
+├── scripts/                  Integration test, coverage run and install script
+├── sonarqube-webapp-addons/  The branch pages, linked into the sonarqube-webapp
+│                             submodule
+└── src/                      The Java agent, plugin and ALM clients, with their
+                              JUnit suite
 ```
 
 </details>
