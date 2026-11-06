@@ -22,14 +22,14 @@ works](#how-it-works) · [Setup](#setup-and-use) · [Docker](#docker) ·
 <tr>
 <td width="50%" valign="top">
 <img src="icons/readme/git-branch.svg" width="20" alt=""> <b>Branch analysis</b><br>
-Every branch and pull request gets its own quality gate, issues and new code,
-with pages to list, rename, delete and set the main branch.
+Each branch and pull request gets its own quality gate, issues and new code;
+pages filter, rename, delete in bulk and set the main branch.
 </td>
 <td width="50%" valign="top">
 <img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
-GitHub check runs and summary comments, GitLab discussions, Bitbucket Code
-Insights reports, Azure DevOps threads, and Gitea or Forgejo commit statuses and
-comments.
+GitHub check runs, line comments and summary comments, GitLab discussions,
+Bitbucket Code Insights reports, Azure DevOps threads, and Gitea or Forgejo
+statuses and comments.
 </td>
 </tr>
 <tr>
@@ -61,13 +61,19 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 | --- | --- | --- |
 | Compatible SonarQube Community Build | 26.5.0.122743 | 26.10.0.133078 |
 | CI branch detection | Always on | An off switch: com.haembina.branchanalysis.auto-configuration.enabled |
+| CI systems detected | GitHub Actions, GitLab CI, Jenkins, Azure Pipelines, Bitbucket Pipelines, Cirrus CI, Codemagic | Those, plus Woodpecker, Buildkite, CircleCI, TeamCity and Drone |
+| GitHub issues | Annotations on the check run | Optionally a review comment on each new issue's line, resolved once fixed, and annotations a project can switch off |
+| Summary comment | Posted anew each analysis, older ones deleted | Edited in place, and a project can skip it when the gate passes with no new issues |
+| Branch quality gate | Pull requests only | Optionally a branch analysis's gate as a GitHub check or a GitLab commit status |
+| Gitea and Forgejo | Unsupported | A commit status and a summary comment on each pull request |
+| Install mistakes | Unexplained | A missing javaagent line is named in the log; a jar and webapp from different releases show a banner naming both |
 | Java coverage | Reported | The build fails under its floor, in lines and branches |
 | Branch page tests | None | Jest under the same floor, Playwright against a running SonarQube |
 | Accessibility | Unchecked | An audit of every page and dialog, keyboard-only specs, and a spec per criterion no audit measures |
 | Release gate | The build | Jar and webapp publish only after a real SonarQube analyses main, a branch and a pull request with them |
 | Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
 | Java compiler | javac warnings | Error Prone and javac lint, every finding an error |
-| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns from dialogs, controls carry names, uncaught errors show a toast |
+| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns from dialogs, controls carry names, uncaught errors show a toast, a name filter, and deleting several at once |
 
 ## How it works
 
