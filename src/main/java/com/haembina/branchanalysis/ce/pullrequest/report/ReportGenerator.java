@@ -168,6 +168,11 @@ public class ReportGenerator {
         return measureRepository.getRawMeasure(treeRootHolder.getRoot(), metricRepository.getByKey(metricKey));
     }
 
+    public String createBranchDashboardUrl(AnalysisDetails analysisDetails) {
+        return server.getPublicRootUrl() + "/dashboard?id=" + URLEncoder.encode(analysisDetails.getAnalysisProjectKey(), StandardCharsets.UTF_8)
+                + analysisDetails.getBranchName().map(branchName -> "&branch=" + URLEncoder.encode(branchName, StandardCharsets.UTF_8)).orElse("");
+    }
+
     private String getDashboardUrl(AnalysisDetails analysisDetails) {
         return server.getPublicRootUrl() + "/dashboard?id=" + URLEncoder.encode(analysisDetails.getAnalysisProjectKey(), StandardCharsets.UTF_8) + "&pullRequest=" + analysisDetails.getPullRequestId();
     }

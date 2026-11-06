@@ -22,10 +22,12 @@ package com.haembina.branchanalysis;
 import com.haembina.branchanalysis.almclient.azuredevops.DefaultAzureDevopsClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.DefaultBitbucketClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
+import com.haembina.branchanalysis.almclient.gitea.GiteaSettings;
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
 import com.haembina.branchanalysis.ce.CommunityReportAnalysisComponentProvider;
+import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.scanner.BranchConfigurationFactory;
 import com.haembina.branchanalysis.scanner.CommunityBranchConfigurationLoader;
 import com.haembina.branchanalysis.scanner.CommunityBranchParamsValidator;
@@ -38,6 +40,11 @@ import com.haembina.branchanalysis.scanner.autoconfiguration.CodeMagicAutoConfig
 import com.haembina.branchanalysis.scanner.autoconfiguration.GithubActionsAutoConfigurer;
 import com.haembina.branchanalysis.scanner.autoconfiguration.GitlabCiAutoConfigurer;
 import com.haembina.branchanalysis.scanner.autoconfiguration.JenkinsAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.BuildkiteAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.CircleCiAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.DroneAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.TeamCityAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.WoodpeckerAutoConfigurer;
 import com.haembina.branchanalysis.server.CommunityBranchFeatureExtension;
 import com.haembina.branchanalysis.server.CommunityBranchSupportDelegate;
 import com.haembina.branchanalysis.server.MonoRepoFeature;
@@ -172,6 +179,8 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                                           .defaultValue("true")
                                           .build(),
                 MonoRepoFeature.class);
+            context.addExtensions(GiteaSettings.definitions());
+            context.addExtensions(DecorationSettings.definitions());
 
         }
     }
@@ -185,7 +194,9 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                                   AzureDevopsAutoConfigurer.class, BitbucketPipelinesAutoConfigurer.class,
                                   CirrusCiAutoConfigurer.class, CodeMagicAutoConfigurer.class,
                                   GithubActionsAutoConfigurer.class, GitlabCiAutoConfigurer.class,
-                                  JenkinsAutoConfigurer.class);
+                                  JenkinsAutoConfigurer.class, WoodpeckerAutoConfigurer.class,
+                                  BuildkiteAutoConfigurer.class, CircleCiAutoConfigurer.class,
+                                  TeamCityAutoConfigurer.class, DroneAutoConfigurer.class);
         }
     }
 }

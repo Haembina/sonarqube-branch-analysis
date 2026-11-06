@@ -17,6 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
+import org.gradle.api.GradleException
+
 plugins {
     id('java')
     id('jacoco')
@@ -93,7 +95,7 @@ dependencies {
 tasks.register('codenarcBuildScripts', CodeNarc) {
     source = files('build.gradle', 'settings.gradle')
     configFile = file('config/codenarc/build-scripts.config.groovy')
-    compilationClasspath = files()
+    compilationClasspath = configurations.detachedConfiguration(dependencies.gradleApi())
     maxPriority1Violations = 0
     maxPriority2Violations = 0
     maxPriority3Violations = Integer.MAX_VALUE

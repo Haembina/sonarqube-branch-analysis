@@ -28,15 +28,15 @@ with pages to list, rename, delete and set the main branch.
 <td width="50%" valign="top">
 <img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
 GitHub check runs and summary comments, GitLab discussions, Bitbucket Code
-Insights reports, and Azure DevOps threads with a quality gate status.
+Insights reports, Azure DevOps threads, and Gitea or Forgejo commit statuses and
+comments.
 </td>
 </tr>
 <tr>
 <td valign="top">
 <img src="icons/readme/bolt.svg" width="20" alt=""> <b>CI detection</b><br>
-Reads branch and pull request parameters from Azure Pipelines, Bitbucket
-Pipelines, Cirrus CI, Codemagic, GitHub Actions, GitLab CI and Jenkins. One
-setting switches it off.
+Detects the branch or pull request in GitHub Actions, GitLab CI, Jenkins and
+every other CI system docs/guide.md lists. One setting switches it off.
 </td>
 <td valign="top">
 <img src="icons/readme/device-desktop.svg" width="20" alt=""> <b>Branch pages</b><br>
@@ -111,7 +111,8 @@ flowchart TD
 4. Or pull a release image,
    `ghcr.io/haembina/haembina-branch-analysis:<version>`, which a tag publishes.
 5. An override of SONAR_WEB_JAVAADDITIONALOPTS or SONAR_CE_JAVAADDITIONALOPTS
-   must repeat the javaagent settings, or the plugin starts without its agent.
+   must repeat the javaagent settings, or SonarQube stops at startup, naming the
+   line it lacks.
 
 | Command | What it does |
 | --- | --- |

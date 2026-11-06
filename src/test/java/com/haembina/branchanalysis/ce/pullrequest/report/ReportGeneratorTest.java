@@ -291,6 +291,23 @@ class ReportGeneratorTest {
                 "A Reliability Rating (is better than C)");
     }
 
+    @Test
+    void shouldLinkABranchToItsDashboard() {
+        AnalysisDetails analysisDetails = mock();
+        when(analysisDetails.getAnalysisProjectKey()).thenReturn("project key");
+        when(analysisDetails.getBranchName()).thenReturn(Optional.of("feature/one"));
+        Server server = mock();
+        when(server.getPublicRootUrl()).thenReturn("http://localhost:9000");
+        ReportGenerator underTest = new ReportGenerator(server, mock(), mock(), mock(), mock());
+
+        assertThat(underTest.createBranchDashboardUrl(analysisDetails))
+                .isEqualTo("http://localhost:9000/dashboard?id=project+key&branch=feature%2Fone");
+
+        when(analysisDetails.getBranchName()).thenReturn(Optional.empty());
+        assertThat(underTest.createBranchDashboardUrl(analysisDetails))
+                .isEqualTo("http://localhost:9000/dashboard?id=project+key");
+    }
+
     private static QualityGate.Condition condition(String metricKey, QualityGate.EvaluationStatus status, String value, QualityGate.Operator operator, String errorThreshold) {
         QualityGate.Condition condition = mock();
         when(condition.getMetricKey()).thenReturn(metricKey);

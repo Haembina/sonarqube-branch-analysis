@@ -40,7 +40,7 @@ flowchart LR
 | `src/main/java/com/haembina/branchanalysis/CommunityBranchAgent.java` | The jar's `Premain-Class`: retransforms core classes with Javassist |
 | `src/main/java/com/haembina/branchanalysis/CommunityBranchPluginBootstrap.java` | The `Plugin-Class`: checks the agent ran, and loads the scanner side |
 | `src/main/java/com/haembina/branchanalysis/classloader/ElevatedClassLoaderFactory.java` | A class loader whose parent is SonarQube's core loader |
-| `src/main/java/com/haembina/branchanalysis/ce/pullrequest/PullRequestPostAnalysisTask.java` | Decorates a pull request after its analysis |
+| `src/main/java/com/haembina/branchanalysis/ce/pullrequest/PullRequestPostAnalysisTask.java` | Decorates a pull request or branch after its analysis |
 | `sonarqube-webapp-addons/setup.sh` | Copies the branch pages into the `sonarqube-webapp` submodule |
 | `sonarqube-webapp-addons/src/install-error-boundary.adapter.ts` | Shows an uncaught error as SonarQube's error toast |
 | `build.gradle` | The shaded jar, the coverage floor, and `sonarqubeVersion`, the supported build |
@@ -78,7 +78,7 @@ flowchart LR
 | `scanner` | The scanner | Reads `sonar.branch.*` and `sonar.pullrequest.*`, or detects them from CI (`scanner/autoconfiguration`), and loads the project's branches |
 | `server` | The web server | The branch feature, component keys per branch, and the web services the pull request settings call |
 | `ce` | The compute engine | Loads the branch an analysis belongs to, and decorates a pull request after its analysis (`ce/pullrequest`) |
-| `almclient` | The compute engine and web server | One HTTP client per ALM: Azure DevOps, Bitbucket, GitHub and GitLab |
+| `almclient` | The compute engine and web server | One HTTP client per ALM: Azure DevOps, Bitbucket, Gitea, GitHub and GitLab |
 
 - The plugin's package is `com.haembina.branchanalysis`, its key
   `haembinabranchanalysis`, and its setting keys start

@@ -6,7 +6,20 @@ CURRENT_DIR=$(pwd)
 WEBAPP_DIR=${1:-"${CURRENT_DIR}/sonarqube-webapp"}
 ADDONS_DIR=${2:-"${CURRENT_DIR}/sonarqube-webapp-addons"}
 
+function release_version() {
+    local version="${PLUGIN_VERSION:-}"
+    if [[ -z "${version}" && -f "${ADDONS_DIR}/../gradle.properties" ]]; then
+        version=$(sed -n 's/^version=//p' "${ADDONS_DIR}/../gradle.properties")
+    fi
+    if [[ ! "${version}" =~ ^[0-9A-Za-z.+-]+$ ]]; then
+        echo "No release version: set PLUGIN_VERSION, or keep gradle.properties beside the addons" >&2
+        return 1
+    fi
+    echo "${version}"
+}
+
 function override_vite_config() {
+    local version=$1
     if [[ -f ./vite.config.src.ts ]] && grep -q "from './vite.config.src'" ./vite.config.base.ts; then
         echo "vite.config.base.ts already wraps vite.config.src.ts, rewriting the wrapper"
     else
@@ -24,6 +37,10 @@ export const baseViteConfig = {
     ...config.build,
     outDir: process.env.BUILD_OUTPUT_DIR || 'build/webapp',
   },
+  define: {
+    ...config.define,
+    BRANCH_ANALYSIS_RELEASE: JSON.stringify('${version}'),
+  },
   resolve: {
     ...config.resolve,
     alias: {
@@ -36,11 +53,13 @@ EOF
 }
 
 function main() {
+    local version
+    version=$(release_version)
     cd "${WEBAPP_DIR}"
     echo "Copying the addons into sonarqube-webapp/libs/sq-server-addons"
     rm -rf ./libs/sq-server-addons ./.nx/workspace-data
     cp -R "${ADDONS_DIR}" ./libs/sq-server-addons
-    override_vite_config
+    override_vite_config "${version}"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
