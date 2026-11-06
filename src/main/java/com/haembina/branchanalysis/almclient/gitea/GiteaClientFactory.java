@@ -51,7 +51,7 @@ public class GiteaClientFactory {
                 .setSocketTimeout(TIMEOUT_MILLISECONDS)
                 .build();
         HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties().setDefaultRequestConfig(requestConfig);
-        return new GiteaRestClient(url.strip().replaceAll("/+$", "") + API_PATH, token, objectMapper, builder::build);
+        return new GiteaRestClient(StringUtils.stripEnd(url.strip(), "/") + API_PATH, token, objectMapper, builder::build);
     }
 
     private static Optional<String> setting(Configuration configuration, String key) {

@@ -55,7 +55,7 @@ export default function DeleteBranchesModal(props: Readonly<DeleteBranchesModalP
     onDone(notDeleted);
   };
 
-  const titleId = branchLikes.some(isPullRequest)
+  const titleId = branchLikes.some((branchLike) => isPullRequest(branchLike))
     ? 'branch_analysis.delete_selected.title.pull_requests'
     : 'branch_analysis.delete_selected.title';
 
@@ -68,7 +68,7 @@ export default function DeleteBranchesModal(props: Readonly<DeleteBranchesModalP
             <MessageCallout className="sw-mb-4" variety="danger">
               <FormattedMessage
                 id="branch_analysis.delete_selected.failed"
-                values={{ names: failed.map(getBranchLikeDisplayName).join(NAME_SEPARATOR) }}
+                values={{ names: failed.map((branchLike) => getBranchLikeDisplayName(branchLike)).join(NAME_SEPARATOR) }}
               />
             </MessageCallout>
           )}

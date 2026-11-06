@@ -84,7 +84,7 @@ const TABS = [
 const triggerIdOf = (branchLike: BranchLike) =>
   `${getBranchLikeActionsId(getBranchLikeDisplayName(branchLike))}-trigger`;
 
-const keysOf = (branchLikes: BranchLike[]) => branchLikes.map(getBranchLikeKey);
+const keysOf = (branchLikes: BranchLike[]) => branchLikes.map((branchLike) => getBranchLikeKey(branchLike));
 
 function namedLike(branchLikes: BranchLike[], filter: string): BranchLike[] {
   const query = filter.trim().toLocaleLowerCase();

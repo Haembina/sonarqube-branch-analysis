@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.kohsuke.github.GHCheckRun;
@@ -169,7 +170,7 @@ public class GithubPullRequestDecorator extends DiscussionAwarePullRequestDecora
     protected void submitCommitNoteForIssue(GithubDecorationClient client, GHPullRequest pullRequest,
                                             PostAnalysisIssueVisitor.ComponentIssue issue, String filePath,
                                             AnalysisDetails analysis, AnalysisIssueSummary analysisIssueSummary) {
-        int line = issue.getIssue().getLine();
+        int line = Objects.requireNonNull(issue.getIssue().getLine(), "only issues on a line are commented on");
         try {
             pullRequest.createReviewComment()
                 .commitId(analysis.getCommitSha())

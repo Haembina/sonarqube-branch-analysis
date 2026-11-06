@@ -21,6 +21,7 @@ package com.haembina.branchanalysis.almclient.github;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,14 +50,14 @@ public class GithubGraphqlClient {
             }
           }
         }""";
-    private static final String RESOLVE_THREAD_MUTATION = """
-        mutation($threadId: ID!) { resolveReviewThread(input: {threadId: $threadId}) { thread { id } } }""";
+    private static final String RESOLVE_THREAD_MUTATION =
+        "mutation($threadId: ID!) { resolveReviewThread(input: {threadId: $threadId}) { thread { id } } }";
     private static final String REPLY_TO_THREAD_MUTATION = """
         mutation($threadId: ID!, $body: String!) {
           addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $threadId, body: $body}) { comment { id } }
         }""";
-    private static final String DELETE_COMMENT_MUTATION = """
-        mutation($commentId: ID!) { deletePullRequestReviewComment(input: {id: $commentId}) { pullRequestReview { id } } }""";
+    private static final String DELETE_COMMENT_MUTATION =
+        "mutation($commentId: ID!) { deletePullRequestReviewComment(input: {id: $commentId}) { pullRequestReview { id } } }";
 
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -114,11 +115,10 @@ public class GithubGraphqlClient {
     }
 
     private static ReviewThread toReviewThread(JsonNode thread) {
-        List<ReviewThreadComment> comments = new ArrayList<>();
-        for (JsonNode comment : thread.path("comments").path("nodes")) {
-            comments.add(new ReviewThreadComment(comment.path("id").asText(), comment.path("body").asText(),
-                comment.path("author").path("login").asText(null)));
-        }
+        List<ReviewThreadComment> comments = StreamSupport.stream(thread.path("comments").path("nodes").spliterator(), false)
+            .map(comment -> new ReviewThreadComment(comment.path("id").asText(), comment.path("body").asText(),
+                comment.path("author").path("login").asText(null)))
+            .toList();
         return new ReviewThread(thread.path("id").asText(), thread.path("isResolved").asBoolean(), comments);
     }
 
