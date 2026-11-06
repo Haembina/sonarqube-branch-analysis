@@ -18,6 +18,7 @@
 
 import { Button, ButtonVariety, SearchInput, SearchInputWidth } from '@sonarsource/echoes-react';
 import { translate, translateWithParameters } from '~sq-server-commons/helpers/l10n';
+import { SearchInputTarget } from '../../components/common/SearchInputTarget';
 
 export const BRANCH_LIKE_FILTER_ID = 'branch-like-filter';
 
@@ -35,13 +36,15 @@ export default function BranchLikeToolbar(props: Readonly<BranchLikeToolbarProps
 
   return (
     <div className="sw-mt-6 sw-flex sw-flex-wrap sw-items-center sw-justify-between sw-gap-4">
-      <SearchInput
-        id={BRANCH_LIKE_FILTER_ID}
-        onChange={onFilterChange}
-        placeholderLabel={translate('search.search_by_name')}
-        value={filter}
-        width={SearchInputWidth.Medium}
-      />
+      <SearchInputTarget>
+        <SearchInput
+          id={BRANCH_LIKE_FILTER_ID}
+          onChange={onFilterChange}
+          placeholderLabel={translate('search.search_by_name')}
+          value={filter}
+          width={SearchInputWidth.Medium}
+        />
+      </SearchInputTarget>
       <Button
         id={DELETE_SELECTED_ID}
         isDisabled={selectedCount === 0}
