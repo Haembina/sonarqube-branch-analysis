@@ -96,11 +96,43 @@ The keys are `com.haembina.branchanalysis.gitea.url`,
 `com.haembina.branchanalysis.gitea.token.secured` and
 `com.haembina.branchanalysis.gitea.repository`.
 
+### Quieter GitHub decoration
+
+Each is a project setting under General, Branches and Pull Requests:
+
+- `com.haembina.branchanalysis.pullrequest.summary-comment.skip-when-clean`:
+  posts no summary comment when the gate passes with no new issues; one
+  already posted is still updated. Off by default.
+- `com.haembina.branchanalysis.pullrequest.github.annotations.enabled`: set it
+  to `false` to leave issues off the check run. On by default.
+- `com.haembina.branchanalysis.pullrequest.github.inline-comments.enabled`:
+  posts each new issue as a review comment on its line, once, and resolves its
+  thread when the issue is fixed. Off by default.
+
+### Decorate branch analyses
+
+With `com.haembina.branchanalysis.branch-decoration.enabled` on, a branch
+analysis such as main shows its quality gate on the analyzed commit: a check
+run on GitHub, a commit status on GitLab. Off by default; Bitbucket and Azure
+DevOps decorate no branches.
+
 ### Decoration images
 
 SonarQube serves the images decorations show from this plugin. When the ALM
 cannot reach SonarQube, copy `src/main/resources/static` somewhere it can, and
 set `Images base URL` under General, Pull Request.
+
+### Branch detection from CI
+
+A scan naming no branch or pull request reads them from the CI it runs in:
+
+- Azure Pipelines, Bitbucket Pipelines, Buildkite, CircleCI, Cirrus CI,
+  Codemagic, Drone, GitHub Actions, GitLab CI, Jenkins, TeamCity and
+  Woodpecker.
+- CircleCI names no target branch, so its pull requests compare against the
+  main branch.
+- TeamCity's branch and pull request come from the build parameter files
+  `TEAMCITY_BUILD_PROPERTIES_FILE` names.
 
 ### Switch off branch detection from CI
 

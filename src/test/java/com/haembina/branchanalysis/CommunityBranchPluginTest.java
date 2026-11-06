@@ -26,6 +26,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.ce.CommunityReportAnalysisComponentProvider;
+import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
 import com.haembina.branchanalysis.scanner.BranchConfigurationFactory;
 import com.haembina.branchanalysis.scanner.CommunityBranchConfigurationLoader;
 import com.haembina.branchanalysis.scanner.CommunityBranchParamsValidator;
@@ -38,6 +39,11 @@ import com.haembina.branchanalysis.scanner.autoconfiguration.CodeMagicAutoConfig
 import com.haembina.branchanalysis.scanner.autoconfiguration.GithubActionsAutoConfigurer;
 import com.haembina.branchanalysis.scanner.autoconfiguration.GitlabCiAutoConfigurer;
 import com.haembina.branchanalysis.scanner.autoconfiguration.JenkinsAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.BuildkiteAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.CircleCiAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.DroneAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.TeamCityAutoConfigurer;
+import com.haembina.branchanalysis.scanner.autoconfiguration.WoodpeckerAutoConfigurer;
 import com.haembina.branchanalysis.server.CommunityBranchFeatureExtension;
 import com.haembina.branchanalysis.server.CommunityBranchSupportDelegate;
 import com.haembina.branchanalysis.server.MonoRepoFeature;
@@ -58,7 +64,10 @@ import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.List
 import com.haembina.branchanalysis.server.pullrequest.ws.support.SupportWs;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.action.InfoWsAction;
 import com.haembina.branchanalysis.almclient.gitea.GiteaSettings;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -72,6 +81,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -95,7 +105,9 @@ class CommunityBranchPluginTest {
                 AzureDevopsAutoConfigurer.class, BitbucketPipelinesAutoConfigurer.class,
                 CirrusCiAutoConfigurer.class, CodeMagicAutoConfigurer.class,
                 GithubActionsAutoConfigurer.class, GitlabCiAutoConfigurer.class,
-                JenkinsAutoConfigurer.class);
+                JenkinsAutoConfigurer.class, WoodpeckerAutoConfigurer.class,
+                BuildkiteAutoConfigurer.class, CircleCiAutoConfigurer.class,
+                TeamCityAutoConfigurer.class, DroneAutoConfigurer.class);
     }
 
     @Test
@@ -121,14 +133,7 @@ class CommunityBranchPluginTest {
 
         verify(context).addExtensions(CommunityReportAnalysisComponentProvider.class);
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
-        verifyGiteaSettingsAdded(context);
-    }
-
-    private static void verifyGiteaSettingsAdded(CoreExtension.Context context) {
-        ArgumentCaptor<List<PropertyDefinition>> definitions = ArgumentCaptor.captor();
-        verify(context).addExtensions(definitions.capture());
-        assertThat(definitions.getValue()).extracting(PropertyDefinition::key)
-                .containsExactly(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY);
+        verifySettingsAdded(context);
     }
 
 
@@ -170,7 +175,7 @@ class CommunityBranchPluginTest {
                 any(PropertyDefinition.class));
 
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
-        verifyGiteaSettingsAdded(context);
+        verifySettingsAdded(context);
     }
 
     @Test
@@ -188,5 +193,16 @@ class CommunityBranchPluginTest {
     @Test
     void shouldReturnPluginNameForGetName() {
         assertThat(new CommunityBranchPlugin().getName()).isEqualTo("Haembina Branch Analysis");
+    }
+
+    private static void verifySettingsAdded(CoreExtension.Context context) {
+        ArgumentCaptor<Collection<PropertyDefinition>> definitionsCaptor = ArgumentCaptor.captor();
+        verify(context, times(2)).addExtensions(definitionsCaptor.capture());
+        List<String> decorationKeys = DecorationSettings.definitions().stream().map(PropertyDefinition::key).toList();
+        assertThat(definitionsCaptor.getAllValues())
+            .flatExtracting(definitions -> definitions.stream().map(PropertyDefinition::key).toList())
+            .containsExactlyElementsOf(Stream.concat(
+                Stream.of(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY),
+                decorationKeys.stream()).toList());
     }
 }

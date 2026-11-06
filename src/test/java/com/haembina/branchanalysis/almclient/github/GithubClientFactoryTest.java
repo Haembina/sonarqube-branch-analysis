@@ -29,11 +29,17 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.security.PublicKey;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Date;
 
 import org.assertj.core.api.Condition;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kohsuke.github.GHApp;
@@ -43,12 +49,17 @@ import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 import org.kohsuke.github.connector.GitHubConnector;
+import org.mockito.ArgumentCaptor;
 import org.sonar.api.config.internal.Encryption;
 import org.sonar.api.config.internal.Settings;
 import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 import com.haembina.branchanalysis.InvalidConfigurationException;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 
 class GithubClientFactoryTest {
 
@@ -184,6 +195,45 @@ class GithubClientFactoryTest {
     @Test
     void shouldReturnValidGithubTokenWhenCalledWithCorrectParameters() throws IOException {
         GithubClientFactory underTest = new GithubClientFactory(clock, settings, () -> githubBuilder);
+        GHAppCreateTokenBuilder tokenBuilder = mock();
+        GitHub github = stubAuthentication(tokenBuilder);
+
+        GithubConnection connection = underTest.connect(almSettingDto, projectAlmSettingDto);
+        assertThat(connection.client()).isSameAs(github);
+        assertThat(connection.appSlug()).isEqualTo("app-slug");
+        assertThat(connection.graphql()).isNotNull();
+        verify(tokenBuilder).create();
+        verify(githubBuilder, times(2)).withEndpoint("url");
+        ArgumentCaptor<String> jwtCaptor = ArgumentCaptor.captor();
+        verify(githubBuilder).withJwtToken(jwtCaptor.capture());
+        Jws<Claims> jwt = Jwts.parser().verifyWith(publicKey()).build().parseSignedClaims(jwtCaptor.getValue());
+        assertThat(jwt.getHeader().getAlgorithm()).isEqualTo("RS256");
+        assertThat(jwt.getPayload().getIssuer()).isEqualTo("appId");
+        assertThat(jwt.getPayload().getIssuedAt()).isEqualTo(Date.from(Instant.ofEpochSecond(123456789113L)));
+        assertThat(jwt.getPayload().getExpiration()).isEqualTo(Date.from(Instant.ofEpochSecond(123456789233L)));
+        verify(githubBuilder, times(2)).withConnector(any(GitHubConnector.class));
+        verify(githubBuilder).withAppInstallationToken("token");
+        verify(githubBuilder, times(2)).build();
+        verifyNoMoreInteractions(githubBuilder);
+
+    }
+
+    @Test
+    void shouldCreateTheClientOfAnAuthenticatedConnection() throws IOException {
+        GithubClientFactory underTest = new GithubClientFactory(clock, settings, () -> githubBuilder);
+        GHAppCreateTokenBuilder tokenBuilder = mock();
+        GitHub github = stubAuthentication(tokenBuilder);
+
+        assertThat(underTest.createClient(almSettingDto, projectAlmSettingDto)).isSameAs(github);
+    }
+
+    private static PublicKey publicKey() throws IOException {
+        try (PEMParser pemParser = new PEMParser(new StringReader(PRIVATE_KEY))) {
+            return new JcaPEMKeyConverter().getKeyPair((PEMKeyPair) pemParser.readObject()).getPublic();
+        }
+    }
+
+    private GitHub stubAuthentication(GHAppCreateTokenBuilder tokenBuilder) throws IOException {
         when(projectAlmSettingDto.getAlmRepo()).thenReturn("alm/slug");
 
         GitHub github = mock();
@@ -194,23 +244,14 @@ class GithubClientFactoryTest {
         when(githubBuilder.build()).thenReturn(github);
         GHApp ghApp = mock();
         when(github.getApp()).thenReturn(ghApp);
+        when(ghApp.getSlug()).thenReturn("app-slug");
         GHAppInstallation ghAppInstallation = mock();
         when(ghApp.getInstallationByRepository(any(), any())).thenReturn(ghAppInstallation);
-        GHAppCreateTokenBuilder tokenBuilder = mock();
         when(ghAppInstallation.createToken()).thenReturn(tokenBuilder);
         GHAppInstallationToken ghAppInstallationToken = mock();
         when(ghAppInstallationToken.getToken()).thenReturn("token");
         when(tokenBuilder.create()).thenReturn(ghAppInstallationToken);
         when(tokenBuilder.repositories(any())).thenReturn(tokenBuilder);
-
-        assertThat(underTest.createClient(almSettingDto, projectAlmSettingDto)).isSameAs(github);
-        verify(tokenBuilder).create();
-        verify(githubBuilder, times(2)).withEndpoint("url");
-        verify(githubBuilder).withJwtToken("eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOjEyMzQ1Njc4OTExMywiZXhwIjoxMjM0NTY3ODkyMzMsImlzcyI6ImFwcElkIn0.Ut0Cf_eKvDNHLIzFx1q-8yweUKOPhA1eSKALpUVtmlY7LHK3G_btuRUnIH4sfKsjEIS-3urq0FxXW7EcmGSxz8ARUNFe26mhnVtY7odMEJip2GhbC397WkIgf-_HV0M8JnMRQ0InFiGMiXKpMM08w02QgHdIV0kPa41HfMiZLYS3VdmbYU4NX8gvVN0mrAHV1brqcdUGJLwSYJBsz3yd8vTtb_M0Kl4TY9jH5Wvh4wRbSpjGmo2vTID3ioHL9JVSBi6El0gKL3AGk5n5BXfVlYvPEIwbtQp0GB-E2azEnQYxyshNid9K1d2Y032AtF_AQ0cXCssoLClUUcke6yiW8Q");
-        verify(githubBuilder, times(2)).withConnector(any(GitHubConnector.class));
-        verify(githubBuilder).withAppInstallationToken("token");
-        verify(githubBuilder, times(2)).build();
-        verifyNoMoreInteractions(githubBuilder);
-
+        return github;
     }
 }

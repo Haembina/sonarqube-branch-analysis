@@ -22,7 +22,6 @@ package com.haembina.branchanalysis.ce.pullrequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.ce.posttask.Analysis;
-import org.sonar.api.ce.posttask.Branch;
 import org.sonar.api.ce.posttask.PostProjectAnalysisTask;
 import org.sonar.api.ce.posttask.QualityGate;
 import org.sonar.db.DbClient;
@@ -48,15 +47,18 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
     private final PostAnalysisIssueVisitor postAnalysisIssueVisitor;
     private final DbClient dbClient;
     private final GiteaPullRequestDecorator giteaPullRequestDecorator;
+    private final DecorationSettings decorationSettings;
 
     public PullRequestPostAnalysisTask(List<PullRequestBuildStatusDecorator> pullRequestDecorators,
                                        PostAnalysisIssueVisitor postAnalysisIssueVisitor, DbClient dbClient,
-                                       GiteaPullRequestDecorator giteaPullRequestDecorator) {
+                                       GiteaPullRequestDecorator giteaPullRequestDecorator,
+                                       DecorationSettings decorationSettings) {
         super();
         this.pullRequestDecorators = pullRequestDecorators;
         this.postAnalysisIssueVisitor = postAnalysisIssueVisitor;
         this.dbClient = dbClient;
         this.giteaPullRequestDecorator = giteaPullRequestDecorator;
+        this.decorationSettings = decorationSettings;
     }
 
     @Override
@@ -69,18 +71,11 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
         ProjectAnalysis projectAnalysis = context.getProjectAnalysis();
         LOGGER.atDebug().setMessage("Found {} pull request decorators").addArgument(pullRequestDecorators::size).log();
 
-        Optional<Branch> optionalPullRequest =
-                projectAnalysis.getBranch().filter(branch -> Branch.Type.PULL_REQUEST == branch.getType());
-        if (optionalPullRequest.isEmpty()) {
-            LOGGER.trace("Current analysis is not for a Pull Request. Task being skipped");
+        Optional<DecorationTarget> optionalTarget = DecorationTarget.find(projectAnalysis, decorationSettings);
+        if (optionalTarget.isEmpty()) {
             return;
         }
-
-        Optional<String> optionalPullRequestId = optionalPullRequest.get().getName();
-        if (optionalPullRequestId.isEmpty()) {
-            LOGGER.warn("No pull request ID has been submitted with the Pull Request. Analysis will be skipped");
-            return;
-        }
+        DecorationTarget target = optionalTarget.get();
 
         Optional<ProjectAlmSettingDto> optionalProjectAlmSettingDto;
         Optional<AlmSettingDto> optionalAlmSettingDto;
@@ -93,8 +88,8 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
 
         if (optionalProjectAlmSettingDto.isEmpty()) {
             LOGGER.debug("No ALM has been set on the current project");
-            if (giteaPullRequestDecorator.isConfigured()) {
-                decorate(projectAnalysis, optionalPullRequestId.get(), giteaPullRequestDecorator::decorateQualityGateStatus);
+            if (!target.branch() && giteaPullRequestDecorator.isConfigured()) {
+                decorate(projectAnalysis, target.pullRequestId(), giteaPullRequestDecorator::decorateQualityGateStatus);
             }
             return;
         }
@@ -116,8 +111,20 @@ public class PullRequestPostAnalysisTask implements PostProjectAnalysisTask {
 
         PullRequestBuildStatusDecorator pullRequestDecorator = optionalPullRequestDecorator.get();
         LOGGER.info("Using pull request decorator {}", pullRequestDecorator.getClass().getName());
-        decorate(projectAnalysis, optionalPullRequestId.get(),
-                analysisDetails -> pullRequestDecorator.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto));
+        decorate(projectAnalysis, target.pullRequestId(),
+                analysisDetails -> decorateOnAlm(pullRequestDecorator, target, analysisDetails, almSettingDto, projectAlmSettingDto));
+    }
+
+    private static DecorationResult decorateOnAlm(PullRequestBuildStatusDecorator pullRequestDecorator, DecorationTarget target,
+                                                  AnalysisDetails analysisDetails, AlmSettingDto almSettingDto,
+                                                  ProjectAlmSettingDto projectAlmSettingDto) {
+        if (!target.branch()) {
+            return pullRequestDecorator.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto);
+        }
+        if (!pullRequestDecorator.decorateBranchQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto)) {
+            LOGGER.info("{} does not decorate branch analyses", pullRequestDecorator.getClass().getName());
+        }
+        return DecorationResult.builder().build();
     }
 
     private void decorate(ProjectAnalysis projectAnalysis, String pullRequestId,
