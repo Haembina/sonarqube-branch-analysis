@@ -41,6 +41,11 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haembina.branchanalysis.almclient.azuredevops.model.CommentThread;
@@ -140,9 +145,21 @@ class AzureDevopsRestClientResponseTest {
     void shouldRefuseErrorResponseCarryingBody() throws IOException {
         respond(404, new StringEntity("{\"message\":\"not found\"}", StandardCharsets.UTF_8));
 
-        assertThatThrownBy(() -> underTest.getRepository("prj", "repo"))
-                .isExactlyInstanceOf(IllegalStateException.class)
-                .hasMessage("An unexpected response code was returned from the Azure Devops API - Expected: 200, Got: 404");
+        Logger clientLogger = (Logger) LoggerFactory.getLogger(AzureDevopsRestClient.class);
+        ListAppender<ILoggingEvent> logged = new ListAppender<>();
+        logged.start();
+        clientLogger.addAppender(logged);
+        try {
+            assertThatThrownBy(() -> underTest.getRepository("prj", "repo"))
+                    .isExactlyInstanceOf(IllegalStateException.class)
+                    .hasMessage("An unexpected response code was returned from the Azure Devops API - Expected: 200, Got: 404");
+        } finally {
+            clientLogger.detachAppender(logged);
+        }
+
+        assertThat(logged.list).singleElement().extracting(ILoggingEvent::getFormattedMessage).asString()
+                .startsWith("Azure Devops response status did not match expected value. Expected: 200 " + System.lineSeparator())
+                .endsWith(System.lineSeparator() + "{\"message\":\"not found\"}");
     }
 
     @Test

@@ -32,13 +32,19 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.utils.System2;
 import org.sonar.scanner.scan.branch.BranchConfiguration;
+import org.sonar.scanner.scan.branch.BranchType;
 import org.sonar.scanner.scan.branch.BranchConfigurationLoader;
 import org.sonar.scanner.scan.branch.DefaultBranchConfiguration;
 import org.sonar.scanner.scan.branch.ProjectBranches;
 
 import com.haembina.branchanalysis.CommunityBranchPlugin;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 /**
  * @author Michael Clarke
@@ -148,6 +154,36 @@ class CommunityBranchConfigurationLoaderTest {
     @Test
     void shouldThrowErrorIfPullRequestAnalysisWithoutPullRequestBranch() {
         assertThatThrownBy(() -> testCase.load(Map.of("sonar.pullrequest.key", "key"), mock())).hasMessage("sonar.pullrequest.branch is required for a pull request analysis");
+    }
+
+    @Test
+    void shouldIgnoreBranchParametersWithEmptyValues() {
+        when(branchAutoConfigurer.detectConfiguration(any(), any())).thenReturn(Optional.empty());
+
+        BranchConfiguration actual = testCase.load(Map.of("sonar.branch.name", ""), mock());
+
+        assertThat(actual).usingRecursiveComparison().isEqualTo(new DefaultBranchConfiguration());
+        verifyNoInteractions(branchConfigurationFactory);
+    }
+
+    @Test
+    void shouldLogTheAutoDetectedConfigurationAndItsSource() {
+        BranchConfiguration branchConfiguration = mock();
+        when(branchConfiguration.branchType()).thenReturn(BranchType.BRANCH);
+        when(branchConfiguration.branchName()).thenReturn("feature");
+        when(branchAutoConfigurer.detectConfiguration(any(), any())).thenReturn(Optional.of(branchConfiguration));
+        Logger loaderLogger = (Logger) LoggerFactory.getLogger(CommunityBranchConfigurationLoader.class);
+        ListAppender<ILoggingEvent> logged = new ListAppender<>();
+        logged.start();
+        loaderLogger.addAppender(logged);
+        try {
+            testCase.load(Map.of(), mock());
+        } finally {
+            loaderLogger.detachAppender(logged);
+        }
+
+        assertThat(logged.list).extracting(ILoggingEvent::getFormattedMessage)
+                .containsExactly("Auto detected BRANCH configuration with source feature using " + branchAutoConfigurer.getClass().getName());
     }
 
 }

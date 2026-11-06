@@ -51,8 +51,7 @@ public abstract class DiscussionAwarePullRequestDecorator<C, P, U, D, N> impleme
             "This summary note is outdated, but due to other comments being present in this discussion, the discussion is not being removed. " +
                     "Please manually resolve this discussion once the other comments have been reviewed.";
 
-    private static final String VIEW_IN_SONARQUBE_LABEL = "View in SonarQube";
-    private static final Pattern NOTE_MARKDOWN_VIEW_LINK_PATTERN = Pattern.compile("^\\[" + VIEW_IN_SONARQUBE_LABEL + "]\\((.*?)\\)$");
+    private static final Pattern NOTE_MARKDOWN_VIEW_LINK_PATTERN = Pattern.compile("^\\[View in SonarQube]\\((.*?)\\)$");
     private static final String DECORATOR_SUMMARY_COMMENT = "decorator-summary-comment";
 
     private final ScmInfoRepository scmInfoRepository;
@@ -273,16 +272,15 @@ public abstract class DiscussionAwarePullRequestDecorator<C, P, U, D, N> impleme
     }
 
     protected Optional<ProjectIssueIdentifier> parseIssueDetails(C client, N note) {
-        return parseIssueDetails(client, note, VIEW_IN_SONARQUBE_LABEL, NOTE_MARKDOWN_VIEW_LINK_PATTERN);
+        return parseIssueDetails(client, note, NOTE_MARKDOWN_VIEW_LINK_PATTERN);
     }
 
-    protected Optional<ProjectIssueIdentifier> parseIssueDetails(C client, N note, String label, Pattern pattern) {
+    protected Optional<ProjectIssueIdentifier> parseIssueDetails(C client, N note, Pattern pattern) {
         String noteContent = getNoteContent(client, note);
         if (noteContent == null) {
             return Optional.empty();
         }
         return noteContent.lines()
-                .filter(line -> line.contains(label))
                 .map(line -> parseIssueLineDetails(line, pattern))
                 .filter(Optional::isPresent)
                 .map(Optional::get)

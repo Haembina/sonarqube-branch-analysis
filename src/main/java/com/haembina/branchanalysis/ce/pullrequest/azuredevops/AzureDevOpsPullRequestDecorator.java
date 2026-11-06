@@ -281,7 +281,7 @@ public class AzureDevOpsPullRequestDecorator extends DiscussionAwarePullRequestD
         if (issueIdentifier.isPresent()) {
             return issueIdentifier;
         }
-        return parseIssueDetails(client, note, "See in SonarQube", NOTE_MARKDOWN_LEGACY_SEE_LINK_PATTERN);
+        return parseIssueDetails(client, note, NOTE_MARKDOWN_LEGACY_SEE_LINK_PATTERN);
     }
 
 }
