@@ -184,17 +184,21 @@ assert_quality_gate() {
     || { echo "no quality gate computed for $1" >&2; return 1; }
 }
 
-echo "1/5 main branch"
+echo "1/6 main branch"
 analyse
 
-echo "2/5 branch feature/integration"
+echo "2/6 branch feature/integration"
 analyse -Dsonar.branch.name=feature/integration
 api "${SONARQUBE_URL}/api/project_branches/list?project=${project_key}" \
   | jq -e '.branches | any(.name == "feature/integration")' >/dev/null \
   || fail "feature/integration is not listed as a branch"
 assert_quality_gate "branch=feature/integration"
 
-echo "3/5 pull request 1"
+echo "3/6 branches stale/one and stale/two, which the end-to-end suite deletes together"
+analyse -Dsonar.branch.name=stale/one
+analyse -Dsonar.branch.name=stale/two
+
+echo "4/6 pull request 1"
 analyse -Dsonar.pullrequest.key=1 -Dsonar.pullrequest.branch=feature/pull-request -Dsonar.pullrequest.base=main
 api "${SONARQUBE_URL}/api/project_pull_requests/list?project=${project_key}" \
   | jq -e '.pullRequests | any(.key == "1")' >/dev/null \
@@ -209,12 +213,12 @@ pull_request_listed() {
     | jq -e --arg key "$1" '.pullRequests | any(.key == $key)' >/dev/null
 }
 
-echo "4/5 GitHub Actions pull request 7, detected from CI by default"
+echo "5/6 GitHub Actions pull request 7, detected from CI by default"
 github_pull_request 7
 analyse
 pull_request_listed 7 || fail "CI detection did not turn the scan into pull request 7"
 
-echo "5/5 GitHub Actions pull request 8 with CI detection switched off on the server"
+echo "6/6 GitHub Actions pull request 8 with CI detection switched off on the server"
 api -X POST "${SONARQUBE_URL}/api/settings/set" \
   -d "key=com.haembina.branchanalysis.auto-configuration.enabled" -d "value=false"
 github_pull_request 8

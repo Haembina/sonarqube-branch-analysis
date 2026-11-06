@@ -16,7 +16,58 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import { getBranchLikeActionsId } from './BranchLikeRow';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { mockBranch, mockMainBranch } from '~sq-server-commons/helpers/mocks/branch-like';
+import { mockComponent } from '~sq-server-commons/helpers/mocks/component';
+import { renderComponent } from '~sq-server-commons/helpers/testReactTestingUtils';
+import { BranchLike } from '~sq-server-commons/types/branch-like';
+import { BranchLikeRow, getBranchLikeActionsId } from './BranchLikeRow';
+
+const DAY = 86_400_000;
+
+const ANALYSED_DAYS_AGO = 3;
+
+function renderRow(branchLike: BranchLike, onSelect = jest.fn()) {
+  renderComponent(
+    <table>
+      <tbody>
+        <BranchLikeRow
+          branchLike={branchLike}
+          component={mockComponent()}
+          onDelete={jest.fn()}
+          onRename={jest.fn()}
+          onSelect={onSelect}
+          onSetAsMain={jest.fn()}
+        />
+      </tbody>
+    </table>,
+  );
+}
+
+describe('BranchLikeRow', () => {
+  it('shows how long ago the branch was last analysed', () => {
+    renderRow(mockBranch({ analysisDate: new Date(Date.now() - ANALYSED_DAYS_AGO * DAY).toISOString() }));
+
+    expect(screen.getByText(`${ANALYSED_DAYS_AGO} days ago`)).toBeInTheDocument();
+  });
+
+  it('offers a branch for selection, and reports the choice', async () => {
+    const user = userEvent.setup();
+    const onSelect = jest.fn();
+    renderRow(mockBranch({ name: 'stale' }), onSelect);
+
+    await user.click(screen.getByRole('checkbox', { name: 'branch_analysis.select.stale' }));
+
+    expect(onSelect).toHaveBeenCalledWith(true);
+  });
+
+  it('offers no selection for the main branch', () => {
+    renderRow(mockMainBranch({ name: 'main' }));
+
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+});
 
 describe('getBranchLikeActionsId', () => {
   it('gives each branch one id an ARIA reference can name, whatever its name holds', () => {

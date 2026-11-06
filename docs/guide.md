@@ -21,7 +21,8 @@ configure it. Docker and Kubernetes installs are in the [README](../README.md).
 ## Install
 
 Take the jar and `sonarqube-webapp.zip` from one release. A jar and a webapp
-from different releases load, and the branch pages then fail at runtime.
+from different releases load, the branch pages can then fail at runtime, and a
+banner names both releases to every signed-in user.
 
 1. Copy the jar into `extensions/plugins/`.
 2. In `conf/sonar.properties`, set
@@ -31,8 +32,8 @@ from different releases load, and the branch pages then fail at runtime.
 4. Replace the contents of SonarQube's `web` directory with the webapp zip's.
 5. Start SonarQube and accept the third-party plugin warning.
 
-Without both `javaagent` lines, SonarQube starts with the plugin listed and no
-branch support. This shows whether they are there:
+Without either `javaagent` line, SonarQube stops at startup, and `logs/web.log`
+or `logs/ce.log` names the line to add. This shows whether they are there:
 
 ```bash
 grep javaAdditionalOpts conf/sonar.properties
