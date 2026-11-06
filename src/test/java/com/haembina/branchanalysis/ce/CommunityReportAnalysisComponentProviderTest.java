@@ -29,7 +29,9 @@ import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
 import com.haembina.branchanalysis.almclient.azuredevops.DefaultAzureDevopsClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.DefaultBitbucketClientFactory;
 import com.haembina.branchanalysis.almclient.bitbucket.HttpClientBuilderFactory;
+import com.haembina.branchanalysis.almclient.gitea.GiteaClientFactory;
 import com.haembina.branchanalysis.almclient.github.GithubClientFactory;
+import com.haembina.branchanalysis.ce.pullrequest.gitea.GiteaPullRequestDecorator;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.ce.pullrequest.PostAnalysisIssueVisitor;
 import com.haembina.branchanalysis.ce.pullrequest.PullRequestFixedIssuesIssueVisitor;
@@ -56,6 +58,7 @@ class CommunityReportAnalysisComponentProviderTest {
             HttpClientBuilderFactory.class, DefaultBitbucketClientFactory.class, BitbucketPullRequestDecorator.class,
             DefaultGitlabClientFactory.class, GitlabMergeRequestDecorator.class,
             DefaultAzureDevopsClientFactory.class, AzureDevOpsPullRequestDecorator.class,
+            GiteaClientFactory.class, GiteaPullRequestDecorator.class,
             PullRequestFixedIssuesIssueVisitor.class);
     }
 }

@@ -28,7 +28,8 @@ with pages to list, rename, delete and set the main branch.
 <td width="50%" valign="top">
 <img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
 GitHub check runs and summary comments, GitLab discussions, Bitbucket Code
-Insights reports, and Azure DevOps threads with a quality gate status.
+Insights reports, Azure DevOps threads, and Gitea or Forgejo commit statuses and
+comments.
 </td>
 </tr>
 <tr>

@@ -39,6 +39,8 @@ import org.sonar.db.component.BranchDao;
 import org.sonar.db.component.BranchDto;
 import org.sonar.db.protobuf.DbProjectBranches;
 
+import com.haembina.branchanalysis.ce.pullrequest.gitea.GiteaPullRequestDecorator;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.time.Instant;
@@ -73,9 +75,11 @@ class PullRequestPostAnalysisTaskTest {
     private final PostAnalysisIssueVisitor.ComponentIssue componentIssue = mock();
     private final List<PostAnalysisIssueVisitor.ComponentIssue> componentIssues = List.of(componentIssue);
 
+    private final GiteaPullRequestDecorator giteaPullRequestDecorator = mock();
+
     private final PullRequestPostAnalysisTask testCase =
             new PullRequestPostAnalysisTask(pullRequestBuildStatusDecorators,
-                    postAnalysisIssueVisitor, dbClient);
+                    postAnalysisIssueVisitor, dbClient, giteaPullRequestDecorator);
 
     @BeforeEach
     void init() {
@@ -509,6 +513,45 @@ class PullRequestPostAnalysisTaskTest {
         verify(dbClient, never()).almSettingDao();
         verify(dbSession).close();
         verify(projectAnalysis, never()).getAnalysis();
+        verify(giteaPullRequestDecorator, never()).decorateQualityGateStatus(any());
+    }
+
+    @Test
+    void testFinishedNoAlmBoundToProjectDecoratesOnGitea() {
+        doReturn(Branch.Type.PULL_REQUEST).when(branch).getType();
+        doReturn(Optional.of("pull-request")).when(branch).getName();
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
+        ProjectAlmSettingDao projectAlmSettingDao = mock();
+        when(projectAlmSettingDao.selectByProject(dbSession, "uuid")).thenReturn(Optional.empty());
+        when(dbClient.projectAlmSettingDao()).thenReturn(projectAlmSettingDao);
+        BranchDao branchDao = mock();
+        doReturn(branchDao).when(dbClient).branchDao();
+        BranchDto branchDto = mock();
+        doReturn(Optional.of(branchDto)).when(branchDao).selectByPullRequestKey(any(), any(), any());
+        doReturn(DbProjectBranches.PullRequestData.newBuilder().build()).when(branchDto).getPullRequestData();
+
+        Analysis analysis = mock();
+        doReturn(Optional.of("revision")).when(analysis).getRevision();
+        doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
+        QualityGate qualityGate = mock();
+        doReturn(qualityGate).when(projectAnalysis).getQualityGate();
+
+        when(giteaPullRequestDecorator.isConfigured()).thenReturn(true);
+        when(giteaPullRequestDecorator.decorateQualityGateStatus(any()))
+                .thenReturn(DecorationResult.builder().withPullRequestUrl("https://gitea/owner/repo/pulls/5").build());
+
+        testCase.finished(context);
+
+        ArgumentCaptor<AnalysisDetails> analysisDetailsArgumentCaptor = ArgumentCaptor.captor();
+        verify(giteaPullRequestDecorator).decorateQualityGateStatus(analysisDetailsArgumentCaptor.capture());
+        assertThat(analysisDetailsArgumentCaptor.getValue()).usingRecursiveComparison()
+                .isEqualTo(new AnalysisDetails("pull-request", "revision", componentIssues, qualityGate, projectAnalysis));
+        verify(dbClient, never()).almSettingDao();
+
+        ArgumentCaptor<DbProjectBranches.PullRequestData> pullRequestDataArgumentCaptor = ArgumentCaptor.captor();
+        verify(branchDto).setPullRequestData(pullRequestDataArgumentCaptor.capture());
+        assertThat(pullRequestDataArgumentCaptor.getValue().getUrl()).isEqualTo("https://gitea/owner/repo/pulls/5");
     }
 
     @Test

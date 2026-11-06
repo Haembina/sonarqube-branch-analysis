@@ -79,6 +79,23 @@ A GitHub pull request also needs `sonar.scm.revision`, for example with
     SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 ```
 
+### Decorate a Gitea or Forgejo pull request
+
+SonarQube has no Gitea binding, so the plugin's own settings stand in for one.
+Each analyzed pull request gets a commit status linking SonarQube and one
+summary comment, edited on every later analysis.
+
+1. Under Administration, Configuration, Gitea, set the server URL, such as
+   `https://gitea.example.com`, and an access token of the user that posts.
+2. Give that token write access to repositories and issues.
+3. In the project's settings under Gitea, set the repository as `owner/name`.
+4. Leave the project with no DevOps platform binding; a bound project is
+   decorated on its binding instead.
+
+The keys are `com.haembina.branchanalysis.gitea.url`,
+`com.haembina.branchanalysis.gitea.token.secured` and
+`com.haembina.branchanalysis.gitea.repository`.
+
 ### Decoration images
 
 SonarQube serves the images decorations show from this plugin. When the ALM
