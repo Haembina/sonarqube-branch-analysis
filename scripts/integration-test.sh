@@ -146,6 +146,7 @@ cat > "${project_dir}/sonar-project.properties" <<EOF
 sonar.projectKey=${project_key}
 sonar.sources=.
 sonar.exclusions=sonar-project.properties
+sonar.scm.disabled=true
 EOF
 printf '%s\n' 'function greet(name) {' '  return "Hello " + name;' '}' 'console.log(greet("integration test"));' \
   > "${project_dir}/greet.js"
@@ -153,7 +154,7 @@ printf '%s\n' 'function greet(name) {' '  return "Hello " + name;' '}' 'console.
 scanner_env=()
 
 analyse() {
-  local scanner output task_id task_status
+  local scanner output task_id task_status warnings
   scanner=$(docker create --network host "${scanner_env[@]}" "${SCANNER_IMAGE}" \
     -Dsonar.host.url="${SONARQUBE_URL}" -Dsonar.token="${token}" "$@")
   docker cp "${project_dir}/." "${scanner}:/usr/src"
@@ -167,7 +168,10 @@ analyse() {
   while (( SECONDS < deadline )); do
     task_status=$(api "${SONARQUBE_URL}/api/ce/task?id=${task_id}" | jq -r .task.status)
     case "${task_status}" in
-      SUCCESS) echo "task ${task_id}: SUCCESS"; return 0 ;;
+      SUCCESS)
+        warnings=$(api "${SONARQUBE_URL}/api/ce/task?id=${task_id}&additionalFields=warnings" | jq -r '.task.warnings[]?')
+        [ -z "${warnings}" ] || { echo "task ${task_id} left analysis warnings:" >&2; echo "${warnings}" >&2; return 1; }
+        echo "task ${task_id}: SUCCESS"; return 0 ;;
       FAILED|CANCELED)
         api "${SONARQUBE_URL}/api/ce/task?id=${task_id}&additionalFields=stacktrace" | jq -r '.task.errorMessage, .task.errorStacktrace' >&2
         return 1 ;;
