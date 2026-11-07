@@ -3,8 +3,8 @@
 # SONARQUBE_VERSION and SONARQUBE_DIGEST name one image and change together, as in .env. PLUGIN_VERSION is the
 # jar's version, which the release writes here from package.json; the build names the jar after it and the
 # entrypoint copies it by that name.
-ARG SONARQUBE_VERSION="26.10.0.133078-community"
-ARG SONARQUBE_DIGEST="sha256:2e378f7852b67d43507d3d383ee8fb5a522b8b0f920be9803f74f72952fce8f1"
+ARG SONARQUBE_VERSION="26.11.0.134175-community"
+ARG SONARQUBE_DIGEST="sha256:1ce197471f5f2bac347694a336862fd2c23e9f57c6edb46acebbfbe70f2c7d9c"
 ARG PLUGIN_VERSION="27.2.0"
 ARG WORKDIR="/home/build/project"
 
