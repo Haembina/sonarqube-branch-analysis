@@ -105,8 +105,8 @@ describe('capability switch-branch: open another branch or pull request of a pro
     expect(within(popover).queryByText('never-analyzed')).not.toBeInTheDocument();
     const [mainLink, , developLink] = links;
     expect(mainLink).toHaveTextContent('metric.level.OK');
-    expect(within(mainLink).getByTestId('branch-check')).not.toHaveClass('sw-invisible');
-    expect(within(developLink).getByTestId('branch-check')).toHaveClass('sw-invisible');
+    expect(within(mainLink).getByTestId('branch-check')).not.toHaveClass('sw:invisible');
+    expect(within(developLink).getByTestId('branch-check')).toHaveClass('sw:invisible');
   });
 
   it('links each entry to the same page on that branch or pull request', async () => {

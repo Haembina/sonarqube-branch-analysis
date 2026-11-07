@@ -42,6 +42,8 @@ describe('isBitbucket and isAzure', () => {
     expect(isBitbucket('bitbucketcloud')).toBe(true);
     expect(isBitbucket('github')).toBe(false);
     expect(isAzure('azure')).toBe(true);
+    expect(isAzure('azure-devops')).toBe(true);
+    expect(isAzure('microsoft')).toBe(true);
     expect(isAzure('gitlab')).toBe(false);
   });
 });

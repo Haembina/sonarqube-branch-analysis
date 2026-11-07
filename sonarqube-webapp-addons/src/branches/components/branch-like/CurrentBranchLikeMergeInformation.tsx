@@ -34,7 +34,7 @@ export function CurrentBranchLikeMergeInformation({
 
   return (
     <span
-      className="sw-inline-block sw-min-w-0 sw-max-w-[400px] sw-whitespace-normal"
+      className="sw:inline-block sw:min-w-0 sw:max-w-[400px] sw:whitespace-normal"
       title={intl.formatMessage(
         { id: 'branch_like_navigation.for_merge_into_x_from_y.title' },
         {
@@ -46,8 +46,8 @@ export function CurrentBranchLikeMergeInformation({
       <FormattedMessage
         id="branch_like_navigation.for_merge_into_x_from_y"
         values={{
-          target: <strong className="sw-break-all">{pullRequest.target}</strong>,
-          branch: <strong className="sw-break-all">{pullRequest.branch}</strong>,
+          target: <strong className="sw:break-all">{pullRequest.target}</strong>,
+          branch: <strong className="sw:break-all">{pullRequest.branch}</strong>,
         }}
       />
     </span>

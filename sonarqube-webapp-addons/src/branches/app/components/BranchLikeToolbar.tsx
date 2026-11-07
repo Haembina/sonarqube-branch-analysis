@@ -35,7 +35,7 @@ export default function BranchLikeToolbar(props: Readonly<BranchLikeToolbarProps
   const { filter, onDeleteSelected, onFilterChange, selectedCount } = props;
 
   return (
-    <div className="sw-mt-6 sw-flex sw-flex-wrap sw-items-center sw-justify-between sw-gap-4">
+    <div className="sw:mt-6 sw:flex sw:flex-wrap sw:items-center sw:justify-between sw:gap-4">
       <SearchInputTarget>
         <SearchInput
           id={BRANCH_LIKE_FILTER_ID}

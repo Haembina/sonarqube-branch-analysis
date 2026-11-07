@@ -59,7 +59,7 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| Compatible SonarQube Community Build | 26.5.0.122743 | 26.10.0.133078 |
+| Compatible SonarQube Community Build | 26.5.0.122743 | 26.11.0.134175 |
 | CI detection | Seven CI systems, always on | Twelve, adding Woodpecker, Buildkite, CircleCI, TeamCity and Drone; com.haembina.branchanalysis.auto-configuration.enabled switches it off |
 | GitHub issues | Check run annotations | Optionally a comment on each new issue's line, resolved once fixed |
 | Summary comment | Reposted each analysis | Edited in place, optionally skipped on a clean pass |

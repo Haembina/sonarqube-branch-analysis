@@ -78,11 +78,11 @@ export function BranchLikeTable(props: BranchLikeTableProps) {
       <ContentCell>{translate('project_branch_pull_request.last_analysis_date')}</ContentCell>
       {displayPurgeSetting && (
         <ContentCell>
-          <div className="sw-flex sw-items-center">
+          <div className="sw:flex sw:items-center">
             <span>
               {translate('project_branch_pull_request.branch.auto_deletion.keep_when_inactive')}
             </span>
-            <span className="sw-ml-1">
+            <span className="sw:ml-1">
               <Tooltip
                 content={translate(
                   'project_branch_pull_request.branch.auto_deletion.keep_when_inactive.tooltip',
@@ -100,7 +100,7 @@ export function BranchLikeTable(props: BranchLikeTableProps) {
   );
 
   return (
-    <div className="sw-mt-6">
+    <div className="sw:mt-6">
       <Table columnCount={columnWidths.length} columnWidths={columnWidths} header={header}>
         {branchLikes.map((branchLike) => (
           <BranchLikeRow
@@ -117,7 +117,7 @@ export function BranchLikeTable(props: BranchLikeTableProps) {
         ))}
       </Table>
       {branchLikes.length === 0 && emptyText !== undefined && (
-        <p className="sw-mt-4">{emptyText}</p>
+        <p className="sw:mt-4">{emptyText}</p>
       )}
     </div>
   );

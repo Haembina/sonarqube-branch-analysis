@@ -65,7 +65,7 @@ export default function DeleteBranchesModal(props: Readonly<DeleteBranchesModalP
       body={
         <form id={FORM_ID} onSubmit={handleSubmit}>
           {failed.length > 0 && (
-            <MessageCallout className="sw-mb-4" variety="danger">
+            <MessageCallout className="sw:mb-4" variety="danger">
               <FormattedMessage
                 id="branch_analysis.delete_selected.failed"
                 values={{ names: failed.map((branchLike) => getBranchLikeDisplayName(branchLike)).join(NAME_SEPARATOR) }}
@@ -75,7 +75,7 @@ export default function DeleteBranchesModal(props: Readonly<DeleteBranchesModalP
           <p>
             <FormattedMessage id="branch_analysis.delete_selected.are_you_sure" />
           </p>
-          <ul className="sw-mt-2 sw-list-disc sw-pl-6">
+          <ul className="sw:mt-2 sw:list-disc sw:pl-6">
             {branchLikes.map((branchLike) => (
               <li key={getBranchLikeKey(branchLike)}>{getBranchLikeDisplayName(branchLike)}</li>
             ))}
