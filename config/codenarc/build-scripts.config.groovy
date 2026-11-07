@@ -51,6 +51,7 @@ ruleset {
     ruleset('rulesets/serialization.xml')
     ruleset('rulesets/size.xml') {
         AbcMetric(priority: 3)
+        CrapMetric(enabled: false)
     }
     ruleset('rulesets/unnecessary.xml') {
         UnnecessaryReturnKeyword(enabled: false)

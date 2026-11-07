@@ -70,6 +70,7 @@ class AnalysisSummaryTest {
         when(formatterFactory.documentFormatter()).thenReturn(formatter);
 
         assertThat(underTest.format(formatterFactory)).isEqualTo("formatted content");
+        assertThat(underTest.getSummaryImageUrl()).isEqualTo("summaryImageUrl");
 
         ArgumentCaptor<Document> documentArgumentCaptor = ArgumentCaptor.captor();
         verify(formatter).format(documentArgumentCaptor.capture());

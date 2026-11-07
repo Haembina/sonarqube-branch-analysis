@@ -17,6 +17,11 @@
  */
 
 import { addons } from './index';
+import ReleaseMismatchAlert from './release-check/ReleaseMismatchAlert';
+
+it('hands the webapp the release check, drawn as a global banner and on System Info', () => {
+  expect(addons.monitoringAlerts?.MonitoringAlerts).toBe(ReleaseMismatchAlert);
+});
 
 it('hands the webapp every branch page it reads from the registry', () => {
   expect(Object.keys(addons.branches).sort()).toEqual([

@@ -22,6 +22,7 @@
 import {
   ButtonIcon,
   ButtonVariety,
+  Checkbox,
   DropdownMenu,
   IconMoreVertical,
 } from '@sonarsource/echoes-react';
@@ -32,7 +33,7 @@ import BranchLikeIcon from '~sq-server-commons/components/icon-mappers/BranchLik
 import DateFromNow from '~shared/components/intl/DateFromNow';
 import QualityGateStatus from '~sq-server-commons/components/nav/QualityGateStatus';
 import { getBranchLikeDisplayName } from '~sq-server-commons/helpers/branch-like';
-import { translate } from '~sq-server-commons/helpers/l10n';
+import { translate, translateWithParameters } from '~sq-server-commons/helpers/l10n';
 import {
   isBranch,
   isMainBranch,
@@ -59,18 +60,29 @@ export interface BranchLikeRowProps {
   branchLike: BranchLike;
   component: Component;
   displayPurgeSetting?: boolean;
+  isSelected?: boolean;
   onDelete: () => void;
   onRename: () => void;
+  onSelect: (selected: boolean) => void;
   onSetAsMain: () => void;
 }
 
 export function BranchLikeRow(props: BranchLikeRowProps) {
-  const { branchLike, component, displayPurgeSetting } = props;
+  const { branchLike, component, displayPurgeSetting, isSelected = false } = props;
   const intl = useIntl();
   const branchLikeDisplayName = getBranchLikeDisplayName(branchLike);
 
   return (
     <TableRowInteractive>
+      <ContentCell>
+        {!isMainBranch(branchLike) && (
+          <Checkbox
+            ariaLabel={translateWithParameters('branch_analysis.select', branchLikeDisplayName)}
+            checked={isSelected}
+            onCheck={(checked) => props.onSelect(checked === true)}
+          />
+        )}
+      </ContentCell>
       <ContentCell>
         <BranchLikeIcon branchLike={branchLike} className="sw-mr-1" />
         <span title={branchLikeDisplayName}>{branchLikeDisplayName}</span>

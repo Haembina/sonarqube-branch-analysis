@@ -29,5 +29,9 @@
 /coverage/
 /reports/
 
+#Accessibility audit output
+/accessibility-report.json
+/accessibility-crops/
+
 #SonarQube scanner
 /.scannerwork/

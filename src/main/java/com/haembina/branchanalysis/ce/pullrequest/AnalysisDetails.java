@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.sonar.api.ce.posttask.Analysis;
+import org.sonar.api.ce.posttask.Branch;
 import org.sonar.api.ce.posttask.PostProjectAnalysisTask;
 import org.sonar.api.ce.posttask.Project;
 import org.sonar.api.ce.posttask.QualityGate;
@@ -51,6 +52,12 @@ public class AnalysisDetails {
 
     public String getPullRequestId() {
         return pullRequestId;
+    }
+
+    public Optional<String> getBranchName() {
+        return projectAnalysis.getBranch()
+                .filter(branch -> Branch.Type.BRANCH == branch.getType() && !branch.isMain())
+                .flatMap(Branch::getName);
     }
 
     public String getCommitSha() {

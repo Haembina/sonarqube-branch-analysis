@@ -46,6 +46,8 @@ import org.sonar.db.protobuf.DbIssues;
 import com.haembina.branchanalysis.almclient.azuredevops.AzureDevopsClient;
 import com.haembina.branchanalysis.almclient.azuredevops.model.Comment;
 import com.haembina.branchanalysis.almclient.azuredevops.model.CommentThread;
+import com.haembina.branchanalysis.almclient.azuredevops.model.Commit;
+import com.haembina.branchanalysis.almclient.azuredevops.model.ConnectionData;
 import com.haembina.branchanalysis.almclient.azuredevops.model.CreateCommentThreadRequest;
 import com.haembina.branchanalysis.almclient.azuredevops.model.Project;
 import com.haembina.branchanalysis.almclient.azuredevops.model.PullRequest;
@@ -145,6 +147,34 @@ class AzureDevOpsPullRequestDecoratorThreadTest {
         underTest.submitSummaryNote(client, pullRequest, analysis, summary);
 
         verify(client, never()).resolvePullRequestThread(anyString(), anyString(), anyInt(), anyInt());
+    }
+
+    @Test
+    void shouldResolveSummaryThreadWhenQualityGatePasses() throws IOException {
+        AnalysisDetails analysis = mock();
+        when(analysis.getQualityGateStatus()).thenReturn(QualityGate.Status.OK);
+        AnalysisSummary summary = mock();
+        when(client.createThread(anyString(), anyString(), anyInt(), any())).thenReturn(thread);
+
+        underTest.submitSummaryNote(client, pullRequest, analysis, summary);
+
+        verify(client).resolvePullRequestThread(PROJECT, REPOSITORY, PULL_REQUEST_ID, THREAD_ID);
+    }
+
+    @Test
+    void shouldReadTheAuthenticatedUserAndThePullRequestCommits() throws IOException {
+        when(client.getConnectionData()).thenReturn(new ConnectionData(new ConnectionData.Identity("user-id")));
+        when(client.getPullRequestCommits(PROJECT, REPOSITORY, PULL_REQUEST_ID)).thenReturn(List.of(new Commit("c1"), new Commit("c2")));
+
+        assertThat(underTest.getCurrentUser(client)).isEqualTo("user-id");
+        assertThat(underTest.getCommitIdsForPullRequest(client, pullRequest)).containsExactly("c1", "c2");
+    }
+
+    @Test
+    void shouldFallBackToNoUserWhenTheAuthenticatedUserCannotBeRead() throws IOException {
+        when(client.getConnectionData()).thenThrow(new IOException("down"));
+
+        assertThat(underTest.getCurrentUser(client)).isNull();
     }
 
     @Test

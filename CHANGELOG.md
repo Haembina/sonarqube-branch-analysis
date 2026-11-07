@@ -6,6 +6,25 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.2.0 (2026-11-06)
+
+### Features
+
+* post each new issue as a GitHub review comment on its line, resolved once fixed
+* name the missing javaagent line when SonarQube refuses to start without it
+* name both releases in a banner when the jar and webapp do not match
+* filter the branches page by name and delete several branches at once
+* show a branch analysis's quality gate as a check on GitHub and a status on GitLab
+* decorate Gitea and Forgejo pull requests with a commit status and a summary comment
+* let a project skip the clean-pass summary comment and GitHub annotations
+* detect branches and pull requests from Woodpecker, Buildkite, CircleCI, TeamCity and Drone
+
+### Bug Fixes
+
+* clear the seven SonarQube issues the batch's new code raised
+* give the search boxes' clear button a 24px target
+* edit the GitHub summary comment in place instead of reposting it each push
+
 ## 27.1.8 (2026-10-30)
 
 ### Bug Fixes

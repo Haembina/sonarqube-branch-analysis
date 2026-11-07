@@ -20,6 +20,7 @@
 package com.haembina.branchanalysis.ce.pullrequest;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.sonar.api.ce.posttask.Analysis;
@@ -38,6 +39,8 @@ import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 import org.sonar.db.component.BranchDao;
 import org.sonar.db.component.BranchDto;
 import org.sonar.db.protobuf.DbProjectBranches;
+
+import com.haembina.branchanalysis.ce.pullrequest.gitea.GiteaPullRequestDecorator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,9 +76,13 @@ class PullRequestPostAnalysisTaskTest {
     private final PostAnalysisIssueVisitor.ComponentIssue componentIssue = mock();
     private final List<PostAnalysisIssueVisitor.ComponentIssue> componentIssues = List.of(componentIssue);
 
+    private final GiteaPullRequestDecorator giteaPullRequestDecorator = mock();
+    private final DecorationSettings decorationSettings = mock();
+    private final QualityGate branchQualityGate = mock();
+
     private final PullRequestPostAnalysisTask testCase =
             new PullRequestPostAnalysisTask(pullRequestBuildStatusDecorators,
-                    postAnalysisIssueVisitor, dbClient);
+                    postAnalysisIssueVisitor, dbClient, giteaPullRequestDecorator, decorationSettings);
 
     @BeforeEach
     void init() {
@@ -509,6 +516,62 @@ class PullRequestPostAnalysisTaskTest {
         verify(dbClient, never()).almSettingDao();
         verify(dbSession).close();
         verify(projectAnalysis, never()).getAnalysis();
+        verify(giteaPullRequestDecorator, never()).decorateQualityGateStatus(any());
+    }
+
+    @Test
+    void testFinishedNoAlmBoundToProjectDecoratesOnGitea() {
+        doReturn(Branch.Type.PULL_REQUEST).when(branch).getType();
+        doReturn(Optional.of("pull-request")).when(branch).getName();
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
+        ProjectAlmSettingDao projectAlmSettingDao = mock();
+        when(projectAlmSettingDao.selectByProject(dbSession, "uuid")).thenReturn(Optional.empty());
+        when(dbClient.projectAlmSettingDao()).thenReturn(projectAlmSettingDao);
+        BranchDao branchDao = mock();
+        doReturn(branchDao).when(dbClient).branchDao();
+        BranchDto branchDto = mock();
+        doReturn(Optional.of(branchDto)).when(branchDao).selectByPullRequestKey(any(), any(), any());
+        doReturn(DbProjectBranches.PullRequestData.newBuilder().build()).when(branchDto).getPullRequestData();
+
+        Analysis analysis = mock();
+        doReturn(Optional.of("revision")).when(analysis).getRevision();
+        doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
+        QualityGate qualityGate = mock();
+        doReturn(qualityGate).when(projectAnalysis).getQualityGate();
+
+        when(giteaPullRequestDecorator.isConfigured()).thenReturn(true);
+        when(giteaPullRequestDecorator.decorateQualityGateStatus(any()))
+                .thenReturn(DecorationResult.builder().withPullRequestUrl("https://gitea/owner/repo/pulls/5").build());
+
+        testCase.finished(context);
+
+        ArgumentCaptor<AnalysisDetails> analysisDetailsArgumentCaptor = ArgumentCaptor.captor();
+        verify(giteaPullRequestDecorator).decorateQualityGateStatus(analysisDetailsArgumentCaptor.capture());
+        assertThat(analysisDetailsArgumentCaptor.getValue()).usingRecursiveComparison()
+                .isEqualTo(new AnalysisDetails("pull-request", "revision", componentIssues, qualityGate, projectAnalysis));
+        verify(dbClient, never()).almSettingDao();
+
+        ArgumentCaptor<DbProjectBranches.PullRequestData> pullRequestDataArgumentCaptor = ArgumentCaptor.captor();
+        verify(branchDto).setPullRequestData(pullRequestDataArgumentCaptor.capture());
+        assertThat(pullRequestDataArgumentCaptor.getValue().getUrl()).isEqualTo("https://gitea/owner/repo/pulls/5");
+    }
+
+    @Test
+    void testFinishedBranchAnalysisOfAnUnboundProjectIsNotDecoratedOnGitea() {
+        doReturn(Branch.Type.BRANCH).when(branch).getType();
+        when(decorationSettings.isBranchDecorationEnabled()).thenReturn(true);
+        DbSession dbSession = mock();
+        when(dbClient.openSession(anyBoolean())).thenReturn(dbSession);
+        ProjectAlmSettingDao projectAlmSettingDao = mock();
+        when(projectAlmSettingDao.selectByProject(dbSession, "uuid")).thenReturn(Optional.empty());
+        when(dbClient.projectAlmSettingDao()).thenReturn(projectAlmSettingDao);
+        when(giteaPullRequestDecorator.isConfigured()).thenReturn(true);
+
+        testCase.finished(context);
+
+        verify(giteaPullRequestDecorator, never()).decorateQualityGateStatus(any());
+        verify(projectAnalysis, never()).getAnalysis();
     }
 
     @Test
@@ -532,6 +595,81 @@ class PullRequestPostAnalysisTaskTest {
 
         verify(decorator, never()).alm();
         verify(projectAnalysis, never()).getAnalysis();
+    }
+
+    @Test
+    void testFinishedNoBranch() {
+        doReturn(Optional.empty()).when(projectAnalysis).getBranch();
+
+        testCase.finished(context);
+
+        verify(dbClient, never()).openSession(anyBoolean());
+    }
+
+    @Test
+    void testFinishedBranchNotDecoratedWhenSettingOff() {
+        doReturn(Branch.Type.BRANCH).when(branch).getType();
+        when(decorationSettings.isBranchDecorationEnabled()).thenReturn(false);
+
+        testCase.finished(context);
+
+        verify(decorationSettings).isBranchDecorationEnabled();
+        verify(dbClient, never()).openSession(anyBoolean());
+    }
+
+    @Test
+    @DisplayName("capability branch-decoration: see the quality gate of a branch analysis as a check on its commit")
+    void shouldHandABranchAnalysisToTheDecoratorWhenBranchDecorationIsOn() {
+        PullRequestBuildStatusDecorator decorator = stubDecoratedBranchAnalysis();
+        doReturn(true).when(decorator).decorateBranchQualityGateStatus(any(), any(), any());
+
+        testCase.finished(context);
+
+        ArgumentCaptor<AnalysisDetails> analysisDetailsArgumentCaptor = ArgumentCaptor.captor();
+        verify(decorator).decorateBranchQualityGateStatus(analysisDetailsArgumentCaptor.capture(), any(), any());
+        verify(decorator, never()).decorateQualityGateStatus(any(), any(), any());
+        verify(dbClient, never()).branchDao();
+        assertThat(analysisDetailsArgumentCaptor.getValue()).usingRecursiveComparison()
+            .isEqualTo(new AnalysisDetails(null, "revision", componentIssues, branchQualityGate, projectAnalysis));
+    }
+
+    @Test
+    void testFinishedBranchWithADecoratorThatDecoratesNoBranches() {
+        PullRequestBuildStatusDecorator decorator = stubDecoratedBranchAnalysis();
+        doReturn(false).when(decorator).decorateBranchQualityGateStatus(any(), any(), any());
+
+        testCase.finished(context);
+
+        verify(decorator).decorateBranchQualityGateStatus(any(), any(), any());
+        verify(decorator, never()).decorateQualityGateStatus(any(), any(), any());
+    }
+
+    private PullRequestBuildStatusDecorator stubDecoratedBranchAnalysis() {
+        doReturn(Branch.Type.BRANCH).when(branch).getType();
+        when(decorationSettings.isBranchDecorationEnabled()).thenReturn(true);
+
+        Analysis analysis = mock();
+        doReturn(Optional.of("revision")).when(analysis).getRevision();
+        doReturn(Optional.of(analysis)).when(projectAnalysis).getAnalysis();
+        doReturn(branchQualityGate).when(projectAnalysis).getQualityGate();
+
+        PullRequestBuildStatusDecorator decorator = mock();
+        doReturn(List.of(ALM.GITHUB)).when(decorator).alm();
+        pullRequestBuildStatusDecorators.add(decorator);
+
+        ProjectAlmSettingDto projectAlmSettingDto = mock();
+        doReturn("setting-uuid").when(projectAlmSettingDto).getAlmSettingUuid();
+        AlmSettingDto almSettingDto = mock();
+        doReturn(ALM.GITHUB).when(almSettingDto).getAlm();
+        DbSession dbSession = mock();
+        doReturn(dbSession).when(dbClient).openSession(anyBoolean());
+        ProjectAlmSettingDao projectAlmSettingDao = mock();
+        doReturn(Optional.of(projectAlmSettingDto)).when(projectAlmSettingDao).selectByProject(dbSession, "uuid");
+        doReturn(projectAlmSettingDao).when(dbClient).projectAlmSettingDao();
+        AlmSettingDao almSettingDao = mock();
+        doReturn(Optional.of(almSettingDto)).when(almSettingDao).selectByUuid(dbSession, "setting-uuid");
+        doReturn(almSettingDao).when(dbClient).almSettingDao();
+        return decorator;
     }
 
     @Test

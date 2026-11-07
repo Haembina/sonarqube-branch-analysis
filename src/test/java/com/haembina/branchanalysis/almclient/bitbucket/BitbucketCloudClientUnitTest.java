@@ -40,12 +40,16 @@ import okhttp3.ResponseBody;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -286,5 +290,38 @@ class BitbucketCloudClientUnitTest {
     void shouldReturnOriginalKeyFromNormalisation() {
         assertThat(underTest.normaliseReportKey("MyVeryLongReportKeyThatWon'tBeModifiedByTheNormalisation"))
                 .isEqualTo("MyVeryLongReportKeyThatWon'tBeModifiedByTheNormalisation");
+    }
+
+    static Stream<Arguments> requestsRejectedByBitbucketCloud() {
+        return Stream.of(
+                Arguments.of("uploadAnnotations", (CloudCall) client -> client.uploadAnnotations("commit",
+                        Set.of(client.createCodeInsightsAnnotation("issueKey", 12, "https://sonar/issue", "Failed", "/path", "MAJOR", "BUG")), "reportKey")),
+                Arguments.of("retrieveRepository", (CloudCall) BitbucketCloudClient::retrieveRepository),
+                Arguments.of("submitBuildStatus", (CloudCall) client -> client.submitBuildStatus("commit",
+                        new BuildStatus(BuildStatus.State.FAILED, "key", "name", "url"))));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("requestsRejectedByBitbucketCloud")
+    void shouldThrowTheCloudErrorWhenARequestIsRejected(String name, CloudCall cloudCall) throws IOException {
+        Call call = mock();
+        Response response = mock();
+        ResponseBody responseBody = mock();
+        when(client.newCall(any())).thenReturn(call);
+        when(call.execute()).thenReturn(response);
+        when(response.isSuccessful()).thenReturn(false);
+        when(response.code()).thenReturn(403);
+        when(response.body()).thenReturn(responseBody);
+        when(responseBody.string()).thenReturn("rejected");
+        when(mapper.writeValueAsString(any())).thenReturn("{}");
+
+        assertThatThrownBy(() -> cloudCall.call(underTest))
+                .isInstanceOf(BitbucketCloudException.class)
+                .hasMessage("HTTP Status Code: 403; Message:rejected");
+    }
+
+    @FunctionalInterface
+    interface CloudCall {
+        void call(BitbucketCloudClient client) throws IOException;
     }
 }

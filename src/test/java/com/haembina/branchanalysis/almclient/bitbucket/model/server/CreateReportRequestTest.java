@@ -40,7 +40,7 @@ class CreateReportRequestTest {
 
         JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(report));
 
-        assertThat(json.has("createdDate")).isTrue();
+        assertThat(objectMapper.treeToValue(json.get("createdDate"), Instant.class)).isEqualTo(Instant.parse("2026-09-28T10:00:00Z"));
         assertThat(json.get("result").asText()).isEqualTo("PASS");
     }
 }

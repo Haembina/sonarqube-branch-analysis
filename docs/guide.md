@@ -21,7 +21,8 @@ configure it. Docker and Kubernetes installs are in the [README](../README.md).
 ## Install
 
 Take the jar and `sonarqube-webapp.zip` from one release. A jar and a webapp
-from different releases load, and the branch pages then fail at runtime.
+from different releases load, the branch pages can then fail at runtime, and a
+banner names both releases to every signed-in user.
 
 1. Copy the jar into `extensions/plugins/`.
 2. In `conf/sonar.properties`, set
@@ -31,8 +32,8 @@ from different releases load, and the branch pages then fail at runtime.
 4. Replace the contents of SonarQube's `web` directory with the webapp zip's.
 5. Start SonarQube and accept the third-party plugin warning.
 
-Without both `javaagent` lines, SonarQube starts with the plugin listed and no
-branch support. This shows whether they are there:
+Without either `javaagent` line, SonarQube stops at startup, and `logs/web.log`
+or `logs/ce.log` names the line to add. This shows whether they are there:
 
 ```bash
 grep javaAdditionalOpts conf/sonar.properties
@@ -79,11 +80,60 @@ A GitHub pull request also needs `sonar.scm.revision`, for example with
     SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 ```
 
+### Decorate a Gitea or Forgejo pull request
+
+SonarQube has no Gitea binding, so the plugin's own settings stand in for one.
+Each analyzed pull request gets a commit status linking SonarQube and one
+summary comment, edited on every later analysis.
+
+1. Under Administration, Configuration, Gitea, set the server URL, such as
+   `https://gitea.example.com`, and an access token of the user that posts.
+2. Give that token write access to repositories and issues.
+3. In the project's settings under Gitea, set the repository as `owner/name`.
+4. Leave the project with no DevOps platform binding; a bound project is
+   decorated on its binding instead.
+
+The keys are `com.haembina.branchanalysis.gitea.url`,
+`com.haembina.branchanalysis.gitea.token.secured` and
+`com.haembina.branchanalysis.gitea.repository`.
+
+### Quieter GitHub decoration
+
+Each is a project setting under General, Branches and Pull Requests:
+
+- `com.haembina.branchanalysis.pullrequest.summary-comment.skip-when-clean`:
+  posts no summary comment when the gate passes with no new issues; one
+  already posted is still updated. Off by default.
+- `com.haembina.branchanalysis.pullrequest.github.annotations.enabled`: set it
+  to `false` to leave issues off the check run. On by default.
+- `com.haembina.branchanalysis.pullrequest.github.inline-comments.enabled`:
+  posts each new issue as a review comment on its line, once, and resolves its
+  thread when the issue is fixed. Off by default.
+
+### Decorate branch analyses
+
+With `com.haembina.branchanalysis.branch-decoration.enabled` on, a branch
+analysis such as main shows its quality gate on the analyzed commit: a check
+run on GitHub, a commit status on GitLab. Off by default; Bitbucket and Azure
+DevOps decorate no branches.
+
 ### Decoration images
 
 SonarQube serves the images decorations show from this plugin. When the ALM
 cannot reach SonarQube, copy `src/main/resources/static` somewhere it can, and
 set `Images base URL` under General, Pull Request.
+
+### Branch detection from CI
+
+A scan naming no branch or pull request reads them from the CI it runs in:
+
+- Azure Pipelines, Bitbucket Pipelines, Buildkite, CircleCI, Cirrus CI,
+  Codemagic, Drone, GitHub Actions, GitLab CI, Jenkins, TeamCity and
+  Woodpecker.
+- CircleCI names no target branch, so its pull requests compare against the
+  main branch.
+- TeamCity's branch and pull request come from the build parameter files
+  `TEAMCITY_BUILD_PROPERTIES_FILE` names.
 
 ### Switch off branch detection from CI
 

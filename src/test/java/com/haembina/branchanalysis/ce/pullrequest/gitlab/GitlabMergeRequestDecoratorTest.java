@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ import org.sonar.db.alm.setting.ALM;
 
 import com.haembina.branchanalysis.almclient.gitlab.model.Discussion;
 import com.haembina.branchanalysis.almclient.gitlab.model.MergeRequestNote;
+import com.haembina.branchanalysis.almclient.gitlab.model.Note;
 import com.haembina.branchanalysis.almclient.gitlab.model.PipelineStatus;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationResult;
 
@@ -234,5 +236,16 @@ class GitlabMergeRequestDecoratorTest extends GitlabMergeRequestDecoratorFixture
         assertThat(underTest.decorateQualityGateStatus(analysisDetails, almSettingDto, projectAlmSettingDto))
                 .usingRecursiveComparison()
                 .isEqualTo(DecorationResult.builder().withPullRequestUrl(MERGE_REQUEST_WEB_URL + "/additional/merge_requests/" + MERGE_REQUEST_IID).build());
+    }
+
+    @Test
+    void shouldTreatADiscussionAsClosedWhenItsFirstNoteIsResolvedOrItHasNoNotes() {
+        Note resolved = new Note(1, false, null, "Resolved", true, true);
+        Note open = new Note(2, false, null, "Open", false, true);
+        Discussion discussion = mock();
+
+        assertThat(underTest.isClosed(discussion, List.of(resolved, open))).isTrue();
+        assertThat(underTest.isClosed(discussion, List.of(open, resolved))).isFalse();
+        assertThat(underTest.isClosed(discussion, List.of())).isTrue();
     }
 }

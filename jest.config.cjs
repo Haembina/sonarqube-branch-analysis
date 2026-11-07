@@ -33,6 +33,7 @@ process.chdir(webapp);
 
 module.exports = {
   ...common,
+  globals: { ...common.globals, BRANCH_ANALYSIS_RELEASE: 'test-release' },
   rootDir: __dirname,
   roots: [addons, path.join(webapp, 'apps', 'sq-server', '__mocks__')],
   modulePaths: [path.join(webapp, 'node_modules')],

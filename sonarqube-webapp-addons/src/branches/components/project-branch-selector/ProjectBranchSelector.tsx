@@ -32,6 +32,7 @@ import { isDefined, isStringDefined } from '~shared/helpers/types';
 import { BranchLikeBase, ProjectBranchSelectorProps } from '~shared/types/branch-like';
 import { getComponentAlmKey } from '../../helpers/alm-type.core';
 import { PRMessage } from '../common/PRMessage';
+import { SearchInputTarget } from '../common/SearchInputTarget';
 import { ProjectBranchSelectorItem } from './ProjectBranchSelectorItem';
 
 const MAX_BRANCHES_OR_PRS_TO_SHOW = 10;
@@ -82,13 +83,15 @@ export default function ProjectBranchSelector(props: Readonly<ProjectBranchSelec
             contentProps={{ 'aria-label': formatMessage({ id: 'project_branch_selector.title' }) }}
             extraContent={
                 <div className="sw-mt-4" ref={hidePopoverArrow}>
-                    <SearchInput
-                        ariaLabel={formatMessage({ id: 'project_branch_selector.search' })}
-                        className="sw-mb-4 sw-max-w-5000"
-                        onChange={setQuery}
-                        placeholderLabel={formatMessage({ id: 'project_branch_selector.search' })}
-                        value={query}
-                    />
+                    <SearchInputTarget>
+                        <SearchInput
+                            ariaLabel={formatMessage({ id: 'project_branch_selector.search' })}
+                            className="sw-mb-4 sw-max-w-5000"
+                            onChange={setQuery}
+                            placeholderLabel={formatMessage({ id: 'project_branch_selector.search' })}
+                            value={query}
+                        />
+                    </SearchInputTarget>
 
                     <div className="sw-flex sw-justify-between sw-items-center sw-mb-3">
                         <PRMessage almKey={getComponentAlmKey(component)} message="{pull_requests}">
