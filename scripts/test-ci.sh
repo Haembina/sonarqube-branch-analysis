@@ -21,7 +21,6 @@ export NX_DAEMON=false
 bash scripts/fetch-webapp.sh
 (cd sonarqube-webapp && "${root}/node_modules/.bin/corepack" yarn nx run sq-server:build)
 
-# Workaround: SWC refuses every cache root inside verify's network-less user namespace #84
-SWC_NATIVE_BINDING_CACHE_SKIP_SECURITY_CHECK=1 npm run test:addons
+npm run test:addons
 
 git submodule deinit --force sonarqube-webapp
