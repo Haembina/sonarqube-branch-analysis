@@ -18,6 +18,7 @@
  */
 package com.haembina.branchanalysis.scanner.autoconfiguration;
 
+import com.haembina.branchanalysis.LoggedMessages;
 import com.haembina.branchanalysis.scanner.BranchConfigurationFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -58,10 +59,13 @@ class TeamCityAutoConfigurerTest {
     }
 
     @Test
-    void shouldDetectNothingWhenTheBuildPropertiesFileCannotBeRead() {
-        runInTeamCity(directory.resolve("missing.properties"));
+    void shouldWarnAndDetectNothingWhenTheBuildPropertiesFileCannotBeRead() {
+        Path missing = directory.resolve("missing.properties");
+        runInTeamCity(missing);
 
-        assertThat(underTest.detectConfiguration(system2, projectBranches)).isEmpty();
+        assertThat(LoggedMessages.during(TeamCityAutoConfigurer.class,
+                () -> assertThat(underTest.detectConfiguration(system2, projectBranches)).isEmpty()))
+                .containsExactly("Could not read the TeamCity build parameters from " + missing);
         verifyNoInteractions(branchConfigurationFactory);
     }
 

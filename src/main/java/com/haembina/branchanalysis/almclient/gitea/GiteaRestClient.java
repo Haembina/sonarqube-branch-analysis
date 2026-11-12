@@ -100,10 +100,7 @@ class GiteaRestClient implements GiteaClient {
 
     private void send(HttpEntityEnclosingRequestBase request, Object payload, int expectedStatus) throws IOException {
         request.setEntity(new StringEntity(objectMapper.writeValueAsString(payload), ContentType.APPLICATION_JSON));
-        execute(request, expectedStatus, entity -> {
-            EntityUtils.consume(entity);
-            return null;
-        });
+        execute(request, expectedStatus, entity -> null);
     }
 
     private <T> T execute(HttpRequestBase request, int expectedStatus, ResponseReader<T> reader) throws IOException {
