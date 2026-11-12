@@ -40,6 +40,7 @@ import org.sonar.db.component.BranchDao;
 import org.sonar.db.component.BranchDto;
 import org.sonar.db.protobuf.DbProjectBranches;
 
+import com.haembina.branchanalysis.LoggedMessages;
 import com.haembina.branchanalysis.ce.pullrequest.gitea.GiteaPullRequestDecorator;
 
 import java.util.ArrayList;
@@ -110,8 +111,8 @@ class PullRequestPostAnalysisTaskTest {
         doReturn(Branch.Type.PULL_REQUEST).when(branch).getType();
         doReturn(Optional.empty()).when(branch).getName();
 
-        testCase.finished(context);
-
+        assertThat(LoggedMessages.during(DecorationTarget.class, () -> testCase.finished(context)))
+                .containsExactly("No pull request ID has been submitted with the Pull Request. Analysis will be skipped");
         verify(branch).getName();
     }
 
@@ -638,8 +639,8 @@ class PullRequestPostAnalysisTaskTest {
         PullRequestBuildStatusDecorator decorator = stubDecoratedBranchAnalysis();
         doReturn(false).when(decorator).decorateBranchQualityGateStatus(any(), any(), any());
 
-        testCase.finished(context);
-
+        assertThat(LoggedMessages.during(PullRequestPostAnalysisTask.class, () -> testCase.finished(context)))
+                .contains(decorator.getClass().getName() + " does not decorate branch analyses");
         verify(decorator).decorateBranchQualityGateStatus(any(), any(), any());
         verify(decorator, never()).decorateQualityGateStatus(any(), any(), any());
     }

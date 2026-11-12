@@ -59,6 +59,7 @@ class GiteaRestClientTest {
     void readsTheUserTheTokenBelongsTo() throws IOException {
         wireMockExtension.stubFor(get(urlEqualTo("/api/v1/user"))
                 .withHeader("Authorization", equalTo("token secret"))
+                .withHeader("Accept", equalTo("application/json"))
                 .willReturn(okJson("{\"id\": 7, \"login\": \"sonarqube\", \"email\": \"bot@example.com\"}")));
 
         assertThat(underTest.getCurrentUser()).isEqualTo(new User(7, "sonarqube"));
