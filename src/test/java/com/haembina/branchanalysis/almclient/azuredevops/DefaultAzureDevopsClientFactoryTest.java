@@ -22,17 +22,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.sonar.api.config.internal.Settings;
 import org.sonar.db.alm.setting.AlmSettingDto;
 import org.sonar.db.alm.setting.ProjectAlmSettingDto;
 
 class DefaultAzureDevopsClientFactoryTest {
+
+    private static final int TIMEOUT_MILLISECONDS = 30_000;
 
     private final AlmSettingDto almSettingDto = mock();
     private final ProjectAlmSettingDto projectAlmSettingDto = mock();
@@ -44,6 +52,28 @@ class DefaultAzureDevopsClientFactoryTest {
         when(almSettingDto.getDecryptedPersonalAccessToken(any())).thenReturn("token");
 
         assertThat(underTest.createClient(projectAlmSettingDto, almSettingDto)).isInstanceOf(AzureDevopsRestClient.class);
+    }
+
+    @Test
+    void shouldBoundEveryHttpTimeoutAtThirtySeconds() {
+        when(almSettingDto.getUrl()).thenReturn("https://dev.azure.com/org");
+        when(almSettingDto.getDecryptedPersonalAccessToken(any())).thenReturn("token");
+        HttpClientBuilder builder = mock();
+        when(builder.useSystemProperties()).thenReturn(builder);
+        when(builder.setDefaultRequestConfig(any())).thenReturn(builder);
+
+        try (MockedStatic<HttpClientBuilder> mockedBuilder = mockStatic(HttpClientBuilder.class)) {
+            mockedBuilder.when(HttpClientBuilder::create).thenReturn(builder);
+
+            underTest.createClient(projectAlmSettingDto, almSettingDto);
+        }
+
+        verify(builder).useSystemProperties();
+        ArgumentCaptor<RequestConfig> requestConfig = ArgumentCaptor.captor();
+        verify(builder).setDefaultRequestConfig(requestConfig.capture());
+        assertThat(requestConfig.getValue().getConnectionRequestTimeout()).isEqualTo(TIMEOUT_MILLISECONDS);
+        assertThat(requestConfig.getValue().getConnectTimeout()).isEqualTo(TIMEOUT_MILLISECONDS);
+        assertThat(requestConfig.getValue().getSocketTimeout()).isEqualTo(TIMEOUT_MILLISECONDS);
     }
 
     @ParameterizedTest
