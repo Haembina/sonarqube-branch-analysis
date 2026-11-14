@@ -20,9 +20,11 @@ for installed_plugin in \
     mv "${installed_plugin}" "${disabled_directory}/$(basename "${installed_plugin}").disabled"
 done
 
-plugin_temporary="${plugin_target}.tmp"
-cp "${plugin_source}" "${plugin_temporary}"
-chmod 644 "${plugin_temporary}"
-mv "${plugin_temporary}" "${plugin_target}"
+if ! cmp -s "${plugin_source}" "${plugin_target}"; then
+  plugin_temporary="${plugin_target}.tmp"
+  cp "${plugin_source}" "${plugin_temporary}"
+  chmod 644 "${plugin_temporary}"
+  mv "${plugin_temporary}" "${plugin_target}"
+fi
 
 exec "${sonarqube_home}/docker/entrypoint.sh" "$@"
