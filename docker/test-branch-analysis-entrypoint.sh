@@ -32,6 +32,12 @@ test -f "${disabled_directory}/sonarqube-community-branch-plugin.jar.disabled"
 test -f "${disabled_directory}/sonarqube-community-branch-plugin-26.7.0.jar.disabled"
 test -f "${disabled_directory}/haembina-branch-analysis-26.9.9.jar.disabled"
 
+ln "${plugin_directory}/${plugin_name}" "${test_root}/installed-plugin"
+SONARQUBE_HOME="${test_root}" PLUGIN_VERSION="${plugin_version}" \
+  sh "${repository_root}/docker/branch-analysis-entrypoint.sh"
+
+test -n "$(find "${plugin_directory}" -name "${plugin_name}" -links 2)"
+
 printf '%s\n' 'current plugin after restart' > "${plugin_source}"
 SONARQUBE_HOME="${test_root}" PLUGIN_VERSION="${plugin_version}" \
   sh "${repository_root}/docker/branch-analysis-entrypoint.sh"

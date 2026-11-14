@@ -126,7 +126,7 @@ public class GitlabMergeRequestDecorator extends DiscussionAwarePullRequestDecor
                                         AnalysisSummary analysisSummary, ProjectAlmSettingDto projectAlmSettingDto) {
         try {
             PipelineStatus pipelineStatus = createPipelineStatus(analysis, analysisSummary.getDashboardUrl(),
-                    analysisSummary.getNewCoverage(), projectAlmSettingDto);
+                    analysisSummary.getTotalCoverage(), projectAlmSettingDto);
             gitlabClient.setMergeRequestPipelineStatus(mergeRequest.getTargetProjectId(), analysis.getCommitSha(), pipelineStatus);
         } catch (IOException ex) {
             throw new IllegalStateException("Could not update pipeline status in Gitlab", ex);

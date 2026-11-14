@@ -56,6 +56,7 @@ class AnalysisSummaryTest {
                 .withDuplications(new AnalysisSummary.UrlIconMetric<>("duplicationsUrl", "duplicationsImageUrl", BigDecimal.valueOf(66)))
                 .withFailedQualityGateConditions(java.util.List.of())
                 .withNewCoverage(BigDecimal.valueOf(99))
+                .withTotalCoverage(BigDecimal.valueOf(303))
                 .withSecurityHotspots(new AnalysisSummary.UrlIconMetric<>("securityHotspotsUrl", "securityHotspotsImageUrl", 69))
                 .withStatusDescription("status description")
                 .withStatusImageUrl("statusImageUrl")
@@ -71,6 +72,7 @@ class AnalysisSummaryTest {
 
         assertThat(underTest.format(formatterFactory)).isEqualTo("formatted content");
         assertThat(underTest.getSummaryImageUrl()).isEqualTo("summaryImageUrl");
+        assertThat(underTest.getTotalCoverage()).isEqualTo(BigDecimal.valueOf(303));
 
         ArgumentCaptor<Document> documentArgumentCaptor = ArgumentCaptor.captor();
         verify(formatter).format(documentArgumentCaptor.capture());
