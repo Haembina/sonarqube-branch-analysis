@@ -6,6 +6,21 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.3.0 (2026-11-14)
+
+### Features
+
+* branch analysis runs on SonarQube Community Build 26.11
+
+### Bug Fixes
+
+* the image leaves an installed jar alone when it is already current
+* an Azure DevOps request gives up after 30 seconds
+* the GitLab pipeline status reports total coverage
+* the branch screens keep their layout on SonarQube 26.11
+* the Docker images start from SonarQube Community Build 26.11
+* update the libraries it is built on
+
 ## 27.2.0 (2026-11-06)
 
 ### Features

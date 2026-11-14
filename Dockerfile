@@ -5,7 +5,7 @@
 # entrypoint copies it by that name.
 ARG SONARQUBE_VERSION="26.11.0.134175-community"
 ARG SONARQUBE_DIGEST="sha256:1ce197471f5f2bac347694a336862fd2c23e9f57c6edb46acebbfbe70f2c7d9c"
-ARG PLUGIN_VERSION="27.2.0"
+ARG PLUGIN_VERSION="27.3.0"
 ARG WORKDIR="/home/build/project"
 
 # The Gradle the wrapper pins, on the JDK gradle-daemon-jvm.properties names, running the suite before it packages the jar.
