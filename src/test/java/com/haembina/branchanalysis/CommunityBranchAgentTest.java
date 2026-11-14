@@ -194,7 +194,7 @@ class CommunityBranchAgentTest {
         verify(instrumentation).retransformClasses(MultipleAlmFeature.class);
         verify(instrumentation, times(4)).addTransformer(classFileTransformerArgumentCaptor.capture());
 
-        byte[] input = new byte[]{1, 2, 3, 4, 5, 6};
+        byte[] input = {1, 2, 3, 4, 5, 6};
         byte[] result = classFileTransformerArgumentCaptor.getValue().transform(getClass().getClassLoader(), "com/github/com/haembina/Dummy", getClass(), getClass().getProtectionDomain(), input);
 
         assertThat(result).isEqualTo(input);
@@ -210,7 +210,7 @@ class CommunityBranchAgentTest {
         verify(instrumentation).retransformClasses(PlatformEditionProvider.class);
         verify(instrumentation, times(3)).addTransformer(classFileTransformerArgumentCaptor.capture());
 
-        byte[] input = new byte[]{1, 2, 3, 4, 5, 6};
+        byte[] input = {1, 2, 3, 4, 5, 6};
         byte[] result = classFileTransformerArgumentCaptor.getValue().transform(getClass().getClassLoader(), "com/github/com/haembina/Dummy", getClass(), getClass().getProtectionDomain(), input);
 
         assertThat(result).isEqualTo(input);
@@ -236,7 +236,7 @@ class CommunityBranchAgentTest {
             ArgumentCaptor<ClassFileTransformer> transformers = ArgumentCaptor.captor();
             verify(instrumentation, times(3)).addTransformer(transformers.capture());
 
-            byte[] input = new byte[]{1, 2, 3};
+            byte[] input = {1, 2, 3};
             byte[] result = transformers.getAllValues().get(2).transform(getClass().getClassLoader(), target.replace('.', '/'), getClass(), getClass().getProtectionDomain(), input);
 
             assertThat(result).isSameAs(input);
