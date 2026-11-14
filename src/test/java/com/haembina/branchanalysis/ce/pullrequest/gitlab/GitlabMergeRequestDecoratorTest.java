@@ -139,7 +139,7 @@ class GitlabMergeRequestDecoratorTest extends GitlabMergeRequestDecoratorFixture
 
         when(analysisSummary.format(any())).thenReturn("Different Summary comment");
         when(analysisSummary.getDashboardUrl()).thenReturn("https://sonarqube2.dummy/dashboard?id=projectKey&pullRequest=123");
-        when(analysisSummary.getNewCoverage()).thenReturn(BigDecimal.TEN);
+        when(analysisSummary.getTotalCoverage()).thenReturn(BigDecimal.TEN);
 
         Discussion discussion = mock();
         when(discussion.getId()).thenReturn("dicussion id 2");
@@ -170,7 +170,7 @@ class GitlabMergeRequestDecoratorTest extends GitlabMergeRequestDecoratorFixture
 
         when(analysisSummary.format(any())).thenReturn("Different Summary comment");
         when(analysisSummary.getDashboardUrl()).thenReturn("https://sonarqube2.dummy/dashboard?id=projectKey&pullRequest=123");
-        when(analysisSummary.getNewCoverage()).thenReturn(BigDecimal.TEN);
+        when(analysisSummary.getTotalCoverage()).thenReturn(BigDecimal.TEN);
 
         Discussion discussion = mock();
         when(discussion.getId()).thenReturn("dicussion id 2");
