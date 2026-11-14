@@ -55,11 +55,11 @@ in build.gradle names. SonarSource neither makes nor supports this plugin.
 
 ## What this fork adds
 
-A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [e59bb80](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/e59bb80e563fe5224b361726889e0ea9b9bd7ee0).
+A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [742b4c0](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/742b4c0010ae38a88085f627219527558a688733).
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| Compatible SonarQube Community Build | 26.5.0.122743 | 26.11.0.134175 |
+| Compatible SonarQube Community Build | 26.10.0.133078 | 26.11.0.134175 |
 | CI detection | Seven CI systems, always on | Twelve, adding Woodpecker, Buildkite, CircleCI, TeamCity and Drone; com.haembina.branchanalysis.auto-configuration.enabled switches it off |
 | GitHub issues | Check run annotations | Optionally a comment on each new issue's line, resolved once fixed |
 | Summary comment | Reposted each analysis | Edited in place, optionally skipped on a clean pass |
@@ -67,7 +67,7 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 | Gitea and Forgejo | Unsupported | A commit status and a summary comment |
 | Install mistakes | Unexplained | The log names a missing javaagent line; a banner names mismatched jar and webapp releases |
 | Java coverage | Reported | The build fails under its floor, in lines and branches |
-| Branch page tests | None | Jest under the same floor, Playwright against a running SonarQube |
+| Branch page tests | Page-load checks | Jest under the same floor, Playwright against a running SonarQube |
 | Accessibility | Unchecked | Audits of every page and dialog, keyboard specs, a spec per unaudited criterion |
 | Release gate | The build | Publishes only after a real SonarQube analyses main, a branch and a pull request |
 | Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
