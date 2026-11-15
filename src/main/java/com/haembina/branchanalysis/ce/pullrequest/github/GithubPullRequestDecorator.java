@@ -20,8 +20,8 @@
 package com.haembina.branchanalysis.ce.pullrequest.github;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -291,13 +291,7 @@ public class GithubPullRequestDecorator extends DiscussionAwarePullRequestDecora
                                     boolean createIfMissing) throws IOException {
         String projectCommentMarker = markdownFormatterFactory.documentFormatter().format(new Document(new Bold(new Text("Project ID:")), new Text(" " + projectId)));
 
-        List<GHIssueComment> summaryComments = new ArrayList<>();
-        for (GHIssueComment comment : pullRequest.getComments()) {
-            if (connection.isAppLogin(comment.getUser().getLogin())
-                && (comment.getBody().contains(projectCommentMarker + "\n") || comment.getBody().contains(projectCommentMarker + "\r"))) {
-                summaryComments.add(comment);
-            }
-        }
+        List<GHIssueComment> summaryComments = summaryComments(connection, pullRequest, projectCommentMarker);
 
         if (summaryComments.isEmpty()) {
             if (createIfMissing) {
@@ -312,6 +306,26 @@ public class GithubPullRequestDecorator extends DiscussionAwarePullRequestDecora
         }
         for (GHIssueComment duplicate : summaryComments.subList(1, summaryComments.size())) {
             duplicate.delete();
+        }
+    }
+
+    private static List<GHIssueComment> summaryComments(GithubConnection connection, GHPullRequest pullRequest,
+                                                        String projectCommentMarker) throws IOException {
+        try {
+            return pullRequest.getComments().stream()
+                .filter(comment -> isAppComment(connection, comment))
+                .filter(comment -> comment.getBody().contains(projectCommentMarker + "\n") || comment.getBody().contains(projectCommentMarker + "\r"))
+                .toList();
+        } catch (UncheckedIOException ex) {
+            throw ex.getCause();
+        }
+    }
+
+    private static boolean isAppComment(GithubConnection connection, GHIssueComment comment) {
+        try {
+            return connection.isAppLogin(comment.getUser().getLogin());
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 
