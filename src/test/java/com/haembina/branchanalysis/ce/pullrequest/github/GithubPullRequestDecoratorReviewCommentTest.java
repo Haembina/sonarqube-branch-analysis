@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.kohsuke.github.GHCheckRunBuilder;
+import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestCommitDetail;
 import org.kohsuke.github.GHPullRequestReviewCommentBuilder;
@@ -276,14 +277,28 @@ class GithubPullRequestDecoratorReviewCommentTest {
 
     @Test
     void shouldReportASummaryCommentGithubRefused() throws IOException {
+        enableSummaryComment();
+        when(pullRequest.getComments()).thenThrow(new IOException("dummy"));
+
+        assertDecorationFails("Could not submit summary comment to Github");
+    }
+
+    @Test
+    void shouldReportASummaryCommentAuthorGithubRefused() throws IOException {
+        enableSummaryComment();
+        GHIssueComment comment = mock();
+        when(comment.getUser()).thenThrow(new IOException("dummy"));
+        when(pullRequest.getComments()).thenReturn(List.of(comment));
+
+        assertDecorationFails("Could not submit summary comment to Github");
+    }
+
+    private void enableSummaryComment() {
         when(decorationSettings.isGithubInlineCommentsEnabled()).thenReturn(false);
         when(projectAlmSettingDto.getSummaryCommentEnabled()).thenReturn(true);
         Formatter<Document> documentFormatter = mock();
         when(documentFormatter.format(any())).thenReturn("**Project ID:** project-key");
         when(markdownFormatterFactory.documentFormatter()).thenReturn(documentFormatter);
-        when(pullRequest.getComments()).thenThrow(new IOException("dummy"));
-
-        assertDecorationFails("Could not submit summary comment to Github");
     }
 
     private void assertDecorationFails(String message) {
