@@ -27,28 +27,19 @@ pages filter, rename, delete in bulk and set the main branch.
 </td>
 <td width="50%" valign="top">
 <img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
-GitHub check runs, line comments and summary comments, GitLab discussions,
-Bitbucket Code Insights reports, Azure DevOps threads, and Gitea or Forgejo
-statuses and comments.
+Decorates pull requests on GitHub, GitLab, Bitbucket, Azure DevOps, Gitea and
+Forgejo.
 </td>
 </tr>
 <tr>
 <td valign="top">
 <img src="icons/readme/bolt.svg" width="20" alt=""> <b>CI detection</b><br>
-Detects the branch or pull request in GitHub Actions, GitLab CI, Jenkins and
-every other CI system docs/guide.md lists. One setting switches it off.
+Reads the branch or pull request from 12 CI systems; one setting switches it
+off.
 </td>
 <td valign="top">
 <img src="icons/readme/device-desktop.svg" width="20" alt=""> <b>Branch pages</b><br>
-Restores the branch and pull request pages the Community Build's webapp dropped,
-as a webapp that replaces SonarQube's own.
-</td>
-</tr>
-<tr>
-<td valign="top">
-<img src="icons/readme/alert-triangle.svg" width="20" alt=""> <b>One supported build</b><br>
-Each release supports only the SonarQube Community Build that sonarqubeVersion
-in build.gradle names. SonarSource neither makes nor supports this plugin.
+Restores the branch and pull request pages the Community Build's webapp dropped.
 </td>
 </tr>
 </table>
@@ -57,22 +48,61 @@ in build.gradle names. SonarSource neither makes nor supports this plugin.
 
 A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [742b4c0](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/742b4c0010ae38a88085f627219527558a688733).
 
+<details open>
+<summary><b>SonarQube</b></summary>
+
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| Compatible SonarQube Community Build | 26.10.0.133078 | 26.11.0.134175 |
-| CI detection | Seven CI systems, always on | Twelve, adding Woodpecker, Buildkite, CircleCI, TeamCity and Drone; com.haembina.branchanalysis.auto-configuration.enabled switches it off |
-| GitHub issues | Check run annotations | Optionally a comment on each new issue's line, resolved once fixed |
-| Summary comment | Reposted each analysis | Edited in place, optionally skipped on a clean pass |
-| Branch quality gate | Pull requests only | Optionally a GitHub check or GitLab status per branch |
+| Community Build it runs on | 26.10.0.133078 | 26.11.0.134175 |
+
+</details>
+
+<details open>
+<summary><b>CI detection</b></summary>
+
+| What | mc1arke's plugin | This fork |
+| --- | --- | --- |
+| CI systems read | 7: GitHub Actions, GitLab CI, Jenkins, Azure Pipelines, Bitbucket Pipelines, Cirrus CI, Codemagic | 12: those 7, plus Woodpecker, Buildkite, CircleCI, TeamCity and Drone |
+| Switching it off | Not possible | `com.haembina.branchanalysis.auto-configuration.enabled=false` |
+
+</details>
+
+<details open>
+<summary><b>Pull request decoration</b></summary>
+
+| What | mc1arke's plugin | This fork |
+| --- | --- | --- |
+| GitHub issues | Check run annotations | Optionally also a comment on each new issue's line, resolved once fixed |
+| Summary comment | Reposted each analysis | Edited in place; optionally skipped on a clean pass |
+| Branch quality gate | Pull requests only | Optionally a GitHub check run or GitLab commit status on each branch |
 | Gitea and Forgejo | Unsupported | A commit status and a summary comment |
-| Install mistakes | Unexplained | The log names a missing javaagent line; a banner names mismatched jar and webapp releases |
-| Java coverage | Reported | The build fails under its floor, in lines and branches |
-| Branch page tests | Page-load checks | Jest under the same floor, Playwright against a running SonarQube |
-| Accessibility | Unchecked | Audits of every page and dialog, keyboard specs, a spec per unaudited criterion |
-| Release gate | The build | Publishes only after a real SonarQube analyses main, a branch and a pull request |
-| Mutation testing | PIT configured | PIT weekly in CI, and Stryker over the branch pages |
-| Java compiler | javac warnings | Error Prone and javac lint, every finding an error |
-| Branch pages | As SonarSource left them | Long names wrap, narrow screens reflow, focus returns from dialogs, controls carry names, errors show a toast; a name filter and bulk delete |
+
+</details>
+
+<details open>
+<summary><b>Branch pages</b></summary>
+
+| What | mc1arke's plugin | This fork |
+| --- | --- | --- |
+| Layout | As SonarSource left them | Long names wrap; narrow screens reflow |
+| Keyboard and screen readers | As SonarSource left them | Focus returns from dialogs; every control has a name |
+| Managing branches | As SonarSource left them | Also a name filter and bulk delete; errors show a toast |
+| Install mistakes | Unexplained | The log names a missing javaagent line; a banner names a jar and webapp from different releases |
+
+</details>
+
+<details open>
+<summary><b>How it is tested</b></summary>
+
+| What | mc1arke's plugin | This fork |
+| --- | --- | --- |
+| Java | Coverage reported; javac warnings | Build fails under its line and branch floor; Error Prone and javac lint findings are errors |
+| Branch pages | Page-load checks | Jest under the same floor; Playwright against a running SonarQube |
+| Accessibility | Unchecked | Every page and dialog audited; keyboard specs; a spec per criterion no audit covers |
+| Mutation testing | PIT configured | PIT weekly in CI; Stryker over the branch pages |
+| Release | Published from the build | Published only after a real SonarQube analyzes main, a branch and a pull request |
+
+</details>
 
 ## How it works
 
@@ -110,8 +140,8 @@ flowchart TD
 
 1. Set SONARQUBE_VERSION, SONARQUBE_DIGEST, DOCKERFILE, PLUGIN_VERSION and
    SONARQUBE_PORT in .env; the version and digest change together.
-2. DOCKERFILE picks Dockerfile, which builds from source, or release.Dockerfile,
-   which downloads the release PLUGIN_VERSION names.
+2. DOCKERFILE picks Dockerfile (from source) or release.Dockerfile (the
+   PLUGIN_VERSION release).
 3. Start SonarQube and its PostgreSQL database with docker-compose.yml.
 4. Or pull a release image,
    `ghcr.io/haembina/haembina-branch-analysis:<version>`.
@@ -186,24 +216,22 @@ extraInitContainers:
 
 ```text
 .
-├── .devcontainer/            The dev container, on the image CI builds in
-├── .github/                  The workflows and Renovate settings
+├── .devcontainer/            Dev container on CI's image
+├── .github/                  Workflows and Renovate settings
 ├── .vscode/                  Editor settings and extensions
 ├── LICENSES/                 License texts, by SPDX identifier
 ├── config/                   CodeNarc rules for the Gradle scripts
 ├── deploy/                   Helm values for SonarSource's SonarQube chart
-├── docker/                   The image's entrypoint and release scripts, each
-│                             tested
-├── docs/                     The guide and the project documents
+├── docker/                   Image entrypoint and release scripts
+├── docs/                     Guide and project documents
 ├── e2e/                      Playwright and accessibility specs over the branch
 │                             pages
-├── gradle/                   The Gradle wrapper
-├── icons/                    The icons the documents show
+├── gradle/                   Gradle wrapper
+├── icons/                    Icons the documents show
 ├── scripts/                  Integration test, coverage run and install script
-├── sonarqube-webapp-addons/  The branch pages, linked into the sonarqube-webapp
+├── sonarqube-webapp-addons/  Branch pages, linked into the sonarqube-webapp
 │                             submodule
-└── src/                      The Java agent, plugin and ALM clients, with their
-                              JUnit suite
+└── src/                      Java agent, plugin, ALM clients and JUnit suite
 ```
 
 </details>
