@@ -1,8 +1,19 @@
 diff --git a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
-index b984c14..b7fa578 100644
+index b984c14..36708cd 100644
 --- a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
 +++ b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
-@@ -48,10 +48,13 @@ import { getProjectQueryUrl } from '~sq-server-commons/helpers/urls';
+@@ -29,9 +29,7 @@ import {
+ } from '@sonarsource/echoes-react';
+ import { isEmpty } from 'lodash';
+ import { FormattedMessage, useIntl } from 'react-intl';
+-import { QualityGateIndicator, SeparatorCircleIcon } from '~design-system';
+-import DateFromNow from '~shared/components/intl/DateFromNow';
+-import DateTimeFormatter from '~shared/components/intl/DateTimeFormatter';
++import { QualityGateIndicator } from '~design-system';
+ import { Tags } from '~shared/components/tags/Tags';
+ import { isDefined, isStringDefined } from '~shared/helpers/types';
+ import { getProjectOverviewUrl } from '~shared/helpers/urls';
+@@ -48,10 +46,13 @@ import { getProjectQueryUrl } from '~sq-server-commons/helpers/urls';
  import Measure from '~sq-server-commons/sonar-aligned/components/measure/Measure';
  import { formatMeasure } from '~sq-server-commons/sonar-aligned/helpers/measures';
  import { isLoggedIn } from '~sq-server-commons/types/users';
@@ -11,17 +22,251 @@ index b984c14..b7fa578 100644
  import ProjectCardLanguages from './ProjectCardLanguages';
  import ProjectCardMeasures from './ProjectCardMeasures';
  
-+const ProjectFreshness = addons.projectFreshness?.ProjectFreshness ?? (() => null);
++const ProjectAnalyses = addons.projectCard?.ProjectAnalyses ?? (() => null);
 +
  interface ProjectCardProps {
    project: Project;
    type?: string;
-@@ -182,6 +185,8 @@ function CardInfo({ project, isNewCode }: Readonly<ProjectCardSectionProps>) {
-           </DateTimeFormatter>
+@@ -164,82 +165,51 @@ function CardInfo({ project, isNewCode }: Readonly<ProjectCardSectionProps>) {
+     >
+       <Text
+         as="div"
+-        className="sw:flex sw:max-w-full sw:flex-wrap sw:items-center sw:min-w-0"
++        className="sw:flex sw:max-w-full sw:flex-col sw:items-start sw:gap-1 sw:min-w-0"
+         isSubtle
+       >
+         {isDefined(analysisDate) && analysisDate !== '' && (
+-          <DateTimeFormatter date={analysisDate}>
+-            {(formattedAnalysisDate) => (
+-              <span className="sw:typo-semibold" title={formattedAnalysisDate}>
+-                <FormattedMessage
+-                  id="projects.last_analysis_on_x"
+-                  values={{
+-                    date: <DateFromNow className="sw:typo-default" date={analysisDate} />,
+-                  }}
+-                />
+-              </span>
+-            )}
+-          </DateTimeFormatter>
++          <ProjectAnalyses analysisDate={analysisDate} projectKey={key} />
          )}
  
-+        <ProjectFreshness projectKey={key} />
+-        {isNewCode
+-          ? measures[MetricKey.new_ncloc] != null && (
+-              <>
+-                <SeparatorCircleIcon className="sw:mx-1" />
+-
+-                <div>
+-                  <span className="sw:typo-semibold sw:mr-1" data-key={MetricKey.new_ncloc}>
+-                    <Measure
+-                      componentKey={key}
+-                      metricKey={MetricKey.new_ncloc}
+-                      metricType={MetricType.ShortInteger}
+-                      value={measures.new_ncloc}
+-                    />
+-                  </span>
+-
+-                  <span className="sw:typo-default">
+-                    <FormattedMessage id="metric.new_ncloc.name" />
+-                  </span>
+-                </div>
+-              </>
+-            )
+-          : measures[MetricKey.ncloc] != null && (
+-              <>
+-                <SeparatorCircleIcon className="sw:mx-1" />
+-
+-                <div>
+-                  <span className="sw:typo-semibold sw:mr-1" data-key={MetricKey.ncloc}>
+-                    <Measure
+-                      componentKey={key}
+-                      metricKey={MetricKey.ncloc}
+-                      metricType={MetricType.ShortInteger}
+-                      value={measures.ncloc}
+-                    />
+-                  </span>
++        {tags.length > 0 && <Tags className="sw:typo-default" tags={tags} tagsToDisplay={2} />}
++      </Text>
++      {hasAiCodeAssurance && <AICodeAssuranceStatus aiCodeAssuranceStatus={aiCodeAssurance} />}
++    </div>
++  );
++}
+ 
+-                  <span className="sw:typo-default">
+-                    <FormattedMessage id="metric.ncloc.name" />
+-                  </span>
+-                </div>
++function CardSize({ project, isNewCode }: Readonly<ProjectCardSectionProps>) {
++  const { key, measures } = project;
++  const metricKey = isNewCode ? MetricKey.new_ncloc : MetricKey.ncloc;
+ 
+-                <SeparatorCircleIcon className="sw:mx-1" />
++  if (measures[metricKey] == null) {
++    return null;
++  }
+ 
+-                <span className="sw:typo-default" data-key={MetricKey.ncloc_language_distribution}>
+-                  <ProjectCardLanguages distribution={measures.ncloc_language_distribution} />
+-                </span>
+-              </>
+-            )}
++  return (
++    <Text as="div" className="sw:flex sw:flex-col sw:items-end sw:gap-1" isSubtle>
++      <div>
++        <span className="sw:typo-semibold sw:mr-1" data-key={metricKey}>
++          <Measure
++            componentKey={key}
++            metricKey={metricKey}
++            metricType={MetricType.ShortInteger}
++            value={measures[metricKey]}
++          />
++        </span>
+ 
+-        {tags.length > 0 && (
+-          <>
+-            <SeparatorCircleIcon className="sw:mx-1" />
++        <span className="sw:typo-default">
++          <FormattedMessage id={`metric.${metricKey}.name`} />
++        </span>
++      </div>
+ 
+-            <Tags className="sw:typo-default" tags={tags} tagsToDisplay={2} />
+-          </>
+-        )}
+-      </Text>
+-      {hasAiCodeAssurance && <AICodeAssuranceStatus aiCodeAssuranceStatus={aiCodeAssurance} />}
+-    </div>
++      {!isNewCode && (
++        <span className="sw:typo-default" data-key={MetricKey.ncloc_language_distribution}>
++          <ProjectCardLanguages distribution={measures.ncloc_language_distribution} />
++        </span>
++      )}
++    </Text>
+   );
+ }
+ 
+@@ -300,18 +270,21 @@ export default function ProjectCard(props: Readonly<ProjectCardProps>) {
+         hasDivider
+         rightContent={
+           isStringDefined(project.analysisDate) && (
+-            <Tooltip
+-              content={
+-                <FormattedMessage id="overview.quality_gate_x" values={{ status: formatted }} />
+-              }
+-            >
+-              <span className="sw:flex sw:items-center">
+-                <QualityGateIndicator
+-                  status={(project.measures[MetricKey.alert_status] as QGStatus) ?? 'NONE'}
+-                />
+-                <Text className="sw:ml-2 sw:font-semibold">{formatted}</Text>
+-              </span>
+-            </Tooltip>
++            <div className="sw:flex sw:flex-col sw:items-end sw:gap-2">
++              <Tooltip
++                content={
++                  <FormattedMessage id="overview.quality_gate_x" values={{ status: formatted }} />
++                }
++              >
++                <span className="sw:flex sw:items-center">
++                  <QualityGateIndicator
++                    status={(project.measures[MetricKey.alert_status] as QGStatus) ?? 'NONE'}
++                  />
++                  <Text className="sw:ml-2 sw:font-semibold">{formatted}</Text>
++                </span>
++              </Tooltip>
++              <CardSize isNewCode={isNewCode} project={project} />
++            </div>
+           )
+         }
+         title={<CardTitle isNewCode={isNewCode} project={project} />}
+diff --git a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasure.tsx b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasure.tsx
+index c688469..c6c18fd 100644
+--- a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasure.tsx
++++ b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasure.tsx
+@@ -20,27 +20,41 @@
+ 
+ import classNames from 'classnames';
+ import * as React from 'react';
++import { Link, To } from 'react-router';
+ 
+ export interface ProjectCardMeasureProps {
+   className?: string;
+   label: string;
+   metricKey: string;
++  to?: To;
+ }
+ 
+ export default function ProjectCardMeasure(
+   props: React.PropsWithChildren<ProjectCardMeasureProps>,
+ ) {
+-  const { label, metricKey, children, className } = props;
++  const { label, metricKey, children, className, to } = props;
 +
-         {isNewCode
-           ? measures[MetricKey.new_ncloc] != null && (
-               <>
++  const content = (
++    <>
++      <div className="sw:items-center sw:flex sw:justify-center">{children}</div>
++      <div className="sw:typo-default sw:mt-1 sw:whitespace-nowrap" title={label}>
++        {label}
++      </div>
++    </>
++  );
+ 
+   return (
+     <div
+       className={classNames('it__project_card_measure sw:text-center', className)}
+       data-key={metricKey}
+     >
+-      <div className="sw:items-center sw:flex sw:justify-center">{children}</div>
+-      <div className="sw:typo-default sw:mt-1 sw:whitespace-nowrap" title={label}>
+-        {label}
+-      </div>
++      {to ? (
++        <Link className="sw:block sw:text-inherit sw:no-underline sw:hover:underline" to={to}>
++          {content}
++        </Link>
++      ) : (
++        content
++      )}
+     </div>
+   );
+ }
+diff --git a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx
+index 413515e..826c65f 100644
+--- a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx
++++ b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx
+@@ -30,8 +30,11 @@ import RatingComponent from '~sq-server-commons/context/metrics/RatingComponent'
+ import { useStandardExperienceModeQuery } from '~sq-server-commons/queries/mode';
+ import Measure from '~sq-server-commons/sonar-aligned/components/measure/Measure';
+ import { Feature } from '~sq-server-commons/types/features';
++import { addons } from '~sq-server-addons/index';
+ import ProjectCardMeasure from './ProjectCardMeasure';
+ 
++const measureUrl = addons.projectCard?.measureUrl;
++
+ export interface ProjectCardMeasuresProps {
+   componentKey: string;
+   componentQualifier: ComponentQualifier;
+@@ -80,6 +83,7 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
+           key={metricKey}
+           label={formatMessage({ id: labelKey })}
+           metricKey={metricKey}
++          to={measureUrl?.(componentKey, metricKey)}
+         >
+           {metricRatingKey && (
+             <RatingComponent componentKey={componentKey} ratingMetric={metricRatingKey} />
+@@ -96,6 +100,7 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
+       <ProjectCardMeasure
+         label={formatMessage({ id: 'metric.coverage.name' })}
+         metricKey={coverageMetric}
++        to={measureUrl?.(componentKey, coverageMetric)}
+       >
+         <div>
+           {measures[coverageMetric] && <CoverageIndicator value={measures[coverageMetric]} />}
+@@ -112,6 +117,7 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
+       <ProjectCardMeasure
+         label={formatMessage({ id: 'metric.duplicated_lines_density.short_name' })}
+         metricKey={duplicationMetric}
++        to={measureUrl?.(componentKey, duplicationMetric)}
+       >
+         <div>
+           {measures[duplicationMetric] != null && (
