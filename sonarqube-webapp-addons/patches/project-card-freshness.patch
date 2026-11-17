@@ -254,15 +254,19 @@ index 413515e..826c65f 100644
          >
            {metricRatingKey && (
              <RatingComponent componentKey={componentKey} ratingMetric={metricRatingKey} />
-@@ -96,6 +100,7 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
+@@ -96,7 +100,10 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
        <ProjectCardMeasure
          label={formatMessage({ id: 'metric.coverage.name' })}
          metricKey={coverageMetric}
 +        to={measureUrl?.(componentKey, coverageMetric)}
        >
          <div>
-           {measures[coverageMetric] && <CoverageIndicator value={measures[coverageMetric]} />}
-@@ -112,6 +117,7 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
+-          {measures[coverageMetric] && <CoverageIndicator value={measures[coverageMetric]} />}
++          {measures[coverageMetric] && (
++            <CoverageIndicator aria-hidden value={measures[coverageMetric]} />
++          )}
+           <Measure
+@@ -112,8 +119,9 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
        <ProjectCardMeasure
          label={formatMessage({ id: 'metric.duplicated_lines_density.short_name' })}
          metricKey={duplicationMetric}
@@ -270,3 +274,6 @@ index 413515e..826c65f 100644
        >
          <div>
            {measures[duplicationMetric] != null && (
+-            <DuplicationsIndicator rating={duplicationRating} />
++            <DuplicationsIndicator aria-hidden rating={duplicationRating} />
+           )}
