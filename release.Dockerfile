@@ -3,11 +3,11 @@
 # SONARQUBE_VERSION and SONARQUBE_DIGEST name one image and change together, as in .env. The release writes
 # PLUGIN_VERSION here from package.json.
 ARG SONARQUBE_VERSION="26.11.0.134175-community"
-ARG SONARQUBE_DIGEST="sha256:1ce197471f5f2bac347694a336862fd2c23e9f57c6edb46acebbfbe70f2c7d9c"
+ARG SONARQUBE_DIGEST="sha256:65541accbdb92e27fe770fc6ba99988a3dd5a0c71ffafd67f88abfad366996fa"
 ARG PLUGIN_VERSION="27.3.1"
 
 # busybox's unzip unpacks the webapp, so nothing is installed.
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS downloader
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS downloader
 ARG PLUGIN_VERSION
 
 ADD https://github.com/Haembina/sonarqube-branch-analysis/releases/download/v${PLUGIN_VERSION}/sonarqube-webapp.zip /tmp/sonarqube-webapp.zip
