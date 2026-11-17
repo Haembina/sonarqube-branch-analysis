@@ -63,7 +63,12 @@ import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.Dele
 import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.ListAction;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.SupportWs;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.action.InfoWsAction;
+import com.haembina.branchanalysis.almclient.gitea.GiteaClientFactory;
 import com.haembina.branchanalysis.almclient.gitea.GiteaSettings;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleaner;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleanerSchedule;
+import com.haembina.branchanalysis.housekeeping.HousekeepingSettings;
+import com.haembina.branchanalysis.housekeeping.forge.ForgeReaderFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -171,7 +176,11 @@ class CommunityBranchPluginTest {
                 eq(DefaultAzureDevopsClientFactory.class),
                 eq(AzureDevopsValidator.class),
                 eq(InfoWsAction.class),
-                eq(SupportWs.class));
+                eq(SupportWs.class),
+                eq(GiteaClientFactory.class),
+                eq(ForgeReaderFactory.class),
+                eq(AnalysisCleaner.class),
+                eq(AnalysisCleanerSchedule.class));
 
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
         verifySettingsAdded(context);
@@ -202,7 +211,8 @@ class CommunityBranchPluginTest {
             .containsExactlyElementsOf(Stream.of(
                     Stream.of(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY),
                     DecorationSettings.definitions().stream().map(PropertyDefinition::key),
-                    Stream.of(PurgeConstants.DAYS_BEFORE_DELETING_INACTIVE_BRANCHES_AND_PRS, PurgeConstants.BRANCHES_TO_KEEP_WHEN_INACTIVE))
+                    Stream.of(HousekeepingSettings.PULL_REQUEST_DAYS_AFTER_CLOSE, HousekeepingSettings.DELETED_BRANCH_DAYS,
+                        PurgeConstants.DAYS_BEFORE_DELETING_INACTIVE_BRANCHES_AND_PRS, PurgeConstants.BRANCHES_TO_KEEP_WHEN_INACTIVE))
                 .flatMap(keys -> keys).toList());
     }
 }

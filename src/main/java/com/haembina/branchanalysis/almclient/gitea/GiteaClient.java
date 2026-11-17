@@ -20,7 +20,9 @@ package com.haembina.branchanalysis.almclient.gitea;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.gitea.model.Comment;
 import com.haembina.branchanalysis.almclient.gitea.model.CommitStatus;
 import com.haembina.branchanalysis.almclient.gitea.model.PullRequest;
@@ -39,4 +41,8 @@ public interface GiteaClient {
     void editComment(String repository, long commentId, String body) throws IOException;
 
     void setCommitStatus(String repository, String sha, CommitStatus status) throws IOException;
+
+    ChangeRequestState getPullRequestState(String repository, long index) throws IOException;
+
+    Optional<String> getBranchHead(String repository, String branch) throws IOException;
 }

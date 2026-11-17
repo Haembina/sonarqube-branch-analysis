@@ -22,7 +22,9 @@ package com.haembina.branchanalysis.almclient.bitbucket;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BitbucketConfiguration;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
@@ -44,14 +46,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 class BitbucketCloudClient implements BitbucketClient {
 
@@ -227,6 +232,38 @@ class BitbucketCloudClient implements BitbucketClient {
         try (Response response = okHttpClient.newCall(req).execute()) {
             LOGGER.debug("Got status code {} when deleting existing report with key {}", response.code(), reportKey);
             // we don't need to validate the output here since most of the time this call will just return a 404
+        }
+    }
+
+    @Override
+    public ChangeRequestState retrievePullRequestState(String pullRequestId) throws IOException {
+        Request req = new Request.Builder()
+                .get()
+                .url(format("https://api.bitbucket.org/2.0/repositories/%s/%s/pullrequests/%s", bitbucketConfiguration.getProject(), bitbucketConfiguration.getRepository(), pullRequestId))
+                .build();
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            validate(response);
+            JsonNode pullRequest = objectMapper.readTree(response.body().string());
+            if ("OPEN".equals(pullRequest.path("state").asText())) {
+                return ChangeRequestState.OPEN;
+            }
+            return ChangeRequestState.closedAt(pullRequest.path("updated_on").asText(null));
+        }
+    }
+
+    @Override
+    public Optional<String> retrieveBranchHead(String branch) throws IOException {
+        Request req = new Request.Builder()
+                .get()
+                .url(format("https://api.bitbucket.org/2.0/repositories/%s/%s/refs/branches/%s", bitbucketConfiguration.getProject(), bitbucketConfiguration.getRepository(),
+                    URLEncoder.encode(branch, StandardCharsets.UTF_8)))
+                .build();
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            if (response.code() == HTTP_NOT_FOUND) {
+                return Optional.empty();
+            }
+            validate(response);
+            return Optional.of(objectMapper.readTree(response.body().string()).path("target").path("hash").asText());
         }
     }
 

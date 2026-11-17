@@ -19,7 +19,9 @@
  */
 package com.haembina.branchanalysis.almclient.gitlab;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.gitlab.model.Commit;
 import com.haembina.branchanalysis.almclient.gitlab.model.CommitNote;
 import com.haembina.branchanalysis.almclient.gitlab.model.Discussion;
@@ -29,6 +31,7 @@ import com.haembina.branchanalysis.almclient.gitlab.model.PipelineStatus;
 import com.haembina.branchanalysis.almclient.gitlab.model.Project;
 import com.haembina.branchanalysis.almclient.gitlab.model.User;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
@@ -170,6 +173,34 @@ class GitlabRestClient implements GitlabClient {
     @Override
     public Project getProject(String projectSlug) throws IOException {
         return entity(new HttpGet(baseGitlabApiUrl + "/projects/" + URLEncoder.encode(projectSlug, StandardCharsets.UTF_8)), Project.class);
+    }
+
+    @Override
+    public ChangeRequestState getMergeRequestState(String projectSlug, long mergeRequestIid) throws IOException {
+        JsonNode mergeRequest = entity(new HttpGet(String.format("%s/projects/%s/merge_requests/%s", baseGitlabApiUrl,
+            URLEncoder.encode(projectSlug, StandardCharsets.UTF_8), mergeRequestIid)), JsonNode.class);
+        String state = mergeRequest.path("state").asText();
+        if ("merged".equals(state) || "closed".equals(state)) {
+            return ChangeRequestState.closedAt(mergeRequest.path("merged_at").asText(null), mergeRequest.path("closed_at").asText(null));
+        }
+        return ChangeRequestState.OPEN;
+    }
+
+    @Override
+    public Optional<String> getBranchHead(String projectSlug, String branch) throws IOException {
+        HttpGet request = new HttpGet(String.format("%s/projects/%s/repository/branches/%s", baseGitlabApiUrl,
+            URLEncoder.encode(projectSlug, StandardCharsets.UTF_8), URLEncoder.encode(branch, StandardCharsets.UTF_8)));
+        request.addHeader("PRIVATE-TOKEN", authToken);
+
+        try (CloseableHttpClient httpClient = httpClientFactory.get()) {
+            HttpResponse httpResponse = httpClient.execute(request);
+            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return Optional.empty();
+            }
+            validateResponse(httpResponse, HttpStatus.SC_OK, null);
+            JsonNode body = objectMapper.readTree(EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8));
+            return Optional.of(body.path("commit").path("id").asText());
+        }
     }
 
     private <X> X entity(HttpRequestBase httpRequest, Class<X> type) throws IOException {

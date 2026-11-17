@@ -19,6 +19,7 @@
  */
 package com.haembina.branchanalysis.almclient.gitlab;
 
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.gitlab.model.Commit;
 import com.haembina.branchanalysis.almclient.gitlab.model.Discussion;
 import com.haembina.branchanalysis.almclient.gitlab.model.MergeRequest;
@@ -29,6 +30,7 @@ import com.haembina.branchanalysis.almclient.gitlab.model.User;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public interface GitlabClient {
 
@@ -51,4 +53,8 @@ public interface GitlabClient {
     Project getProject(String projectSlug) throws IOException;
 
     void deleteMergeRequestDiscussionNote(long projectId, long mergeRequestIid, String discussionId, long noteId) throws IOException;
+
+    ChangeRequestState getMergeRequestState(String projectSlug, long mergeRequestIid) throws IOException;
+
+    Optional<String> getBranchHead(String projectSlug, String branch) throws IOException;
 }

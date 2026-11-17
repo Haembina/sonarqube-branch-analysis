@@ -36,6 +36,12 @@ class HousekeepingSettingsTest {
         assertThat(definition(PurgeConstants.BRANCHES_TO_KEEP_WHEN_INACTIVE).defaultValue()).isEqualTo("main,master,develop,trunk");
     }
 
+    @Test
+    void shouldKeepClosedPullRequestsAndDeletedBranchesUntilSomeoneSetsADelay() {
+        assertThat(definition(HousekeepingSettings.PULL_REQUEST_DAYS_AFTER_CLOSE).defaultValue()).isEmpty();
+        assertThat(definition(HousekeepingSettings.DELETED_BRANCH_DAYS).defaultValue()).isEmpty();
+    }
+
     private static PropertyDefinition definition(String key) {
         return HousekeepingSettings.definitions().stream()
             .filter(definition -> definition.key().equals(key))

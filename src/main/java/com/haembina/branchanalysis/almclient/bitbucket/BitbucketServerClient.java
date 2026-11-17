@@ -19,7 +19,9 @@
  */
 package com.haembina.branchanalysis.almclient.bitbucket;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
@@ -45,8 +47,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -218,6 +223,42 @@ class BitbucketServerClient implements BitbucketClient {
             try (ResponseBody responseBody = response.body()) {
                 return objectMapper.reader().forType(ServerProperties.class)
                         .readValue(responseBody.string());
+            }
+        }
+    }
+
+    @Override
+    public ChangeRequestState retrievePullRequestState(String pullRequestId) throws IOException {
+        JsonNode pullRequest = readTree(format("%s/rest/api/1.0/projects/%s/repos/%s/pull-requests/%s", config.getUrl(), config.getProject(), config.getRepository(), pullRequestId));
+        if ("OPEN".equals(pullRequest.path("state").asText())) {
+            return ChangeRequestState.OPEN;
+        }
+        return ChangeRequestState.closedAtMillis(pullRequest.path("closedDate").asLong());
+    }
+
+    @Override
+    public Optional<String> retrieveBranchHead(String branch) throws IOException {
+        JsonNode branches = readTree(format("%s/rest/api/1.0/projects/%s/repos/%s/branches?filterText=%s", config.getUrl(), config.getProject(), config.getRepository(),
+            URLEncoder.encode(branch, StandardCharsets.UTF_8)));
+        for (JsonNode candidate : branches.path("values")) {
+            if (branch.equals(candidate.path("displayId").asText())) {
+                return Optional.of(candidate.path("latestCommit").asText());
+            }
+        }
+        return Optional.empty();
+    }
+
+    private JsonNode readTree(String url) throws IOException {
+        Request req = new Request.Builder()
+                .get()
+                .header(X_ATLASSIAN_TOKEN_HEADER_NAME, NO_CHECK_HEADER_VALUE)
+                .url(url)
+                .build();
+        try (Response response = okHttpClient.newCall(req).execute()) {
+            validate(response);
+
+            try (ResponseBody responseBody = response.body()) {
+                return objectMapper.readTree(responseBody.string());
             }
         }
     }

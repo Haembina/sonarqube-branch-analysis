@@ -19,9 +19,12 @@
 package com.haembina.branchanalysis.almclient.gitea;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.apache.http.HttpEntity;
@@ -39,7 +42,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.gitea.model.Comment;
 import com.haembina.branchanalysis.almclient.gitea.model.CommitStatus;
 import com.haembina.branchanalysis.almclient.gitea.model.PullRequest;
@@ -89,6 +94,27 @@ class GiteaRestClient implements GiteaClient {
         send(new HttpPost(repositoryUrl(repository) + "/statuses/" + sha), status, HttpStatus.SC_CREATED);
     }
 
+    @Override
+    public ChangeRequestState getPullRequestState(String repository, long index) throws IOException {
+        JsonNode pullRequest = read(new HttpGet(repositoryUrl(repository) + "/pulls/" + index), new TypeReference<>() {});
+        if ("open".equals(pullRequest.path("state").asText())) {
+            return ChangeRequestState.OPEN;
+        }
+        return ChangeRequestState.closedAt(pullRequest.path("merged_at").asText(null), pullRequest.path("closed_at").asText(null));
+    }
+
+    @Override
+    public Optional<String> getBranchHead(String repository, String branch) throws IOException {
+        HttpGet request = new HttpGet(repositoryUrl(repository) + "/branches/" + URLEncoder.encode(branch, StandardCharsets.UTF_8));
+        return execute(request, Set.of(HttpStatus.SC_OK, HttpStatus.SC_NOT_FOUND), response -> {
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return Optional.empty();
+            }
+            JsonNode body = objectMapper.readTree(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8));
+            return Optional.of(body.path("commit").path("id").asText());
+        });
+    }
+
     private String repositoryUrl(String repository) {
         return apiUrl + "/repos/" + repository;
     }
@@ -104,22 +130,31 @@ class GiteaRestClient implements GiteaClient {
     }
 
     private <T> T execute(HttpRequestBase request, int expectedStatus, ResponseReader<T> reader) throws IOException {
+        return execute(request, Set.of(expectedStatus), response -> reader.read(response.getEntity()));
+    }
+
+    private <T> T execute(HttpRequestBase request, Set<Integer> expectedStatuses, ResponseHandler<T> handler) throws IOException {
         request.addHeader(HttpHeaders.AUTHORIZATION, "token " + token);
         request.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
 
         try (CloseableHttpClient httpClient = httpClientFactory.get();
              CloseableHttpResponse response = httpClient.execute(request)) {
             int status = response.getStatusLine().getStatusCode();
-            if (status != expectedStatus) {
-                throw new IllegalStateException(String.format("Gitea answered %s %s with %d, expected %d",
-                        request.getMethod(), request.getURI(), status, expectedStatus));
+            if (!expectedStatuses.contains(status)) {
+                throw new IllegalStateException(String.format("Gitea answered %s %s with %d, expected %s",
+                        request.getMethod(), request.getURI(), status, expectedStatuses));
             }
-            return reader.read(response.getEntity());
+            return handler.handle(response);
         }
     }
 
     @FunctionalInterface
     private interface ResponseReader<T> {
         T read(HttpEntity entity) throws IOException;
+    }
+
+    @FunctionalInterface
+    private interface ResponseHandler<T> {
+        T handle(CloseableHttpResponse response) throws IOException;
     }
 }

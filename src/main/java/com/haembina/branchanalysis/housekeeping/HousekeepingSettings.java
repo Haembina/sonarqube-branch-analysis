@@ -28,11 +28,34 @@ import org.sonar.core.config.PurgeConstants;
 
 public final class HousekeepingSettings {
 
+    public static final String PULL_REQUEST_DAYS_AFTER_CLOSE = "com.haembina.branchanalysis.housekeeping.pull-request-days-after-close";
+    public static final String DELETED_BRANCH_DAYS = "com.haembina.branchanalysis.housekeeping.deleted-branch-days";
+
     private HousekeepingSettings() {
     }
 
     public static List<PropertyDefinition> definitions() {
         return List.of(
+            PropertyDefinition.builder(PULL_REQUEST_DAYS_AFTER_CLOSE)
+                .name("Days after merge or close before deleting a pull request")
+                .description("Delete a pull request's analysis this many days after it is merged or closed on its forge "
+                    + "(GitHub, GitLab, Bitbucket, Azure DevOps or Gitea). 0 deletes it at the next hourly check; empty keeps it.")
+                .category(CoreProperties.CATEGORY_HOUSEKEEPING)
+                .subCategory(CoreProperties.SUBCATEGORY_BRANCHES_AND_PULL_REQUESTS)
+                .type(PropertyType.INTEGER)
+                .onConfigScopes(ConfigScope.PROJECT)
+                .index(3)
+                .build(),
+            PropertyDefinition.builder(DELETED_BRANCH_DAYS)
+                .name("Days before deleting a branch gone from its forge")
+                .description("Delete a branch's analysis once the branch no longer exists on its forge and has had no analysis "
+                    + "for this many days. Branches kept when inactive are never deleted. 0 deletes it at the next hourly check; empty keeps it.")
+                .category(CoreProperties.CATEGORY_HOUSEKEEPING)
+                .subCategory(CoreProperties.SUBCATEGORY_BRANCHES_AND_PULL_REQUESTS)
+                .type(PropertyType.INTEGER)
+                .onConfigScopes(ConfigScope.PROJECT)
+                .index(4)
+                .build(),
             PropertyDefinition.builder(PurgeConstants.DAYS_BEFORE_DELETING_INACTIVE_BRANCHES_AND_PRS)
                 .name("Number of days before purging inactive branches and pull requests")
                 .description("Branches and pull requests are permanently deleted when there has been no analysis for the configured number of days.")

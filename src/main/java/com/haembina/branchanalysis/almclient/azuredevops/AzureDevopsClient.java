@@ -19,6 +19,7 @@
  */
 package com.haembina.branchanalysis.almclient.azuredevops;
 
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.azuredevops.model.CommentThread;
 import com.haembina.branchanalysis.almclient.azuredevops.model.Commit;
 import com.haembina.branchanalysis.almclient.azuredevops.model.ConnectionData;
@@ -30,6 +31,7 @@ import com.haembina.branchanalysis.almclient.azuredevops.model.Repository;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public interface AzureDevopsClient {
 
@@ -54,5 +56,9 @@ public interface AzureDevopsClient {
     void deletePullRequestThreadComment(String projectName, String repositoryName, int pullRequestId, int threadId, int commentId) throws IOException;
 
     ConnectionData getConnectionData() throws IOException;
+
+    ChangeRequestState retrievePullRequestState(String projectName, String repositoryName, int pullRequestId) throws IOException;
+
+    Optional<String> retrieveBranchHead(String projectName, String repositoryName, String branch) throws IOException;
 
 }

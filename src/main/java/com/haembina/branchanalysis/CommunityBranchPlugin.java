@@ -28,7 +28,11 @@ import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
 import com.haembina.branchanalysis.ce.CommunityReportAnalysisComponentProvider;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
+import com.haembina.branchanalysis.almclient.gitea.GiteaClientFactory;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleaner;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleanerSchedule;
 import com.haembina.branchanalysis.housekeeping.HousekeepingSettings;
+import com.haembina.branchanalysis.housekeeping.forge.ForgeReaderFactory;
 import com.haembina.branchanalysis.scanner.BranchConfigurationFactory;
 import com.haembina.branchanalysis.scanner.CommunityBranchConfigurationLoader;
 import com.haembina.branchanalysis.scanner.CommunityBranchParamsValidator;
@@ -120,7 +124,12 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                     AzureDevopsValidator.class,
 
                     InfoWsAction.class,
-                    SupportWs.class);
+                    SupportWs.class,
+
+                    GiteaClientFactory.class,
+                    ForgeReaderFactory.class,
+                    AnalysisCleaner.class,
+                    AnalysisCleanerSchedule.class);
 
         }
 

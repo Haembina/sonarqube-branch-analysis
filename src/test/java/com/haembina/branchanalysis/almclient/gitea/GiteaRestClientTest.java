@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
+import java.time.Instant;
 
 import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.gitea.model.Comment;
 import com.haembina.branchanalysis.almclient.gitea.model.CommitStatus;
 import com.haembina.branchanalysis.almclient.gitea.model.PullRequest;
@@ -133,6 +135,49 @@ class GiteaRestClientTest {
         CommitStatus status = new CommitStatus(CommitStatus.State.SUCCESS, "https://sonar/dashboard", "Quality Gate passed", "SonarQube");
         assertThatThrownBy(() -> underTest.setCommitStatus("owner/repo", "abc123", status))
                 .isExactlyInstanceOf(IllegalStateException.class)
-                .hasMessage("Gitea answered POST " + wireMockExtension.baseUrl() + "/api/v1/repos/owner/repo/statuses/abc123 with 403, expected 201");
+                .hasMessage("Gitea answered POST " + wireMockExtension.baseUrl() + "/api/v1/repos/owner/repo/statuses/abc123 with 403, expected [201]");
+    }
+
+    @Test
+    void readsAnOpenPullRequestAsOpen() throws IOException {
+        wireMockExtension.stubFor(get(urlEqualTo("/api/v1/repos/owner/repo/pulls/12"))
+                .withHeader("Authorization", equalTo("token secret"))
+                .willReturn(okJson("{\"number\": 12, \"state\": \"open\", \"merged_at\": null, \"closed_at\": null}")));
+
+        assertThat(underTest.getPullRequestState("owner/repo", 12)).isEqualTo(ChangeRequestState.OPEN);
+    }
+
+    @Test
+    void readsAMergedPullRequestAsClosedWhenItMerged() throws IOException {
+        wireMockExtension.stubFor(get(urlEqualTo("/api/v1/repos/owner/repo/pulls/12"))
+                .willReturn(okJson("{\"number\": 12, \"state\": \"closed\", \"merged_at\": \"2026-10-01T10:00:00Z\","
+                        + " \"closed_at\": \"2026-10-02T10:00:00Z\"}")));
+
+        assertThat(underTest.getPullRequestState("owner/repo", 12).closedTime()).contains(Instant.parse("2026-10-01T10:00:00Z"));
+    }
+
+    @Test
+    void readsAClosedPullRequestAsClosedWhenItClosed() throws IOException {
+        wireMockExtension.stubFor(get(urlEqualTo("/api/v1/repos/owner/repo/pulls/12"))
+                .willReturn(okJson("{\"number\": 12, \"state\": \"closed\", \"merged_at\": null, \"closed_at\": \"2026-10-02T10:00:00Z\"}")));
+
+        assertThat(underTest.getPullRequestState("owner/repo", 12).closedTime()).contains(Instant.parse("2026-10-02T10:00:00Z"));
+    }
+
+    @Test
+    void readsTheCommitABranchPointsAt() throws IOException {
+        wireMockExtension.stubFor(get(urlEqualTo("/api/v1/repos/owner/repo/branches/feature%2Fone"))
+                .withHeader("Authorization", equalTo("token secret"))
+                .willReturn(okJson("{\"name\": \"feature/one\", \"commit\": {\"id\": \"abc123\"}}")));
+
+        assertThat(underTest.getBranchHead("owner/repo", "feature/one")).contains("abc123");
+    }
+
+    @Test
+    void readsNoCommitForADeletedBranch() throws IOException {
+        wireMockExtension.stubFor(get(urlEqualTo("/api/v1/repos/owner/repo/branches/gone"))
+                .willReturn(aResponse().withStatus(404)));
+
+        assertThat(underTest.getBranchHead("owner/repo", "gone")).isEmpty();
     }
 }

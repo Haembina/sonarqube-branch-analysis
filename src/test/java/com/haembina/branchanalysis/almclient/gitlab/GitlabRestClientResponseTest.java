@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -54,6 +55,7 @@ import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.gitlab.model.Commit;
 import com.haembina.branchanalysis.almclient.gitlab.model.Discussion;
 import com.haembina.branchanalysis.almclient.gitlab.model.MergeRequestNote;
@@ -249,5 +251,64 @@ class GitlabRestClientResponseTest {
                 .isExactlyInstanceOf(IllegalStateException.class)
                 .hasMessage("An unexpected response code was returned from the Gitlab API - Expected: 200, Got: 502");
         assertThat(logged.list).extracting(ILoggingEvent::getFormattedMessage).contains("Could not decode response entity");
+    }
+
+    @Test
+    void shouldReadAnOpenMergeRequestAsOpen() throws IOException {
+        CloseableHttpResponse response = json("{\"iid\":7,\"state\":\"opened\",\"merged_at\":null,\"closed_at\":null}");
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThat(underTest.getMergeRequestState("group/project", 7)).isEqualTo(ChangeRequestState.OPEN);
+
+        ArgumentCaptor<HttpUriRequest> request = ArgumentCaptor.captor();
+        verify(httpClient).execute(request.capture());
+        assertThat(request.getValue().getURI()).hasToString("http://gitlab.test/api/v4/projects/group%2Fproject/merge_requests/7");
+    }
+
+    @Test
+    void shouldReadAMergedMergeRequestAsClosedWhenItMerged() throws IOException {
+        CloseableHttpResponse response = json("{\"iid\":7,\"state\":\"merged\",\"merged_at\":\"2026-10-01T10:00:00.000Z\",\"closed_at\":null}");
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThat(underTest.getMergeRequestState("group/project", 7).closedTime()).contains(Instant.parse("2026-10-01T10:00:00Z"));
+    }
+
+    @Test
+    void shouldReadAClosedMergeRequestAsClosedWhenItClosed() throws IOException {
+        CloseableHttpResponse response = json("{\"iid\":7,\"state\":\"closed\",\"merged_at\":null,\"closed_at\":\"2026-10-02T10:00:00.000Z\"}");
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThat(underTest.getMergeRequestState("group/project", 7).closedTime()).contains(Instant.parse("2026-10-02T10:00:00Z"));
+    }
+
+    @Test
+    void shouldReadTheCommitABranchPointsAt() throws IOException {
+        CloseableHttpResponse response = json("{\"name\":\"feature/one\",\"commit\":{\"id\":\"abc123\"}}");
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThat(underTest.getBranchHead("group/project", "feature/one")).contains("abc123");
+
+        ArgumentCaptor<HttpUriRequest> request = ArgumentCaptor.captor();
+        verify(httpClient).execute(request.capture());
+        assertThat(request.getValue().getURI())
+            .hasToString("http://gitlab.test/api/v4/projects/group%2Fproject/repository/branches/feature%2Fone");
+    }
+
+    @Test
+    void shouldReadNoCommitForADeletedBranch() throws IOException {
+        CloseableHttpResponse response = response(404, new StringEntity("{\"message\":\"404 Branch Not Found\"}", StandardCharsets.UTF_8));
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThat(underTest.getBranchHead("group/project", "gone")).isEmpty();
+    }
+
+    @Test
+    void shouldThrowWhenTheBranchReadFails() throws IOException {
+        CloseableHttpResponse response = response(500, new StringEntity("", StandardCharsets.UTF_8));
+        when(httpClient.execute(any())).thenReturn(response);
+
+        assertThatThrownBy(() -> underTest.getBranchHead("group/project", "main"))
+                .isExactlyInstanceOf(IllegalStateException.class)
+                .hasMessage("An unexpected response code was returned from the Gitlab API - Expected: 200, Got: 500");
     }
 }
