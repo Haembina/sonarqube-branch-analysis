@@ -44,8 +44,11 @@ final class GithubForgeReader implements ForgeReader {
         if (pullRequest.getState() == GHIssueState.OPEN) {
             return ChangeRequestState.OPEN;
         }
-        Date closed = Optional.ofNullable(pullRequest.getMergedAt()).orElseGet(pullRequest::getClosedAt);
-        return new ChangeRequestState(closed == null ? Instant.EPOCH : closed.toInstant());
+        Instant closed = Optional.ofNullable(pullRequest.getMergedAt())
+                .or(() -> Optional.ofNullable(pullRequest.getClosedAt()))
+                .map(Date::toInstant)
+                .orElse(Instant.EPOCH);
+        return new ChangeRequestState(closed);
     }
 
     @Override
