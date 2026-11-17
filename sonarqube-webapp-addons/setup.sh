@@ -52,6 +52,19 @@ export const baseViteConfig = {
 EOF
 }
 
+function apply_patches() {
+    local patch
+    for patch in "${ADDONS_DIR}"/patches/*.patch; do
+        [[ -e "${patch}" ]] || continue
+        if git apply --reverse --check "${patch}" 2>/dev/null; then
+            echo "Already applied: $(basename "${patch}")"
+        else
+            echo "Applying $(basename "${patch}")"
+            git apply "${patch}"
+        fi
+    done
+}
+
 function main() {
     local version
     version=$(release_version)
@@ -59,6 +72,7 @@ function main() {
     echo "Copying the addons into sonarqube-webapp/libs/sq-server-addons"
     rm -rf ./libs/sq-server-addons ./.nx/workspace-data
     cp -R "${ADDONS_DIR}" ./libs/sq-server-addons
+    apply_patches
     override_vite_config "${version}"
 }
 

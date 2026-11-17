@@ -208,6 +208,9 @@ api "${SONARQUBE_URL}/api/project_pull_requests/list?project=${project_key}" \
   | jq -e '.pullRequests | any(.key == "1")' >/dev/null \
   || fail "pull request 1 is not listed"
 assert_quality_gate "pullRequest=1"
+api "${SONARQUBE_URL}/api/analysis_freshness/list?projects=${project_key}" \
+  | jq -e '.projects[0] | (.newestBranch.analysisDate and .newestPullRequest.analysisDate and .mainState == "UNKNOWN")' >/dev/null \
+  || fail "analysis_freshness gives no branch or pull request age"
 
 github_pull_request() {
   scanner_env=(-e GITHUB_ACTIONS=true -e "GITHUB_REF=refs/pull/$1/merge" -e GITHUB_HEAD_REF=feature/ci -e GITHUB_BASE_REF=main)

@@ -44,6 +44,28 @@ grep -Fq "from './vite.config.src'" "${webapp}/vite.config.base.ts"
 PLUGIN_VERSION=4.5.6 bash "${addons_root}/setup.sh" "${webapp}" "${addons}" > /dev/null
 grep -Fq "BRANCH_ANALYSIS_RELEASE: JSON.stringify('4.5.6')," "${webapp}/vite.config.base.ts"
 
+mkdir -p "${addons}/patches" "${webapp}/apps"
+printf '%s\n' "const slot = 'none';" > "${webapp}/apps/card.ts"
+cat > "${addons}/patches/card.patch" <<'PATCH'
+--- a/apps/card.ts
++++ b/apps/card.ts
+@@ -1 +1 @@
+-const slot = 'none';
++const slot = 'addon';
+PATCH
+bash "${addons_root}/setup.sh" "${webapp}" "${addons}" > /dev/null
+grep -Fq "'addon'" "${webapp}/apps/card.ts"
+
+bash "${addons_root}/setup.sh" "${webapp}" "${addons}" > /dev/null
+grep -Fq "'addon'" "${webapp}/apps/card.ts"
+
+printf '%s\n' "const slot = 'moved upstream';" > "${webapp}/apps/card.ts"
+if bash "${addons_root}/setup.sh" "${webapp}" "${addons}" > /dev/null 2>&1; then
+  echo "setup.sh went on with a patch the webapp no longer takes" >&2
+  exit 1
+fi
+rm -r "${addons}/patches"
+
 rm "${test_root}/gradle.properties"
 if bash "${addons_root}/setup.sh" "${webapp}" "${addons}" > /dev/null 2>&1; then
   echo "setup.sh copied the addons with no release version to name" >&2

@@ -17,6 +17,7 @@
  */
 
 import { addons } from './index';
+import ProjectFreshness from './project-freshness/ProjectFreshness';
 import ReleaseMismatchAlert from './release-check/ReleaseMismatchAlert';
 
 it('hands the webapp the release check, drawn as a global banner and on System Info', () => {
@@ -33,6 +34,10 @@ it('hands the webapp every branch page it reads from the registry', () => {
     'routes',
   ]);
   expect(typeof addons.branches.routes).toBe('function');
+});
+
+it('hands the projects page the freshness line each card draws', () => {
+  expect(addons.projectFreshness.ProjectFreshness).toBe(ProjectFreshness);
 });
 
 it('hands the webapp the entitlement hooks', () => {

@@ -1,0 +1,27 @@
+diff --git a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
+index b984c14..b7fa578 100644
+--- a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
++++ b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
+@@ -48,10 +48,13 @@ import { getProjectQueryUrl } from '~sq-server-commons/helpers/urls';
+ import Measure from '~sq-server-commons/sonar-aligned/components/measure/Measure';
+ import { formatMeasure } from '~sq-server-commons/sonar-aligned/helpers/measures';
+ import { isLoggedIn } from '~sq-server-commons/types/users';
++import { addons } from '~sq-server-addons/index';
+ import { Project } from '../../types';
+ import ProjectCardLanguages from './ProjectCardLanguages';
+ import ProjectCardMeasures from './ProjectCardMeasures';
+ 
++const ProjectFreshness = addons.projectFreshness?.ProjectFreshness ?? (() => null);
++
+ interface ProjectCardProps {
+   project: Project;
+   type?: string;
+@@ -182,6 +185,8 @@ function CardInfo({ project, isNewCode }: Readonly<ProjectCardSectionProps>) {
+           </DateTimeFormatter>
+         )}
+ 
++        <ProjectFreshness projectKey={key} />
++
+         {isNewCode
+           ? measures[MetricKey.new_ncloc] != null && (
+               <>
