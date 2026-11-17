@@ -6,6 +6,12 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.4.1 (2026-11-17)
+
+### Maintenance
+
+* internal housekeeping
+
 ## 27.4.0 (2026-11-17)
 
 ### Features
