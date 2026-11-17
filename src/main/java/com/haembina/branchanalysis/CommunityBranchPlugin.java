@@ -53,6 +53,8 @@ import com.haembina.branchanalysis.scanner.autoconfiguration.WoodpeckerAutoConfi
 import com.haembina.branchanalysis.server.CommunityBranchFeatureExtension;
 import com.haembina.branchanalysis.server.CommunityBranchSupportDelegate;
 import com.haembina.branchanalysis.server.MonoRepoFeature;
+import com.haembina.branchanalysis.server.freshness.AnalysisFreshnessWs;
+import com.haembina.branchanalysis.server.freshness.MainHeadReader;
 import com.haembina.branchanalysis.server.pullrequest.validator.AzureDevopsValidator;
 import com.haembina.branchanalysis.server.pullrequest.validator.BitbucketValidator;
 import com.haembina.branchanalysis.server.pullrequest.validator.GithubValidator;
@@ -129,7 +131,9 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                     GiteaClientFactory.class,
                     ForgeReaderFactory.class,
                     AnalysisCleaner.class,
-                    AnalysisCleanerSchedule.class);
+                    AnalysisCleanerSchedule.class,
+                    MainHeadReader.class,
+                    AnalysisFreshnessWs.class);
 
         }
 
