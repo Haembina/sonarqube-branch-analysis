@@ -6,6 +6,21 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.4.0 (2026-11-17)
+
+### Features
+
+* open main, the newest branch, the newest pull request or any measure straight from its project card
+* show each project's newest branch and pull request analysis, and when main has moved, on the projects page
+* report when each project's main, branches and pull requests were last analyzed
+* delete pull request analyses after merge or close, and branch analyses whose branch is gone
+
+### Bug Fixes
+
+* screen readers skip a project card's coverage and duplication charts, which repeat the value beside them
+* build the image from source again now that setup.sh applies the webapp patches
+* delete branches and pull requests left without an analysis for the configured days
+
 ## 27.3.1 (2026-11-15)
 
 ### Bug Fixes
