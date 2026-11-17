@@ -74,6 +74,7 @@ import org.mockito.Mockito;
 import org.sonar.api.Plugin;
 import org.sonar.api.SonarQubeSide;
 import org.sonar.api.config.PropertyDefinition;
+import org.sonar.core.config.PurgeConstants;
 import org.sonar.core.extension.CoreExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -170,9 +171,7 @@ class CommunityBranchPluginTest {
                 eq(DefaultAzureDevopsClientFactory.class),
                 eq(AzureDevopsValidator.class),
                 eq(InfoWsAction.class),
-                eq(SupportWs.class),
-                any(PropertyDefinition.class),
-                any(PropertyDefinition.class));
+                eq(SupportWs.class));
 
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
         verifySettingsAdded(context);
@@ -197,12 +196,13 @@ class CommunityBranchPluginTest {
 
     private static void verifySettingsAdded(CoreExtension.Context context) {
         ArgumentCaptor<Collection<PropertyDefinition>> definitionsCaptor = ArgumentCaptor.captor();
-        verify(context, times(2)).addExtensions(definitionsCaptor.capture());
-        List<String> decorationKeys = DecorationSettings.definitions().stream().map(PropertyDefinition::key).toList();
+        verify(context, times(3)).addExtensions(definitionsCaptor.capture());
         assertThat(definitionsCaptor.getAllValues())
             .flatExtracting(definitions -> definitions.stream().map(PropertyDefinition::key).toList())
-            .containsExactlyElementsOf(Stream.concat(
-                Stream.of(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY),
-                decorationKeys.stream()).toList());
+            .containsExactlyElementsOf(Stream.of(
+                    Stream.of(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY),
+                    DecorationSettings.definitions().stream().map(PropertyDefinition::key),
+                    Stream.of(PurgeConstants.DAYS_BEFORE_DELETING_INACTIVE_BRANCHES_AND_PRS, PurgeConstants.BRANCHES_TO_KEEP_WHEN_INACTIVE))
+                .flatMap(keys -> keys).toList());
     }
 }
