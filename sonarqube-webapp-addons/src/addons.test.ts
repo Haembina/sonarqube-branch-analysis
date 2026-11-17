@@ -17,6 +17,8 @@
  */
 
 import { addons } from './index';
+import { measureUrl } from './project-freshness/measure-url.helper';
+import ProjectAnalyses from './project-freshness/ProjectAnalyses';
 import ReleaseMismatchAlert from './release-check/ReleaseMismatchAlert';
 
 it('hands the webapp the release check, drawn as a global banner and on System Info', () => {
@@ -33,6 +35,11 @@ it('hands the webapp every branch page it reads from the registry', () => {
     'routes',
   ]);
   expect(typeof addons.branches.routes).toBe('function');
+});
+
+it('hands the projects page the analysis rows and measure links each card draws', () => {
+  expect(addons.projectCard.ProjectAnalyses).toBe(ProjectAnalyses);
+  expect(addons.projectCard.measureUrl).toBe(measureUrl);
 });
 
 it('hands the webapp the entitlement hooks', () => {

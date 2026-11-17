@@ -91,6 +91,7 @@ flowchart LR
   an Nx library.
 - `setup.sh` copies it into SonarSource's `sonarqube-webapp` submodule as
   `libs/sq-server-addons`, and wraps the submodule's `vite.config.base.ts`.
+- It applies `sonarqube-webapp-addons/patches`, failing on one that no longer applies.
 - A copy, since Nx walks no symlink: linked addons are in no build hash.
 - The wrapper's relative `outDir` makes a cache hit restore
   `apps/sq-server/build/webapp`.
@@ -99,8 +100,7 @@ flowchart LR
 - The release publishes the built webapp as `sonarqube-webapp.zip`, which
   replaces SonarQube's `web` directory.
 - The submodule is pinned to the Community Build tag the plugin compiles
-  against, so a jar and a webapp from one release always match. Move the
-  submodule and `sonarqubeVersion` together.
+  against, so a jar and a webapp from one release always match.
 - `install-error-boundary.adapter.ts` adds the page-wide error handler SonarQube's webapp lacks.
   A rejected `Response` is skipped, because SonarQube's API layer has shown it.
 
@@ -112,7 +112,7 @@ flowchart LR
   downloads into `sonarqube-lib`.
 - `verifySonarqubeVersion` fails the Gradle check when `.env` or a Dockerfile
   names another SonarQube build or digest than `build.gradle` and `.env`.
-- `package.json` holds the version and the npm tooling around the Gradle build.
+- `package.json` holds the version and the npm tooling.
 - `npm run test:coverage` checks the submodule out, runs the addons' suite, and
   removes it again, so a dependency audit reads only this repository's
   lockfiles. It sets `NX_DAEMON=false`, since Nx's daemon holds the submodule

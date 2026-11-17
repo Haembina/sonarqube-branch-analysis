@@ -25,11 +25,13 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.sonar.api.ce.ComputeEngineSide;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.server.ServerSide;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.haembina.branchanalysis.InvalidConfigurationException;
 
+@ServerSide
 @ComputeEngineSide
 public class GiteaClientFactory {
 

@@ -21,6 +21,7 @@ package com.haembina.branchanalysis.almclient.bitbucket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
@@ -476,7 +477,58 @@ class BitbucketServerClientUnitTest {
                 Arguments.of("retrieveRepository", (ServerCall) BitbucketServerClient::retrieveRepository),
                 Arguments.of("submitBuildStatus", (ServerCall) client -> client.submitBuildStatus("commit",
                         new BuildStatus(BuildStatus.State.FAILED, "key", "name", "url"))),
-                Arguments.of("getServerProperties", (ServerCall) BitbucketServerClient::getServerProperties));
+                Arguments.of("getServerProperties", (ServerCall) BitbucketServerClient::getServerProperties),
+                Arguments.of("retrievePullRequestState", (ServerCall) client -> client.retrievePullRequestState("5")),
+                Arguments.of("retrieveBranchHead", (ServerCall) client -> client.retrieveBranchHead("main")));
+    }
+
+    private void respondWith(String json) throws IOException {
+        Call call = mock();
+        Response response = mock();
+        ResponseBody responseBody = mock();
+        when(client.newCall(any())).thenReturn(call);
+        when(call.execute()).thenReturn(response);
+        when(response.isSuccessful()).thenReturn(true);
+        when(response.body()).thenReturn(responseBody);
+        when(responseBody.string()).thenReturn(json);
+    }
+
+    private Request sentRequest() {
+        ArgumentCaptor<Request> captor = ArgumentCaptor.captor();
+        verify(client).newCall(captor.capture());
+        return captor.getValue();
+    }
+
+    @Test
+    void shouldReadAnOpenPullRequestAsOpen() throws IOException {
+        respondWith("{\"id\":5,\"state\":\"OPEN\"}");
+
+        assertThat(underTest.retrievePullRequestState("5")).isEqualTo(ChangeRequestState.OPEN);
+        assertEquals("https://my-server.org/rest/api/1.0/projects/project/repos/repository/pull-requests/5", sentRequest().url().toString());
+    }
+
+    @Test
+    void shouldReadAMergedPullRequestAsClosedWhenItClosed() throws IOException {
+        respondWith("{\"id\":5,\"state\":\"MERGED\",\"closedDate\":1759312800000}");
+
+        assertThat(underTest.retrievePullRequestState("5").closedTime()).contains(Instant.ofEpochMilli(1_759_312_800_000L));
+    }
+
+    @Test
+    void shouldReadTheCommitOfTheBranchNamedExactly() throws IOException {
+        respondWith("{\"values\":[{\"displayId\":\"feature/one-more\",\"latestCommit\":\"other\"},"
+                + "{\"displayId\":\"feature/one\",\"latestCommit\":\"abc123\"}]}");
+
+        assertThat(underTest.retrieveBranchHead("feature/one")).contains("abc123");
+        assertEquals("https://my-server.org/rest/api/1.0/projects/project/repos/repository/branches?filterText=feature%2Fone",
+                sentRequest().url().toString());
+    }
+
+    @Test
+    void shouldReadNoCommitForADeletedBranch() throws IOException {
+        respondWith("{\"values\":[]}");
+
+        assertThat(underTest.retrieveBranchHead("gone")).isEmpty();
     }
 
     @ParameterizedTest(name = "{0}")

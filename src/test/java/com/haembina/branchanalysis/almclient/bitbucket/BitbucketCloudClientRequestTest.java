@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BitbucketConfiguration;
 import com.haembina.branchanalysis.almclient.bitbucket.model.cloud.CloudAnnotation;
 
@@ -152,5 +154,53 @@ class BitbucketCloudClientRequestTest {
 
         assertThat(logged.list).extracting(ILoggingEvent::getFormattedMessage)
                 .anySatisfy(message -> assertThat(message).startsWith("Create annotations: An error occurred whilst converting annotations to JSON: ").endsWith(": cyclic"));
+    }
+
+    private BitbucketCloudClient cloudClient() {
+        return new BitbucketCloudClient(new ObjectMapper(), httpClient, new BitbucketConfiguration("workspace", "repository"));
+    }
+
+    @Test
+    void shouldReadAnOpenPullRequestAsOpen() throws IOException {
+        when(response.isSuccessful()).thenReturn(true);
+        when(body.string()).thenReturn("{\"id\":5,\"state\":\"OPEN\"}");
+
+        assertThat(cloudClient().retrievePullRequestState("5")).isEqualTo(ChangeRequestState.OPEN);
+        assertThat(sentRequest().url()).hasToString("https://api.bitbucket.org/2.0/repositories/workspace/repository/pullrequests/5");
+    }
+
+    @Test
+    void shouldReadADeclinedPullRequestAsClosedWhenItWasLastUpdated() throws IOException {
+        when(response.isSuccessful()).thenReturn(true);
+        when(body.string()).thenReturn("{\"id\":5,\"state\":\"DECLINED\",\"updated_on\":\"2026-10-01T10:00:00.000000+00:00\"}");
+
+        assertThat(cloudClient().retrievePullRequestState("5").closedTime()).contains(Instant.parse("2026-10-01T10:00:00Z"));
+    }
+
+    @Test
+    void shouldReadTheCommitABranchPointsAt() throws IOException {
+        when(response.code()).thenReturn(200);
+        when(response.isSuccessful()).thenReturn(true);
+        when(body.string()).thenReturn("{\"name\":\"feature/one\",\"target\":{\"hash\":\"abc123\"}}");
+
+        assertThat(cloudClient().retrieveBranchHead("feature/one")).contains("abc123");
+        assertThat(sentRequest().url()).hasToString("https://api.bitbucket.org/2.0/repositories/workspace/repository/refs/branches/feature%2Fone");
+    }
+
+    @Test
+    void shouldReadNoCommitForADeletedBranch() throws IOException {
+        when(response.code()).thenReturn(404);
+
+        assertThat(cloudClient().retrieveBranchHead("gone")).isEmpty();
+    }
+
+    @Test
+    void shouldThrowWhenTheBranchReadFails() throws IOException {
+        when(response.code()).thenReturn(500);
+        when(response.isSuccessful()).thenReturn(false);
+        when(body.string()).thenReturn("down");
+
+        BitbucketCloudClient underTest = cloudClient();
+        assertThatThrownBy(() -> underTest.retrieveBranchHead("main")).isInstanceOf(BitbucketCloudException.class);
     }
 }

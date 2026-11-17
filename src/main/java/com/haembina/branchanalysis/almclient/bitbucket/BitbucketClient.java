@@ -19,6 +19,7 @@
  */
 package com.haembina.branchanalysis.almclient.bitbucket;
 
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.bitbucket.model.AnnotationUploadLimit;
 import com.haembina.branchanalysis.almclient.bitbucket.model.BuildStatus;
 import com.haembina.branchanalysis.almclient.bitbucket.model.CodeInsightsAnnotation;
@@ -31,6 +32,7 @@ import com.haembina.branchanalysis.almclient.bitbucket.model.Repository;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface BitbucketClient {
@@ -124,4 +126,8 @@ public interface BitbucketClient {
      * @return the key modified to make it the right length or remove invalid characters
      */
     String normaliseReportKey(String reportKey);
+
+    ChangeRequestState retrievePullRequestState(String pullRequestId) throws IOException;
+
+    Optional<String> retrieveBranchHead(String branch) throws IOException;
 }

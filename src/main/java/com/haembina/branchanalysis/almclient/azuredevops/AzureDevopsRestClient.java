@@ -19,7 +19,9 @@
  */
 package com.haembina.branchanalysis.almclient.azuredevops;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.azuredevops.model.CommentThread;
 import com.haembina.branchanalysis.almclient.azuredevops.model.CommentThreadResponse;
 import com.haembina.branchanalysis.almclient.azuredevops.model.Commit;
@@ -145,6 +147,29 @@ public class AzureDevopsRestClient implements AzureDevopsClient {
         return Objects.requireNonNull(execute(url, "get", null, ConnectionData.class));
     }
 
+
+    @Override
+    public ChangeRequestState retrievePullRequestState(String projectId, String repositoryName, int pullRequestId) throws IOException {
+        String url = String.format("%s/%s/_apis/git/repositories/%s/pullRequests/%s?api-version=%s", apiUrl, encode(projectId), encode(repositoryName), pullRequestId, API_VERSION);
+        JsonNode pullRequest = Objects.requireNonNull(execute(url, "get", null, JsonNode.class));
+        if ("active".equals(pullRequest.path("status").asText())) {
+            return ChangeRequestState.OPEN;
+        }
+        return ChangeRequestState.closedAt(pullRequest.path("closedDate").asText(null));
+    }
+
+    @Override
+    public Optional<String> retrieveBranchHead(String projectId, String repositoryName, String branch) throws IOException {
+        String url = String.format("%s/%s/_apis/git/repositories/%s/refs?filter=%s&api-version=%s", apiUrl, encode(projectId), encode(repositoryName), encode("heads/" + branch), API_VERSION);
+        JsonNode refs = Objects.requireNonNull(execute(url, "get", null, JsonNode.class));
+        String name = "refs/heads/" + branch;
+        for (JsonNode ref : refs.path("value")) {
+            if (name.equals(ref.path("name").asText())) {
+                return Optional.of(ref.path("objectId").asText());
+            }
+        }
+        return Optional.empty();
+    }
 
     private <T> T execute(String url, String method, String content, Class<T> type) throws IOException {
         RequestBuilder requestBuilder = RequestBuilder.create(method.toUpperCase(Locale.ENGLISH))

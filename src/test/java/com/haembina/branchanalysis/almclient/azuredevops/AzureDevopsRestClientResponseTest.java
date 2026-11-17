@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -48,6 +49,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.haembina.branchanalysis.almclient.ChangeRequestState;
 import com.haembina.branchanalysis.almclient.azuredevops.model.CommentThread;
 import com.haembina.branchanalysis.almclient.azuredevops.model.Commit;
 import com.haembina.branchanalysis.almclient.azuredevops.model.enums.CommentThreadStatus;
@@ -174,5 +176,36 @@ class AzureDevopsRestClientResponseTest {
         assertThatThrownBy(() -> underTest.getRepository("prj", "repo"))
                 .isExactlyInstanceOf(IllegalStateException.class)
                 .hasMessage("An unexpected response code was returned from the Azure Devops API - Expected: 200, Got: 502");
+    }
+
+    @Test
+    void shouldReadAnActivePullRequestAsOpen() throws IOException {
+        respondWithJson("{\"pullRequestId\":5,\"status\":\"active\"}");
+
+        assertThat(underTest.retrievePullRequestState("prj", "repo", 5)).isEqualTo(ChangeRequestState.OPEN);
+        assertThat(sentRequest().getUri()).isEqualTo(URI.create("http://test.url/prj/_apis/git/repositories/repo/pullRequests/5?api-version=4.1"));
+    }
+
+    @Test
+    void shouldReadACompletedPullRequestAsClosedWhenItClosed() throws IOException {
+        respondWithJson("{\"pullRequestId\":5,\"status\":\"completed\",\"closedDate\":\"2026-10-01T10:00:00.123Z\"}");
+
+        assertThat(underTest.retrievePullRequestState("prj", "repo", 5).closedTime()).contains(Instant.parse("2026-10-01T10:00:00.123Z"));
+    }
+
+    @Test
+    void shouldReadTheCommitOfTheBranchNamedExactly() throws IOException {
+        respondWithJson("{\"value\":[{\"name\":\"refs/heads/main-old\",\"objectId\":\"old\"},{\"name\":\"refs/heads/main\",\"objectId\":\"abc123\"}]}");
+
+        assertThat(underTest.retrieveBranchHead("prj", "repo", "main")).contains("abc123");
+        assertThat(sentRequest().getUri())
+            .isEqualTo(URI.create("http://test.url/prj/_apis/git/repositories/repo/refs?filter=heads%2Fmain&api-version=4.1"));
+    }
+
+    @Test
+    void shouldReadNoCommitForADeletedBranch() throws IOException {
+        respondWithJson("{\"value\":[{\"name\":\"refs/heads/gone-too\",\"objectId\":\"other\"}]}");
+
+        assertThat(underTest.retrieveBranchHead("prj", "repo", "gone")).isEmpty();
     }
 }

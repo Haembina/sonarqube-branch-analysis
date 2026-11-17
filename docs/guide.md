@@ -146,6 +146,17 @@ A scan naming no branch or pull request reads them from the CI it runs in:
 curl -u "$SONAR_ADMIN_TOKEN:" -X POST "$SONAR_HOST_URL/api/settings/set" -d key=com.haembina.branchanalysis.auto-configuration.enabled -d value=false
 ```
 
+### Delete merged and deleted work
+
+- Administration, Housekeeping, Branches and Pull Requests holds two delays,
+  empty by default, checked hourly against the project's forge.
+- A pull request goes that many days after it merges or closes.
+- A branch goes once its forge no longer has it and it has had no analysis
+  for that many days.
+- Their keys, for `api/settings/set`:
+  `com.haembina.branchanalysis.housekeeping.pull-request-days-after-close` and
+  `com.haembina.branchanalysis.housekeeping.deleted-branch-days`.
+
 ## Upgrade
 
 A release's level says what an administrator does:

@@ -28,6 +28,11 @@ import com.haembina.branchanalysis.almclient.gitlab.DefaultGitlabClientFactory;
 import com.haembina.branchanalysis.almclient.gitlab.DefaultLinkHeaderReader;
 import com.haembina.branchanalysis.ce.CommunityReportAnalysisComponentProvider;
 import com.haembina.branchanalysis.ce.pullrequest.DecorationSettings;
+import com.haembina.branchanalysis.almclient.gitea.GiteaClientFactory;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleaner;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleanerSchedule;
+import com.haembina.branchanalysis.housekeeping.HousekeepingSettings;
+import com.haembina.branchanalysis.housekeeping.forge.ForgeReaderFactory;
 import com.haembina.branchanalysis.scanner.BranchConfigurationFactory;
 import com.haembina.branchanalysis.scanner.CommunityBranchConfigurationLoader;
 import com.haembina.branchanalysis.scanner.CommunityBranchParamsValidator;
@@ -48,6 +53,8 @@ import com.haembina.branchanalysis.scanner.autoconfiguration.WoodpeckerAutoConfi
 import com.haembina.branchanalysis.server.CommunityBranchFeatureExtension;
 import com.haembina.branchanalysis.server.CommunityBranchSupportDelegate;
 import com.haembina.branchanalysis.server.MonoRepoFeature;
+import com.haembina.branchanalysis.server.freshness.AnalysisFreshnessWs;
+import com.haembina.branchanalysis.server.freshness.MainHeadReader;
 import com.haembina.branchanalysis.server.pullrequest.validator.AzureDevopsValidator;
 import com.haembina.branchanalysis.server.pullrequest.validator.BitbucketValidator;
 import com.haembina.branchanalysis.server.pullrequest.validator.GithubValidator;
@@ -70,7 +77,6 @@ import org.sonar.api.PropertyType;
 import org.sonar.api.SonarQubeSide;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.PropertyDefinition.ConfigScope;
-import org.sonar.core.config.PurgeConstants;
 import org.sonar.core.extension.CoreExtension;
 
 /**
@@ -122,38 +128,12 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                     InfoWsAction.class,
                     SupportWs.class,
 
-                /* org.sonar.db.purge.PurgeConfiguration uses the value for the this property if it's configured, so it only
-                needs to be specified here, but doesn't need any additional classes to perform the relevant purge/cleanup
-                */
-                                  PropertyDefinition
-                                          .builder(PurgeConstants.DAYS_BEFORE_DELETING_INACTIVE_BRANCHES_AND_PRS)
-                                          .name("Number of days before purging inactive branches and pull requests")
-                                          .description(
-                                                  "Branches and pull requests are permanently deleted when there has been no analysis for the configured number of days.")
-                                          .category(CoreProperties.CATEGORY_HOUSEKEEPING)
-                                          .subCategory(CoreProperties.SUBCATEGORY_BRANCHES_AND_PULL_REQUESTS).defaultValue("30")
-                                          .type(PropertyType.INTEGER)
-                                          .index(1)
-                                          .build()
-                                  ,
-
-                                  PropertyDefinition
-                                          .builder(PurgeConstants.BRANCHES_TO_KEEP_WHEN_INACTIVE)
-                                          .name("Branches to keep when inactive")
-                                          .description("By default, branches and pull requests are automatically deleted when inactive. This setting allows you "
-                                                + "to protect branches (but not pull requests) from this deletion. When a branch is created with a name that "
-                                                + "matches any of the regular expressions on the list of values of this setting, the branch will not be deleted "
-                                                + "automatically even when it becomes inactive. Example:"
-                                                + "<ul><li>develop</li><li>release-.*</li></ul>")
-                                          .category(CoreProperties.CATEGORY_HOUSEKEEPING)
-                                          .subCategory(CoreProperties.SUBCATEGORY_BRANCHES_AND_PULL_REQUESTS)
-                                          .multiValues(true)
-                                          .defaultValue("main,master,develop,trunk")
-                                          .onConfigScopes(ConfigScope.PROJECT)
-                                          .index(2)
-                                          .build()
-
-                                 );
+                    GiteaClientFactory.class,
+                    ForgeReaderFactory.class,
+                    AnalysisCleaner.class,
+                    AnalysisCleanerSchedule.class,
+                    MainHeadReader.class,
+                    AnalysisFreshnessWs.class);
 
         }
 
@@ -181,6 +161,7 @@ public class CommunityBranchPlugin implements Plugin, CoreExtension {
                 MonoRepoFeature.class);
             context.addExtensions(GiteaSettings.definitions());
             context.addExtensions(DecorationSettings.definitions());
+            context.addExtensions(HousekeepingSettings.definitions());
 
         }
     }

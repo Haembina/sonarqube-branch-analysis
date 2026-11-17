@@ -47,6 +47,8 @@ import com.haembina.branchanalysis.scanner.autoconfiguration.WoodpeckerAutoConfi
 import com.haembina.branchanalysis.server.CommunityBranchFeatureExtension;
 import com.haembina.branchanalysis.server.CommunityBranchSupportDelegate;
 import com.haembina.branchanalysis.server.MonoRepoFeature;
+import com.haembina.branchanalysis.server.freshness.AnalysisFreshnessWs;
+import com.haembina.branchanalysis.server.freshness.MainHeadReader;
 import com.haembina.branchanalysis.server.pullrequest.validator.AzureDevopsValidator;
 import com.haembina.branchanalysis.server.pullrequest.validator.BitbucketValidator;
 import com.haembina.branchanalysis.server.pullrequest.validator.GithubValidator;
@@ -63,7 +65,12 @@ import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.Dele
 import com.haembina.branchanalysis.server.pullrequest.ws.pullrequest.action.ListAction;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.SupportWs;
 import com.haembina.branchanalysis.server.pullrequest.ws.support.action.InfoWsAction;
+import com.haembina.branchanalysis.almclient.gitea.GiteaClientFactory;
 import com.haembina.branchanalysis.almclient.gitea.GiteaSettings;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleaner;
+import com.haembina.branchanalysis.housekeeping.AnalysisCleanerSchedule;
+import com.haembina.branchanalysis.housekeeping.HousekeepingSettings;
+import com.haembina.branchanalysis.housekeeping.forge.ForgeReaderFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -74,6 +81,7 @@ import org.mockito.Mockito;
 import org.sonar.api.Plugin;
 import org.sonar.api.SonarQubeSide;
 import org.sonar.api.config.PropertyDefinition;
+import org.sonar.core.config.PurgeConstants;
 import org.sonar.core.extension.CoreExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -147,32 +155,36 @@ class CommunityBranchPluginTest {
         testCase.load(context);
 
 
-        verify(context).addExtensions(eq(CommunityBranchFeatureExtension.class),
-                eq(CommunityBranchSupportDelegate.class),
-                eq(DeleteBindingAction.class),
-                eq(SetGithubBindingAction.class),
-                eq(SetAzureBindingAction.class),
-                eq(SetBitbucketBindingAction.class),
-                eq(SetBitbucketCloudBindingAction.class),
-                eq(SetGitlabBindingAction.class),
-                eq(ValidateBindingAction.class),
-                eq(DeleteAction.class),
-                eq(ListAction.class),
-                eq(PullRequestWs.class),
-                eq(GithubValidator.class),
-                eq(GithubClientFactory.class),
-                eq(DefaultLinkHeaderReader.class),
-                eq(HttpClientBuilderFactory.class),
-                eq(DefaultBitbucketClientFactory.class),
-                eq(BitbucketValidator.class),
-                eq(GitlabValidator.class),
-                eq(DefaultGitlabClientFactory.class),
-                eq(DefaultAzureDevopsClientFactory.class),
-                eq(AzureDevopsValidator.class),
-                eq(InfoWsAction.class),
-                eq(SupportWs.class),
-                any(PropertyDefinition.class),
-                any(PropertyDefinition.class));
+        verify(context).addExtensions(CommunityBranchFeatureExtension.class,
+                CommunityBranchSupportDelegate.class,
+                DeleteBindingAction.class,
+                SetGithubBindingAction.class,
+                SetAzureBindingAction.class,
+                SetBitbucketBindingAction.class,
+                SetBitbucketCloudBindingAction.class,
+                SetGitlabBindingAction.class,
+                ValidateBindingAction.class,
+                DeleteAction.class,
+                ListAction.class,
+                PullRequestWs.class,
+                GithubValidator.class,
+                GithubClientFactory.class,
+                DefaultLinkHeaderReader.class,
+                HttpClientBuilderFactory.class,
+                DefaultBitbucketClientFactory.class,
+                BitbucketValidator.class,
+                GitlabValidator.class,
+                DefaultGitlabClientFactory.class,
+                DefaultAzureDevopsClientFactory.class,
+                AzureDevopsValidator.class,
+                InfoWsAction.class,
+                SupportWs.class,
+                GiteaClientFactory.class,
+                ForgeReaderFactory.class,
+                AnalysisCleaner.class,
+                AnalysisCleanerSchedule.class,
+                MainHeadReader.class,
+                AnalysisFreshnessWs.class);
 
         verify(context).addExtensions(any(PropertyDefinition.class), any(PropertyDefinition.class), eq(MonoRepoFeature.class));
         verifySettingsAdded(context);
@@ -197,12 +209,14 @@ class CommunityBranchPluginTest {
 
     private static void verifySettingsAdded(CoreExtension.Context context) {
         ArgumentCaptor<Collection<PropertyDefinition>> definitionsCaptor = ArgumentCaptor.captor();
-        verify(context, times(2)).addExtensions(definitionsCaptor.capture());
-        List<String> decorationKeys = DecorationSettings.definitions().stream().map(PropertyDefinition::key).toList();
+        verify(context, times(3)).addExtensions(definitionsCaptor.capture());
         assertThat(definitionsCaptor.getAllValues())
             .flatExtracting(definitions -> definitions.stream().map(PropertyDefinition::key).toList())
-            .containsExactlyElementsOf(Stream.concat(
-                Stream.of(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY),
-                decorationKeys.stream()).toList());
+            .containsExactlyElementsOf(Stream.of(
+                    Stream.of(GiteaSettings.URL, GiteaSettings.TOKEN, GiteaSettings.REPOSITORY),
+                    DecorationSettings.definitions().stream().map(PropertyDefinition::key),
+                    Stream.of(HousekeepingSettings.PULL_REQUEST_DAYS_AFTER_CLOSE, HousekeepingSettings.DELETED_BRANCH_DAYS,
+                        PurgeConstants.DAYS_BEFORE_DELETING_INACTIVE_BRANCHES_AND_PRS, PurgeConstants.BRANCHES_TO_KEEP_WHEN_INACTIVE))
+                .flatMap(keys -> keys).toList());
     }
 }
