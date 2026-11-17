@@ -55,15 +55,19 @@ async function flush(): Promise<void> {
   const batch = pending;
   pending = new Map();
   const keys = [...batch.keys()];
-  for (let start = 0; start < keys.length; start += MAX_PROJECTS_PER_REQUEST) {
-    const slice = keys.slice(start, start + MAX_PROJECTS_PER_REQUEST);
-    try {
-      const answers = await request(slice);
-      slice.forEach((key) => batch.get(key)?.forEach(({ resolve }) => resolve(answers.get(key) ?? null)));
-    } catch (error) {
-      slice.forEach((key) => batch.get(key)?.forEach(({ reject }) => reject(error)));
-    }
-  }
+  const slices = Array.from({ length: Math.ceil(keys.length / MAX_PROJECTS_PER_REQUEST) }, (_, index) =>
+    keys.slice(index * MAX_PROJECTS_PER_REQUEST, (index + 1) * MAX_PROJECTS_PER_REQUEST),
+  );
+  await Promise.all(
+    slices.map(async (slice) => {
+      try {
+        const answers = await request(slice);
+        slice.forEach((key) => batch.get(key)?.forEach(({ resolve }) => resolve(answers.get(key) ?? null)));
+      } catch (error) {
+        slice.forEach((key) => batch.get(key)?.forEach(({ reject }) => reject(error)));
+      }
+    }),
+  );
 }
 
 export function loadProjectFreshness(key: string): Promise<ProjectFreshness | null> {

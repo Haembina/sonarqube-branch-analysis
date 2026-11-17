@@ -60,6 +60,7 @@ import java.util.function.Supplier;
 class GitlabRestClient implements GitlabClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GitlabRestClient.class);
+    private static final String TOKEN_HEADER = "PRIVATE-TOKEN";
 
     private final String baseGitlabApiUrl;
     private final String authToken;
@@ -190,7 +191,7 @@ class GitlabRestClient implements GitlabClient {
     public Optional<String> getBranchHead(String projectSlug, String branch) throws IOException {
         HttpGet request = new HttpGet(String.format("%s/projects/%s/repository/branches/%s", baseGitlabApiUrl,
             URLEncoder.encode(projectSlug, StandardCharsets.UTF_8), URLEncoder.encode(branch, StandardCharsets.UTF_8)));
-        request.addHeader("PRIVATE-TOKEN", authToken);
+        request.addHeader(TOKEN_HEADER, authToken);
 
         try (CloseableHttpClient httpClient = httpClientFactory.get()) {
             HttpResponse httpResponse = httpClient.execute(request);
@@ -211,7 +212,7 @@ class GitlabRestClient implements GitlabClient {
     }
 
     private <X> X entity(HttpRequestBase httpRequest, Class<X> type, Consumer<HttpResponse> responseValidator) throws IOException {
-        httpRequest.addHeader("PRIVATE-TOKEN", authToken);
+        httpRequest.addHeader(TOKEN_HEADER, authToken);
 
         try (CloseableHttpClient httpClient = httpClientFactory.get()) {
             HttpResponse httpResponse = httpClient.execute(httpRequest);
@@ -227,7 +228,7 @@ class GitlabRestClient implements GitlabClient {
     }
 
     private <X> List<X> entities(HttpGet httpRequest, Class<X> type, Consumer<HttpResponse> responseValidator) throws IOException {
-        httpRequest.addHeader("PRIVATE-TOKEN", authToken);
+        httpRequest.addHeader(TOKEN_HEADER, authToken);
 
         try (CloseableHttpClient httpClient = httpClientFactory.get()) {
             HttpResponse httpResponse = httpClient.execute(httpRequest);
