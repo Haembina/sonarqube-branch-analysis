@@ -4,14 +4,14 @@
 # jar's version, which the release writes here from package.json; the build names the jar after it and the
 # entrypoint copies it by that name.
 ARG SONARQUBE_VERSION="26.11.0.134175-community"
-ARG SONARQUBE_DIGEST="sha256:1ce197471f5f2bac347694a336862fd2c23e9f57c6edb46acebbfbe70f2c7d9c"
+ARG SONARQUBE_DIGEST="sha256:65541accbdb92e27fe770fc6ba99988a3dd5a0c71ffafd67f88abfad366996fa"
 ARG PLUGIN_VERSION="27.3.1"
 ARG WORKDIR="/home/build/project"
 
 # The Gradle the wrapper pins, on the JDK gradle-daemon-jvm.properties names, running the suite before it packages the jar.
 # verifySonarqubeVersion compares .env, README.md and these Dockerfiles, none of which this stage copies;
 # CI's Gradle build runs it.
-FROM eclipse-temurin:25-jdk-noble@sha256:7247bd8d2aeec64efe908dc72396d88101417d24ce3642703728382d96afb965 AS builder
+FROM eclipse-temurin:25-jdk-noble@sha256:80f67fb3d6f76e2d817d98a4cc2a9cf05f054d4e6adc5e2144bde671d722e63f AS builder
 ARG PLUGIN_VERSION
 ARG WORKDIR
 
