@@ -194,13 +194,16 @@ class GitlabRestClient implements GitlabClient {
 
         try (CloseableHttpClient httpClient = httpClientFactory.get()) {
             HttpResponse httpResponse = httpClient.execute(request);
-            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                return Optional.empty();
-            }
-            validateResponse(httpResponse, HttpStatus.SC_OK, null);
-            JsonNode body = objectMapper.readTree(EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8));
-            return Optional.of(body.path("commit").path("id").asText());
+            return httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND
+                ? Optional.empty()
+                : Optional.of(commitId(httpResponse));
         }
+    }
+
+    private String commitId(HttpResponse httpResponse) throws IOException {
+        validateResponse(httpResponse, HttpStatus.SC_OK, null);
+        JsonNode body = objectMapper.readTree(EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8));
+        return body.path("commit").path("id").asText();
     }
 
     private <X> X entity(HttpRequestBase httpRequest, Class<X> type) throws IOException {

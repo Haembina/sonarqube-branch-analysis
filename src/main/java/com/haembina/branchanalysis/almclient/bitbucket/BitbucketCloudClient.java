@@ -244,10 +244,9 @@ class BitbucketCloudClient implements BitbucketClient {
         try (Response response = okHttpClient.newCall(req).execute()) {
             validate(response);
             JsonNode pullRequest = objectMapper.readTree(response.body().string());
-            if ("OPEN".equals(pullRequest.path("state").asText())) {
-                return ChangeRequestState.OPEN;
-            }
-            return ChangeRequestState.closedAt(pullRequest.path("updated_on").asText(null));
+            return "OPEN".equals(pullRequest.path("state").asText())
+                ? ChangeRequestState.OPEN
+                : ChangeRequestState.closedAt(pullRequest.path("updated_on").asText(null));
         }
     }
 
@@ -259,12 +258,13 @@ class BitbucketCloudClient implements BitbucketClient {
                     URLEncoder.encode(branch, StandardCharsets.UTF_8)))
                 .build();
         try (Response response = okHttpClient.newCall(req).execute()) {
-            if (response.code() == HTTP_NOT_FOUND) {
-                return Optional.empty();
-            }
-            validate(response);
-            return Optional.of(objectMapper.readTree(response.body().string()).path("target").path("hash").asText());
+            return response.code() == HTTP_NOT_FOUND ? Optional.empty() : Optional.of(branchHash(response));
         }
+    }
+
+    private String branchHash(Response response) throws IOException {
+        validate(response);
+        return objectMapper.readTree(response.body().string()).path("target").path("hash").asText();
     }
 
     void validate(Response response) throws IOException {
