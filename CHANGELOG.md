@@ -6,6 +6,12 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.4.4 (2026-11-18)
+
+### Bug Fixes
+
+* Marketplace, System, Code and bubble chart layouts keep their half widths on SonarQube 26.11
+
 ## 27.4.3 (2026-11-18)
 
 ### Bug Fixes
