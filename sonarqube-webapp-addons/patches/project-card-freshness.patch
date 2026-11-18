@@ -1,5 +1,5 @@
 diff --git a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
-index b984c14..6fa6a57 100644
+index b984c14..cea2b81 100644
 --- a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
 +++ b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
 @@ -29,9 +29,7 @@ import {
@@ -33,7 +33,7 @@ index b984c14..6fa6a57 100644
    return (
      <div
 -      className="sw:flex sw:justify-between sw:items-center sw:mt-3"
-+      className="sw:flex sw:justify-between sw:items-center"
++      className="sw:flex sw:justify-between sw:items-center sw:mt-1"
        data-testid="project-card-description"
      >
        <Text
