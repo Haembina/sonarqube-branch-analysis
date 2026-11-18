@@ -1,0 +1,18 @@
+diff --git a/apps/sq-server/src/styles/tailwind.css b/apps/sq-server/src/styles/tailwind.css
+index e835dfb..c6cc623 100644
+--- a/apps/sq-server/src/styles/tailwind.css
++++ b/apps/sq-server/src/styles/tailwind.css
+@@ -21,6 +21,13 @@
+ @import 'tailwindcss/utilities.css' prefix(sw);
+ 
+ @config '../../../../libs/sq-server-commons/config/tailwind/tailwind.config.js';
++
++@theme inline {
++  --max-width-1\/2: 50%;
++  --inset-1\/2: 50%;
++  --translate-1\/2: 50%;
++  --flex-basis-1\/2: 50%;
++}
+ @source "../";
+ @source "../../../../libs";
+ @source "../../../../private/libs";
