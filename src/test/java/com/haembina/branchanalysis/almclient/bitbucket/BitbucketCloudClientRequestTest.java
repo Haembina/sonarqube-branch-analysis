@@ -178,6 +178,15 @@ class BitbucketCloudClientRequestTest {
     }
 
     @Test
+    void shouldThrowWhenThePullRequestReadFails() throws IOException {
+        when(response.isSuccessful()).thenReturn(false);
+        when(body.string()).thenReturn("down");
+
+        BitbucketCloudClient underTest = cloudClient();
+        assertThatThrownBy(() -> underTest.retrievePullRequestState("5")).isInstanceOf(BitbucketCloudException.class);
+    }
+
+    @Test
     void shouldReadTheCommitABranchPointsAt() throws IOException {
         when(response.code()).thenReturn(200);
         when(response.isSuccessful()).thenReturn(true);

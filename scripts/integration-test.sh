@@ -125,6 +125,7 @@ docker exec -u root "${container}" sh -c "chmod -R a+rX /opt/sonarqube/web '${pl
   'sonar.web.javaAdditionalOpts=-javaagent:${plugin_path}=web' \
   'sonar.ce.javaAdditionalOpts=-javaagent:${plugin_path}=ce' >> /opt/sonarqube/conf/sonar.properties"
 docker restart --time 60 "${container}" >/dev/null
+candidate_since=$(docker exec "${container}" date '+%Y.%m.%d %H:%M:%S')
 if [ -z "${owned_container}" ]; then
   SONARQUBE_PORT=$(docker port "${container}" 9000/tcp | head -n 1 | sed 's/.*://')
   SONARQUBE_URL="http://localhost:${SONARQUBE_PORT}"
@@ -235,7 +236,8 @@ if pull_request_listed 8; then
   fail "the scan became pull request 8 although CI detection was switched off"
 fi
 
-errors=$(docker exec "${container}" sh -c 'grep -h " ERROR " /opt/sonarqube/logs/web.log /opt/sonarqube/logs/ce.log || true')
+errors=$(docker exec "${container}" sh -c 'grep -h " ERROR " /opt/sonarqube/logs/web.log /opt/sonarqube/logs/ce.log || true' \
+  | awk -v since="${candidate_since}" 'substr($0, 1, 19) >= since')
 if [ -n "${errors}" ]; then
   fail "SonarQube logged errors:
 ${errors}"
