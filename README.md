@@ -22,8 +22,7 @@ works](#how-it-works) · [Setup](#setup-and-use) · [Docker](#docker) ·
 <tr>
 <td width="50%" valign="top">
 <img src="icons/readme/git-branch.svg" width="20" alt=""> <b>Branch analysis</b><br>
-Each branch and pull request gets its own quality gate, issues and new code;
-pages filter, rename, delete in bulk and set the main branch.
+Each branch and pull request gets its own quality gate, issues and new code.
 </td>
 <td width="50%" valign="top">
 <img src="icons/readme/git-merge.svg" width="20" alt=""> <b>Pull request decoration</b><br>
@@ -34,8 +33,7 @@ Forgejo.
 <tr>
 <td valign="top">
 <img src="icons/readme/bolt.svg" width="20" alt=""> <b>CI detection</b><br>
-Reads the branch or pull request from 12 CI systems; one setting switches it
-off.
+Reads the branch or pull request from 12 CI systems.
 </td>
 <td valign="top">
 <img src="icons/readme/device-desktop.svg" width="20" alt=""> <b>Branch pages</b><br>
@@ -46,16 +44,7 @@ Restores the branch and pull request pages the Community Build's webapp dropped.
 
 ## What this fork adds
 
-A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [742b4c0](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/742b4c0010ae38a88085f627219527558a688733).
-
-<details open>
-<summary><b>SonarQube</b></summary>
-
-| What | mc1arke's plugin | This fork |
-| --- | --- | --- |
-| Community Build it runs on | 26.10.0.133078 | 26.11.0.134175 |
-
-</details>
+A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-branch-plugin), compared at [5f2ace3](https://github.com/mc1arke/sonarqube-community-branch-plugin/commit/5f2ace321b1a3021fc2703c1396c8f82b6946073).
 
 <details open>
 <summary><b>CI detection</b></summary>
@@ -72,7 +61,7 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| GitHub issues | Check run annotations | Optionally also a comment on each new issue's line, resolved once fixed |
+| GitHub issues | Check run annotations | Optionally a line comment per new issue, resolved once fixed |
 | Summary comment | Reposted each analysis | Edited in place; optionally skipped on a clean pass |
 | Branch quality gate | Pull requests only | Optionally a GitHub check run or GitLab commit status on each branch |
 | Gitea and Forgejo | Unsupported | A commit status and a summary comment |
@@ -80,14 +69,26 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 </details>
 
 <details open>
-<summary><b>Branch pages</b></summary>
+<summary><b>Branch and project pages</b></summary>
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
 | Layout | As SonarSource left them | Long names wrap; narrow screens reflow |
 | Keyboard and screen readers | As SonarSource left them | Focus returns from dialogs; every control has a name |
 | Managing branches | As SonarSource left them | Also a name filter and bulk delete; errors show a toast |
-| Install mistakes | Unexplained | The log names a missing javaagent line; a banner names a jar and webapp from different releases |
+| Install mistakes | Unexplained | The log names a missing javaagent line; a banner flags a mismatched jar and webapp |
+| Project card | As SonarSource left it | Links to main, the newest branch and pull request, and each measure's issues |
+| Freshness | Not shown | Last analysis of main, branches and pull requests; whether main moved since |
+
+</details>
+
+<details open>
+<summary><b>Housekeeping</b></summary>
+
+| What | mc1arke's plugin | This fork |
+| --- | --- | --- |
+| Inactive branches and pull requests | Its purge setting never reaches the compute engine | Purged after the set days |
+| Merged, closed or deleted | Kept | Pull requests go the set days after closing; branches once deleted |
 
 </details>
 
@@ -96,11 +97,10 @@ A fork of [mc1arke's plugin](https://github.com/mc1arke/sonarqube-community-bran
 
 | What | mc1arke's plugin | This fork |
 | --- | --- | --- |
-| Java | Coverage reported; javac warnings | Build fails under its line and branch floor; Error Prone and javac lint findings are errors |
+| Java | Coverage reported; javac warnings | Build fails under its coverage floor or on any Error Prone or javac lint finding |
 | Branch pages | Page-load checks | Jest under the same floor; Playwright against a running SonarQube |
-| Accessibility | Unchecked | Every page and dialog audited; keyboard specs; a spec per criterion no audit covers |
+| Accessibility | Unchecked | Every page and dialog audited, plus keyboard and per-criterion specs |
 | Mutation testing | PIT configured | PIT weekly in CI; Stryker over the branch pages |
-| Release | Published from the build | Published only after a real SonarQube analyzes main, a branch and a pull request |
 
 </details>
 
@@ -124,8 +124,8 @@ flowchart TD
 
 ## Setup and use
 
-1. Download the jar and sonarqube-webapp.zip from the same release: a jar and a
-   webapp from different releases break the branch pages.
+1. Download the jar and sonarqube-webapp.zip from the same release; mixed
+   releases break the branch pages.
 2. Copy the jar into SonarQube's extensions/plugins directory.
 3. In conf/sonar.properties, set
    sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=web.
@@ -140,14 +140,11 @@ flowchart TD
 
 1. Set SONARQUBE_VERSION, SONARQUBE_DIGEST, DOCKERFILE, PLUGIN_VERSION and
    SONARQUBE_PORT in .env; the version and digest change together.
-2. DOCKERFILE picks Dockerfile (from source) or release.Dockerfile (the
-   PLUGIN_VERSION release).
-3. Start SonarQube and its PostgreSQL database with docker-compose.yml.
-4. Or pull a release image,
+2. Start SonarQube and its PostgreSQL database with docker-compose.yml.
+3. Or pull a release image,
    `ghcr.io/haembina/haembina-branch-analysis:<version>`.
-5. An override of SONAR_WEB_JAVAADDITIONALOPTS or SONAR_CE_JAVAADDITIONALOPTS
-   must repeat the javaagent settings, or SonarQube stops at startup, naming the
-   line it lacks.
+4. Overriding SONAR_WEB_JAVAADDITIONALOPTS or SONAR_CE_JAVAADDITIONALOPTS must
+   keep the javaagent settings, or SonarQube stops, naming the line it lacks.
 
 | Command | What it does |
 | --- | --- |

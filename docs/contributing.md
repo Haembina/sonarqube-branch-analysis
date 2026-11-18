@@ -34,8 +34,8 @@ flowchart TD
 
 ## Setup
 
-1. Download the jar and sonarqube-webapp.zip from the same release: a jar and a
-   webapp from different releases break the branch pages.
+1. Download the jar and sonarqube-webapp.zip from the same release; mixed
+   releases break the branch pages.
 2. Copy the jar into SonarQube's extensions/plugins directory.
 3. In conf/sonar.properties, set
    sonar.web.javaAdditionalOpts=-javaagent:./extensions/plugins/haembina-branch-analysis-${version}.jar=web.
