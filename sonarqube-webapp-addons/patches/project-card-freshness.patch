@@ -1,5 +1,5 @@
 diff --git a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
-index b984c14..36708cd 100644
+index b984c14..cea2b81 100644
 --- a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
 +++ b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCard.tsx
 @@ -29,9 +29,7 @@ import {
@@ -13,7 +13,7 @@ index b984c14..36708cd 100644
  import { Tags } from '~shared/components/tags/Tags';
  import { isDefined, isStringDefined } from '~shared/helpers/types';
  import { getProjectOverviewUrl } from '~shared/helpers/urls';
-@@ -48,10 +46,13 @@ import { getProjectQueryUrl } from '~sq-server-commons/helpers/urls';
+@@ -48,10 +46,14 @@ import { getProjectQueryUrl } from '~sq-server-commons/helpers/urls';
  import Measure from '~sq-server-commons/sonar-aligned/components/measure/Measure';
  import { formatMeasure } from '~sq-server-commons/sonar-aligned/helpers/measures';
  import { isLoggedIn } from '~sq-server-commons/types/users';
@@ -23,11 +23,18 @@ index b984c14..36708cd 100644
  import ProjectCardMeasures from './ProjectCardMeasures';
  
 +const ProjectAnalyses = addons.projectCard?.ProjectAnalyses ?? (() => null);
++const Languages = addons.projectCard?.ProjectCardLanguages ?? ProjectCardLanguages;
 +
  interface ProjectCardProps {
    project: Project;
    type?: string;
-@@ -164,82 +165,51 @@ function CardInfo({ project, isNewCode }: Readonly<ProjectCardSectionProps>) {
+@@ -159,87 +161,59 @@ function CardInfo({ project, isNewCode }: Readonly<ProjectCardSectionProps>) {
+ 
+   return (
+     <div
+-      className="sw:flex sw:justify-between sw:items-center sw:mt-3"
++      className="sw:flex sw:justify-between sw:items-center sw:mt-1"
+       data-testid="project-card-description"
      >
        <Text
          as="div"
@@ -137,15 +144,18 @@ index b984c14..36708cd 100644
 -      {hasAiCodeAssurance && <AICodeAssuranceStatus aiCodeAssuranceStatus={aiCodeAssurance} />}
 -    </div>
 +      {!isNewCode && (
-+        <span className="sw:typo-default" data-key={MetricKey.ncloc_language_distribution}>
-+          <ProjectCardLanguages distribution={measures.ncloc_language_distribution} />
++        <span
++          className="sw:typo-default sw:block sw:max-w-full sw:min-w-0"
++          data-key={MetricKey.ncloc_language_distribution}
++        >
++          <Languages distribution={measures.ncloc_language_distribution} />
 +        </span>
 +      )}
 +    </Text>
    );
  }
  
-@@ -300,18 +270,21 @@ export default function ProjectCard(props: Readonly<ProjectCardProps>) {
+@@ -300,18 +274,21 @@ export default function ProjectCard(props: Readonly<ProjectCardProps>) {
          hasDivider
          rightContent={
            isStringDefined(project.analysisDate) && (
@@ -231,7 +241,7 @@ index c688469..c6c18fd 100644
    );
  }
 diff --git a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx
-index 413515e..826c65f 100644
+index 413515e..3b2c729 100644
 --- a/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx
 +++ b/apps/sq-server/src/main/js/apps/projects/components/project-card/ProjectCardMeasures.tsx
 @@ -30,8 +30,11 @@ import RatingComponent from '~sq-server-commons/context/metrics/RatingComponent'
@@ -254,7 +264,7 @@ index 413515e..826c65f 100644
          >
            {metricRatingKey && (
              <RatingComponent componentKey={componentKey} ratingMetric={metricRatingKey} />
-@@ -96,7 +100,10 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
+@@ -96,9 +100,12 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
        <ProjectCardMeasure
          label={formatMessage({ id: 'metric.coverage.name' })}
          metricKey={coverageMetric}
@@ -266,7 +276,9 @@ index 413515e..826c65f 100644
 +            <CoverageIndicator aria-hidden value={measures[coverageMetric]} />
 +          )}
            <Measure
-@@ -112,8 +119,9 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
+             className="sw:ml-2 sw:typo-lg-semibold"
+             componentKey={componentKey}
+@@ -112,10 +119,11 @@ export default function ProjectCardMeasures(props: Readonly<ProjectCardMeasuresP
        <ProjectCardMeasure
          label={formatMessage({ id: 'metric.duplicated_lines_density.short_name' })}
          metricKey={duplicationMetric}
@@ -277,3 +289,5 @@ index 413515e..826c65f 100644
 -            <DuplicationsIndicator rating={duplicationRating} />
 +            <DuplicationsIndicator aria-hidden rating={duplicationRating} />
            )}
+           <Measure
+             className="sw:ml-2 sw:typo-lg-semibold"
