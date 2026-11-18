@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -79,5 +80,18 @@ class AnalysisCleanerScheduleTest {
         underTest.stop();
 
         assertThatNoException().isThrownBy(underTest::stop);
+    }
+
+    @Test
+    void namesItsThreadAndLetsSonarQubeExitWithoutIt() throws InterruptedException {
+        Runnable work = mock();
+
+        Thread thread = AnalysisCleanerSchedule.cleanerThread(work);
+        thread.start();
+        thread.join();
+
+        assertThat(thread.getName()).isEqualTo(AnalysisCleanerSchedule.THREAD_NAME);
+        assertThat(thread.isDaemon()).isTrue();
+        verify(work).run();
     }
 }
