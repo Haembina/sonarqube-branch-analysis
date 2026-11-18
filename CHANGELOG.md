@@ -6,6 +6,13 @@ This file is written by `npm run release`, never by hand. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
+## 27.4.3 (2026-11-18)
+
+### Bug Fixes
+
+* keep a project card's main row clear of the favorite star
+* a project card lists every language that fits, close under its title
+
 ## 27.4.2 (2026-11-18)
 
 ### Maintenance
