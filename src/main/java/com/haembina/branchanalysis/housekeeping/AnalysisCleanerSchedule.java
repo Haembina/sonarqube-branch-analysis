@@ -38,12 +38,16 @@ public class AnalysisCleanerSchedule implements Startable {
     private ScheduledExecutorService executor;
     private ScheduledFuture<?> runs;
 
+    static final String THREAD_NAME = "haembina-analysis-cleaner";
+
     public AnalysisCleanerSchedule(AnalysisCleaner analysisCleaner) {
-        this(analysisCleaner, () -> Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "haembina-analysis-cleaner");
-            thread.setDaemon(true);
-            return thread;
-        }));
+        this(analysisCleaner, () -> Executors.newSingleThreadScheduledExecutor(AnalysisCleanerSchedule::cleanerThread));
+    }
+
+    static Thread cleanerThread(Runnable runnable) {
+        Thread thread = new Thread(runnable, THREAD_NAME);
+        thread.setDaemon(true);
+        return thread;
     }
 
     AnalysisCleanerSchedule(AnalysisCleaner analysisCleaner, Supplier<ScheduledExecutorService> executorFactory) {

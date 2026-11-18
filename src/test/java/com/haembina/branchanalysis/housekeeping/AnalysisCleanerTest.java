@@ -182,6 +182,19 @@ class AnalysisCleanerTest {
     }
 
     @Test
+    void deletesAGoneBranchOnTheDayItsDelayRunsOut() throws IOException {
+        settings.setProperty(HousekeepingSettings.DELETED_BRANCH_DAYS, 7);
+        BranchDto due = branch("due");
+        branches(due);
+        analyzedDaysAgo(due, 7);
+        when(forge.branchHead("due")).thenReturn(Optional.empty());
+
+        underTest.cleanAll();
+
+        verify(cleanerService).deleteBranch(dbSession, due);
+    }
+
+    @Test
     void keepsBranchesKeptWhenInactiveAndTheMainBranch() throws IOException {
         settings.setProperty(HousekeepingSettings.DELETED_BRANCH_DAYS, 0);
         settings.setProperty(HousekeepingSettings.PULL_REQUEST_DAYS_AFTER_CLOSE, 0);

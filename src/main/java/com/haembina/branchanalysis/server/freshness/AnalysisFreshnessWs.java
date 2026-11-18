@@ -104,16 +104,13 @@ public class AnalysisFreshnessWs implements WebService, RequestHandler {
         Analysis mainAnalysis = main.map(branch -> analysis(branch, analyses)).orElse(null);
         return new ProjectFreshness(project.getKey(), mainAnalysis,
             newest(branches, analyses, BranchType.BRANCH), newest(branches, analyses, BranchType.PULL_REQUEST),
-            main.map(branch -> mainState(dbSession, project, branch, analyses.get(branch.getUuid()))).orElse(MainState.UNKNOWN));
+            main.flatMap(branch -> mainState(dbSession, project, branch, analyses.get(branch.getUuid()))).orElse(MainState.UNKNOWN));
     }
 
-    private MainState mainState(DbSession dbSession, ProjectDto project, BranchDto main, SnapshotDto analysis) {
-        if (analysis == null || analysis.getRevision() == null) {
-            return MainState.UNKNOWN;
-        }
-        return mainHeadReader.read(dbSession, project, main.getKey())
-            .map(head -> head.equals(analysis.getRevision()) ? MainState.CURRENT : MainState.MOVED)
-            .orElse(MainState.UNKNOWN);
+    private Optional<MainState> mainState(DbSession dbSession, ProjectDto project, BranchDto main, SnapshotDto analysis) {
+        return Optional.ofNullable(analysis).map(SnapshotDto::getRevision)
+            .flatMap(revision -> mainHeadReader.read(dbSession, project, main.getKey())
+                .map(head -> head.equals(revision) ? MainState.CURRENT : MainState.MOVED));
     }
 
     private static Analysis newest(Collection<BranchDto> branches, Map<String, SnapshotDto> analyses, BranchType type) {

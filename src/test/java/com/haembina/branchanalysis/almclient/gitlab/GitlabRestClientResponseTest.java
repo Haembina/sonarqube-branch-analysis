@@ -292,6 +292,7 @@ class GitlabRestClientResponseTest {
         verify(httpClient).execute(request.capture());
         assertThat(request.getValue().getURI())
             .hasToString("http://gitlab.test/api/v4/projects/group%2Fproject/repository/branches/feature%2Fone");
+        assertThat(request.getValue().getFirstHeader("PRIVATE-TOKEN").getValue()).isEqualTo("token");
     }
 
     @Test
